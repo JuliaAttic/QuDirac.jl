@@ -35,13 +35,6 @@ module QuDirac
         include("bases/bases.jl")
         include("arrays/diracarrays.jl")
     
-    #############
-    # Functions #
-    #############
-        structure{S}(::AbstractQuantum{S}) = S
-        structure{S}(::Type{AbstractQuantum{S}}) = S
-        structure(::Type{AbstractQuantum}) = AbstractStructure
-
     export AbstractStructure, 
         AbstractQuantum,
         structure
