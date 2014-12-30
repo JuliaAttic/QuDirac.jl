@@ -19,12 +19,12 @@ import Base: ctranspose
 #############
 # Functions #
 #############
+    @defstructure AbstractDirac
+    @defstructure AbstractOperator
+    # @defstructure only works if the first type
+    # parameter is S<:AbstractStructure...
     structure{D,S}(::Type{AbstractState{D,S}}) = S
     structure(::Type{AbstractState}) = AbstractStructure
-    structure{S}(::Type{AbstractDirac{S}}) = S
-    structure(::Type{AbstractDirac}) = AbstractStructure
-    structure{S}(::Type{AbstractOperator{S}}) = S
-    structure(::Type{AbstractOperator}) = AbstractStructure
 
     dualtype{D,S}(::AbstractState{D,S}) = D
     dualtype{D,S}(::Type{AbstractState{D,S}}) = D

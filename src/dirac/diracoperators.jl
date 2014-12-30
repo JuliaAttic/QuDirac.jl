@@ -45,16 +45,15 @@ import Base: show,
 
     ######################
     # Accessor Functions #
-    ######################  
+    ######################
+    @defstructure DiracOperator
+
     getket(op::DiracOperator) = op.ket
     getbra(op::DiracOperator) = op.bra
 
     coefftype(op::DiracOperator) = Int
     coefftype{O<:DiracOperator}(::Type{O}) = Int
-
-    structure(::Type{DiracOperator}) = AbstractStructure
-    structure{S}(::Type{DiracOperator{S}}) = S
-
+    
     coeff(op::DiracOperator) = one(coefftype(op))
     operator(op::DiracOperator) = op
     label(op::DiracOperator) = (label(getket(op)), label(getbra(op)))

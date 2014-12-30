@@ -1,13 +1,12 @@
 module QuDirac
     
-
     using DataStructures.OrderedSet
     using QuBase
 
     import QuBase: tensor,
         structure,
-        checkcoeffs
-
+        checkcoeffs,
+        @defstructure
 
     ####################
     # String Constants #
@@ -35,8 +34,5 @@ module QuDirac
         include("bases/bases.jl")
         include("arrays/diracarrays.jl")
     
-    export AbstractStructure, 
-        AbstractQuantum,
-        structure
 end
     

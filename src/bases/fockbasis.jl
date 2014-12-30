@@ -133,8 +133,7 @@ import Base: getindex,
     ######################
     # Property Functions #
     ######################
-    structure{S}(::Type{FockBasis{S}}) = S
-    structure(::Type{FockBasis}) = AbstractStructure
+    @defstructure FockBasis
 
     labelvec(f::FockBasis) = collect(f)
     ranges(f::FockBasis) = f.ranges

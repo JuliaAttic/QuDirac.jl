@@ -69,9 +69,9 @@ import Base: getindex,
     bra(tup::Tuple, S=AbstractStructure) = bra(StateLabel(tup),S)
     bra(labels...) = bra(labels)
 
-    ################################
+    ###########################
     # AbstractState Functions #
-    ################################
+    ###########################
     # We somewhat arbitrarily 
     # default to Int as the 
     # coefficient type. Then 

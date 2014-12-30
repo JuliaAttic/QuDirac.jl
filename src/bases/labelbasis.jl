@@ -122,8 +122,7 @@ import Base:
     ######################
     # Property Functions #
     ######################
-    structure{S}(::Type{LabelBasis{S}}) = S
-    structure(::Type{LabelBasis}) = AbstractStructure
+    @defstructure LabelBasis
 
     size(basis::LabelBasis) = size(basis.labels)
     length(basis::LabelBasis) = length(basis.labels)
