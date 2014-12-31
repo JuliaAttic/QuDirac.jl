@@ -68,6 +68,8 @@ abstract DiracArray{B, T<:AbstractDirac, N} <: AbstractQuArray{B, T, N}
         return DiracVector(QuArray(coeffs, basis), D)    
     end
 
+    DiracVector(coeffs::AbstractArray) = DiracVector(coeffs, FockBasis{AbstractStructure}(length(coeffs)))
+
     function DiracVector{K<:AbstractKet}(arr::AbstractArray{K})
         return DiracVector(map(coeff, arr), LabelBasis(map(state, arr)), Ket)
     end
@@ -138,7 +140,6 @@ abstract DiracArray{B, T<:AbstractDirac, N} <: AbstractQuArray{B, T, N}
     diraccoeffs(i, len, ::Type{Ket}) = single_coeff(i, len)
     diraccoeffs(i, len, ::Type{Bra}) = single_coeff(i, 1, len)
 
-    diracvec(coeffs::AbstractArray, D=Ket, S=AbstractStructure) = DiracVector(coeffs, FockBasis{S}(length(coeffs)), D)
     diracvec(i::Int, b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(i, length(b), D), b, D)
     diracvec(tup::Tuple, b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(getpos(b, tup), length(b), D), b, D)
 

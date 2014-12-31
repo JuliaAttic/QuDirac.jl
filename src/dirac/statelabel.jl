@@ -69,7 +69,7 @@ import Base: getindex,
     map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, gettuple(s)))
     map(f, s::StateLabel) = StateLabel(map(f, gettuple(s)))
 
-    labelvec(labels) = [StateLabel(x) for x in labels]
+    labelvec(labels...) = [StateLabel(x) for x in labels]
     labelvec(labels::AbstractArray{StateLabel}) = collect(labels)
     labelvec(labels::Set{StateLabel}) = collect(labels)
     labelvec(labels::OrderedSet{StateLabel}) = collect(labels)

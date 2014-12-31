@@ -111,7 +111,7 @@ import Base:
 
         LabelBasis(labels) = LabelBasis{S}(labelvec(labels))
         LabelBasis(arrs::AbstractArray...) = LabelBasis{S}(cart_prod(map(labelvec, arrs)))
-        LabelBasis(labels...) = LabelBasis{S}(labelvec(labels))
+        LabelBasis(labels...) = LabelBasis{S}(labelvec(labels...))
     end
     
     LabelBasis(args...) = LabelBasis{AbstractStructure}(args...)
