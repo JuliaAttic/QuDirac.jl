@@ -12,7 +12,8 @@ import Base: getindex,
     ctranspose,
     repr,
     show,
-    in
+    in,
+    copy
 
 #############
 # FockBasis #
@@ -106,6 +107,8 @@ import Base: getindex,
 
     convert{S}(::Type{FockBasis{S}}, f::FockBasis) = FockBasis{S}(f.ranges, f.denoms, BypassFlag)
     convert{S}(::Type{FiniteBasis{S}}, f::FockBasis) = FiniteBasis{S}(size(f))
+
+    copy{S}(f::FockBasis{S}) = FockBasis{S}(copy(f.ranges), copy(f.denoms), BypassFlag)
 
     ####################
     # Helper Functions #

@@ -80,7 +80,7 @@ import Base: getindex,
         return DiracVector(QuArray(coeffs, basis), D)    
     end
 
-    DiracVector(coeffs::AbstractArray) = DiracVector(coeffs, FockBasis{AbstractStructure}(length(coeffs)))
+    DiracVector(coeffs::AbstractArray) = DiracVector(coeffs, FockBasis{AbstractStructure}(length(coeffs)-1))
 
     DiracVector{K<:AbstractKet}(arr::AbstractArray{K}) = sum(arr)
     DiracVector{B<:AbstractBra}(arr::AbstractArray{B}) = sum(arr)
