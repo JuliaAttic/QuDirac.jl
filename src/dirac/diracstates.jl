@@ -77,8 +77,8 @@ import Base: getindex,
     # coefficient type. Then 
     # coeff can just return the multiplicative
     # identity of that chosen type - 1::Int
-    coefftype(s::DiracState) = Int
-    coefftype{S<:DiracState}(::Type{S}) = Int
+    coefftype(s::DiracState) = Complex128
+    coefftype{S<:DiracState}(::Type{S}) = Complex128
 
     dualtype(::Type{DiracState}) = DualType
     dualtype{D,S}(::Type{DiracState{D,S}}) = D

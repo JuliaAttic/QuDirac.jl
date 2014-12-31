@@ -51,8 +51,8 @@ import Base: show,
     getket(op::DiracOperator) = op.ket
     getbra(op::DiracOperator) = op.bra
 
-    coefftype(op::DiracOperator) = Int
-    coefftype{O<:DiracOperator}(::Type{O}) = Int
+    coefftype(op::DiracOperator) = Complex128
+    coefftype{O<:DiracOperator}(::Type{O}) = Complex128
     
     coeff(op::DiracOperator) = one(coefftype(op))
     operator(op::DiracOperator) = op

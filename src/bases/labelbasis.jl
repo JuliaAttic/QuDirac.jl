@@ -158,19 +158,19 @@ import Base:
         return map
     end
 
-    function append{S}(b::LabelBasis{S}, label::StateLabel)
-        if label in basis
-            return basis
-        elseif nfactors(basis) == length(label)
+    function append{S}(b::LabelBasis{S}, label::StateLabel, ::Type{BypassFlag})
+        if nfactors(b) == length(label)
             return LabelBasis{S}(vcat(b.labels, label), 
-                                 append_label!(copy(b.labelmap), label), 
-                                 hash(b.labels_hash, hash(label)))
+                        append_label!(copy(b.labelmap), label), 
+                        hash(b.labels_hash, hash(label)))
         else
             error("input labels not of uniform length")
         end
     end
 
-    function append{A,B}(a::LabelBasis{A}, b::LabelBasis{B}) 
+    append(basis::LabelBasis, label::StateLabel) = label in basis ? basis : append(basis, label, BypassFlag)
+
+    function append{S}(a::LabelBasis{S}, b::LabelBasis{S}) 
         if nfactors(a) == nfactors(b)
             labelmap = copy(a.labelmap)
             labels_hash = a.labels_hash
@@ -180,14 +180,14 @@ import Base:
                     labels_hash = hash(labels_hash, hash(label))
                 end
             end
-            return LabelBasis{typejoin(A,B)}(unique(vcat(a.labels, b.labels)), labelmap, labels_hash)
+            return LabelBasis{S}(unique(vcat(a.labels, b.labels)), labelmap, labels_hash)
         else
             error("input labels not of uniform length")
         end
     end
 
-    function setdiff{A,B}(a::AbstractLabelBasis{A}, b::AbstractLabelBasis{B})
-        return LabelBasis{typejoin(A,B)}(setdiff(a.labels, b.labels))
+    function setdiff{S}(a::AbstractLabelBasis{S}, b::AbstractLabelBasis{S})
+        return LabelBasis{S}(setdiff(labelvec(a), labelvec(b)))
     end
 
     function hcat_method(a::Vector{StateLabel}, b::Vector{StateLabel})
@@ -200,8 +200,8 @@ import Base:
 
     hcat_method(labels::(Vector{StateLabel}...,)) = reduce(dir_prod, labels)
 
-    function hcat(bases::AbstractLabelBasis...)
-        return LabelBasis{reduce(typejoin, map(structure, bases))}(hcat_method(map(labelvec, bases)), BypassFlag)
+    function hcat{S}(bases::AbstractLabelBasis{S}...)
+        return LabelBasis{S}(hcat_method(map(labelvec, bases)), BypassFlag)
     end
 
     function cart_prod(labels::(Vector{StateLabel}...,))
@@ -220,7 +220,7 @@ import Base:
 
 
     function tensor(bases::AbstractLabelBasis...)
-        return LabelBasis{reduce(typejoin, map(structure, bases))}(cart_prod(map(labelvec, bases)), BypassFlag) 
+        return LabelBasis{S}(cart_prod(map(labelvec, bases)), BypassFlag) 
     end
 
     function factorize{S}(basis::LabelBasis{S})

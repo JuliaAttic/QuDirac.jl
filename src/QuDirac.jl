@@ -7,8 +7,8 @@ module QuDirac
         structure,
         checkcoeffs,
         nfactors,
-        getbasis,
-        getcoeffs,
+        bases,
+        coeffs,
         @defstructure
 
     ####################
