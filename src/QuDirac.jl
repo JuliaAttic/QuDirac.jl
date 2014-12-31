@@ -6,6 +6,9 @@ module QuDirac
     import QuBase: tensor,
         structure,
         checkcoeffs,
+        nfactors,
+        getbasis,
+        getcoeffs,
         @defstructure
 
     ####################
@@ -33,6 +36,6 @@ module QuDirac
         include("dirac/dirac.jl")
         include("bases/bases.jl")
         include("arrays/diracarrays.jl")
-    
-end
-    
+end 
+
+using QuBase

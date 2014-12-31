@@ -96,13 +96,13 @@ import Base: getindex,
             # reverse is done to match cartesianmap order
             return FockBasis{S}(ranges, precompute_denoms(reverse(map(length,ranges))), BypassFlag) 
         end
-
-        FockBasis(lens::(Int...)) = FockBasis{S}(map(x->0:x, lens))
-        FockBasis(lens::Int...) = FockBasis{S}(lens)
         FockBasis(lens::Range...) = FockBasis{S}(lens)
+
+        FockBasis(lens::Tuple) = FockBasis{S}(map(torange, lens))
+        FockBasis(lens...) = FockBasis{S}(lens)
     end
 
-    FockBasis(lens...) = FockBasis{AbstractStructure}(lens)
+    FockBasis(lens...) = FockBasis{AbstractStructure}(lens...)
 
     convert{S}(::Type{FockBasis{S}}, f::FockBasis) = FockBasis{S}(f.ranges, f.denoms, BypassFlag)
     convert{S}(::Type{FiniteBasis{S}}, f::FockBasis) = FiniteBasis{S}(size(f))
@@ -130,6 +130,10 @@ import Base: getindex,
         return reverse(map(get_denom, lens))
     end
 
+
+    torange(n::Number) = zero(eltype(n)):(n)
+    torange(r::Range) = r
+
     ######################
     # Property Functions #
     ######################
@@ -147,7 +151,7 @@ import Base: getindex,
 
     samelabels(a::FockBasis, b::FockBasis) = ranges(a) == ranges(b)
 
-    checkcoeffs(coeffs::AbstractArray, dim::Int, f::FockBasis) = size(coeffs, dim) = length(f)
+    checkcoeffs(coeffs::AbstractArray, dim::Int, f::FockBasis) = size(coeffs, dim) == length(f)
 
     ######################
     # Accessor Functions #

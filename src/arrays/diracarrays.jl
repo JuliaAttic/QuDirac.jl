@@ -140,18 +140,32 @@ abstract DiracArray{B, T<:AbstractDirac, N} <: AbstractQuArray{B, T, N}
 
     diracvec(coeffs::AbstractArray, D=Ket, S=AbstractStructure) = DiracVector(coeffs, FockBasis{S}(length(coeffs)), D)
     diracvec(i::Int, b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(i, length(b), D), b, D)
-    diracvec(tup::(Int...), b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(getpos(b, tup), length(b), D), b, D)
+    diracvec(tup::Tuple, b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(getpos(b, tup), length(b), D), b, D)
 
-    ketvec(s::(Int...), lens::Int...) = diracvec(s, FockBasis(lens), Ket)
-    ketvec(s::(Int...)) = diracvec(s, FockBasis(map(x->x+1, s)), Ket)
-    ketvec(s::Int, lens::Int...=s) = diracvec(s, FockBasis(lens), Ket)
+    # `s` is the index at which 
+    # the one coefficient resides;
+    # if `s` is a tuple, it will be
+    # treated like a label, and the
+    # coefficient will be placed at
+    # the label's position. If `s`
+    # is a number, it will 
+    # be treated like an index
+    # into the coefficient
+    # array
+    ketvec(s, basis::FockBasis) = diracvec(s, basis, Ket)
+    ketvec(s, lens::Tuple) = ketvec(s, FockBasis(lens))
+    ketvec(s, lens...=s) = ketvec(s, lens)
+    ketvec(s::Tuple) = ketvec(s, s)
+    ketvec(s::Number) = ketvec(s, tuple(s-1))
 
-    bravec(s::(Int...), lens::Int...) = diracvec(s, FockBasis(lens), Bra)
-    bravec(s::(Int...)) = diracvec(s, FockBasis(map(x->x+1, s)), Bra)
-    bravec(s::Int, lens::Int...=s) = diracvec(s, FockBasis(lens), Bra)
+    bravec(s, basis::FockBasis) = diracvec(s, basis, Bra)
+    bravec(s, lens::Tuple) = bravec(s, FockBasis(lens))
+    bravec(s, lens...=s) = bravec(s, lens)
+    bravec(s::Tuple) = bravec(s, s)
+    bravec(s::Number) = bravec(s, tuple(s-1))
 
 export DiracArray,
     DiracVector,
-    DiracMatrix
+    DiracMatrix,
     ketvec,
     bravec
