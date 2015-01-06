@@ -56,10 +56,9 @@ import Base: getindex,
                      S<:AbstractStructure, 
                      T, 
                      B<:AbstractLabelBasis, 
-                     N, 
-                     A} <: DiracArray{(B,), ScaledState{D, S, T}, N}
-        quarr::QuVector{B, T, N, A}
-        function DiracVector{L<:AbstractLabelBasis{S}}(quarr::QuVector{L, T, N, A})
+                     A} <: DiracArray{B, ScaledState{D, S, T}, 1}
+        quarr::QuVector{B, T, A}
+        function DiracVector{L<:AbstractLabelBasis{S}}(quarr::QuVector{L, T, A})
             if checksize(D, quarr)
                 new(quarr)
             else 
@@ -69,11 +68,11 @@ import Base: getindex,
     end
 
 
-    function DiracVector{L<:AbstractLabelBasis,T,N,A}(quarr::QuVector{L,T,N,A}, D::DataType=Ket)
-        return DiracVector{D, structure(L), T, L, N, A}(quarr)
+    function DiracVector{L<:AbstractLabelBasis,T,A}(quarr::QuVector{L,T,A}, D::DataType=Ket)
+        return DiracVector{D, structure(L), T, L, A}(quarr)
     end
 
-    function DiracVector{T,S}(
+    function DiracVector{T,S<:AbstractStructure}(
                         coeffs::AbstractArray{T}, 
                         basis::AbstractLabelBasis{S}, 
                         D::DataType=Ket)
@@ -210,20 +209,19 @@ import Base: getindex,
     ######################
     # Printing Functions #
     ######################
-    summary{S<:AbstractStructure,T}(dv::KetVector{S,T}) = "KetVector{$S} with $(length(dv)) $T entries"
-    summary{S<:AbstractStructure,T}(dv::BraVector{S,T}) = "BraVector{$S} with $(length(dv)) $T entries"
+    summary{S<:AbstractStructure,T,B}(dv::KetVector{S,T,B}) = "KetVector in $B with $(length(dv)) $T entries"
+    summary{S<:AbstractStructure,T,B}(dv::BraVector{S,T,B}) = "BraVector in $B with $(length(dv)) $T entries"
 
 ###############
 # DiracMatrix #
 ###############
     type DiracMatrix{S<:AbstractStructure, 
                      T, 
-                     R<:AbstractLabelBasis, 
+                     B<:AbstractLabelBasis, 
                      C<:AbstractLabelBasis,
-                     N,
-                     A} <: DiracArray{(R,C), ScaledOperator{S, T}, N}
-        quarr::QuMatrix{R, C, T, N, A}
-        function DiracMatrix{R<:AbstractLabelBasis{S}, C<:AbstractLabelBasis{S}}(arr::QuMatrix{R, C, T, N, A})
+                     A} <: DiracArray{B, ScaledOperator{S, T}, 2}
+        quarr::QuMatrix{B, T, A}
+        function DiracMatrix{B<:AbstractLabelBasis{S}}(arr::QuMatrix{B, T, A})
             return new(quarr)
         end
     end
@@ -232,7 +230,7 @@ import Base: getindex,
 # Convenience Constructors #
 ############################
     one_at_ind!(arr, i) = setindex!(arr, one(eltype(arr)), i)
-    single_coeff(i, lens...) = one_at_ind!(zeros(Complex128, lens), i)
+    single_coeff(i, lens...) = one_at_ind!(zeros(lens), i)
     diraccoeffs(i, len, ::Type{Ket}) = single_coeff(i, len)
     diraccoeffs(i, len, ::Type{Bra}) = single_coeff(i, 1, len)
 

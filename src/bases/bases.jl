@@ -18,7 +18,7 @@ import Base: filter,
     #                             operation can be performed solely with coefficients or 
     #                             requires the use of bases.
 
-    abstract AbstractLabelBasis{S<:AbstractStructure} <: AbstractFiniteBasis{S}
+    abstract AbstractLabelBasis{S<:AbstractStructure,N} <: AbstractFiniteBasis{S}
 
 ######################
 # Include Statements #
@@ -29,7 +29,8 @@ import Base: filter,
 #############
 # Functions #
 #############
-    @defstructure AbstractLabelBasis
+    structure{S}(::Type{AbstractLabelBasis{S}}) = S
+    structure{S,N}(::Type{AbstractLabelBasis{S,N}}) = S
 
     function getstate{D<:DualType, S}(basis::AbstractLabelBasis{S}, 
                                       i, 

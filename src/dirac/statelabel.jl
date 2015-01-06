@@ -20,14 +20,13 @@ import Base: getindex,
     # to easily support tensor product structures.
     # Note that objects of this type are not 
     # in and of themselves quantum objects.
-    immutable StateLabel
-        label::Tuple
-        StateLabel(label::Tuple) = new(label)
-        StateLabel(label...) = new(label)
+    immutable StateLabel{N}
+        label::NTuple{N}
     end
 
     StateLabel(s::StateLabel) = StateLabel(gettuple(s))
     StateLabel(s::AbstractState) = label(s)
+    StateLabel(label...) = StateLabel(label)
 
     convert(::Type{StateLabel}, t::Tuple) = StateLabel(t)
 
@@ -37,7 +36,9 @@ import Base: getindex,
     label(s::StateLabel) = s
     gettuple(s::StateLabel) = s.label
     getindex(s::StateLabel, i) = getindex(s.label, i)
-    length(s::StateLabel) = length(s.label)
+    nfactors{N}(::StateLabel{N}) = N
+    nfactors{N}(::Type{StateLabel{N}}) = N
+    length{N}(::StateLabel{N}) = N
 
     #####################
     # Joining Functions #
@@ -69,14 +70,17 @@ import Base: getindex,
     map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, gettuple(s)))
     map(f, s::StateLabel) = StateLabel(map(f, gettuple(s)))
 
-    labelvec(labels...) = [StateLabel(x) for x in labels]
-    labelvec(labels::AbstractArray{StateLabel}) = collect(labels)
-    labelvec(labels::Set{StateLabel}) = collect(labels)
-    labelvec(labels::OrderedSet{StateLabel}) = collect(labels)
+    labelvec(labels::Array) = map(StateLabel, labels)
+    labelvec(labels::AbstractArray) = collect(map(StateLabel, labels))
+    labelvec(labels...) = labelvec(collect(labels))
+    labelvec{S<:StateLabel}(labels::AbstractArray{S}) = collect(labels)
+    labelvec{S<:StateLabel}(labels::Set{S}) = collect(labels)
+    labelvec{S<:StateLabel}(labels::OrderedSet{S}) = collect(labels)
 
 export StateLabel,
     label,
     labelvec,
     gettuple,
     combine,
+    nfactors,
     separate

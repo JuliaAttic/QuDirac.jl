@@ -8,8 +8,7 @@ module QuDirac
         checkcoeffs,
         nfactors,
         bases,
-        coeffs,
-        @defstructure
+        coeffs
 
     ####################
     # String Constants #

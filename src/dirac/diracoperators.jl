@@ -41,12 +41,10 @@ import Base: show,
         bra::DiracBra{S}
     end
 
-    DiracOperator{A,B}(k::DiracKet{A}, b::DiracBra{B}) = DiracOperator{typejoin(A,B)}(k, b)
-
     ######################
     # Accessor Functions #
     ######################
-    @defstructure DiracOperator
+    structure{S}(::Type{DiracOperator{S}}) = S
 
     getket(op::DiracOperator) = op.ket
     getbra(op::DiracOperator) = op.bra

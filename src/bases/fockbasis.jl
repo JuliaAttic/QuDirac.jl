@@ -85,30 +85,30 @@ import Base: getindex,
     #   julia> f[f[(0.0, 7)]] == StateLabel(0.0, 7)
     #   true
     
-    immutable FockBasis{S<:AbstractStructure} <: AbstractLabelBasis{S}
-        ranges::(Range...)
-        denoms::(Float64...)
+    immutable FockBasis{S<:AbstractStructure,N} <: AbstractLabelBasis{S,N}
+        ranges::NTuple{N, Range}
+        denoms::NTuple{N, Float64}
         FockBasis(ranges, denoms, ::Type{BypassFlag}) = new(ranges, denoms)
 
         FockBasis(::()) = error("")
         FockBasis() = error("")
 
-        function FockBasis(ranges::(Range...))
+        function FockBasis(ranges::NTuple{N,Range})
             # reverse is done to match cartesianmap order
-            return FockBasis{S}(ranges, precompute_denoms(reverse(map(length,ranges))), BypassFlag) 
+            return FockBasis{S,N}(ranges, precompute_denoms(reverse(map(length,ranges))), BypassFlag) 
         end
-        FockBasis(lens::Range...) = FockBasis{S}(lens)
 
-        FockBasis(lens::Tuple) = FockBasis{S}(map(torange, lens))
-        FockBasis(lens...) = FockBasis{S}(lens)
     end
 
-    FockBasis(lens...) = FockBasis{AbstractStructure}(lens...)
+    FockBasis{N,S<:AbstractStructure}(lens::NTuple{N,Range}, ::Type{S}) = FockBasis{S,N}(lens)
+    FockBasis{S<:AbstractStructure}(lens::Tuple, ::Type{S}) = FockBasis(map(torange, lens), S)
+    FockBasis(lens::Tuple) = FockBasis(lens, AbstractStructure)
+    FockBasis(lens...) = FockBasis(lens, AbstractStructure)
 
-    convert{S}(::Type{FockBasis{S}}, f::FockBasis) = FockBasis{S}(f.ranges, f.denoms, BypassFlag)
-    convert{S}(::Type{FiniteBasis{S}}, f::FockBasis) = FiniteBasis{S}(size(f))
+    convert{A,B,N}(::Type{FockBasis{A,N}}, f::FockBasis{B,N}) = FockBasis{A,N}(f.ranges, f.denoms, BypassFlag)
+    convert{A,B,N}(::Type{FiniteBasis{A,N}}, f::FockBasis{B,N}) = FiniteBasis{A,N}(size(f))
 
-    copy{S}(f::FockBasis{S}) = FockBasis{S}(copy(f.ranges), copy(f.denoms), BypassFlag)
+    copy{S,N}(f::FockBasis{S,N}) = FockBasis{S,N}(copy(f.ranges), copy(f.denoms), BypassFlag)
 
     ####################
     # Helper Functions #
@@ -140,7 +140,8 @@ import Base: getindex,
     ######################
     # Property Functions #
     ######################
-    @defstructure FockBasis
+    structure{S}(::Type{FockBasis{S}}) = S
+    structure{S,N}(::Type{FockBasis{S,N}}) = S
 
     labelvec(f::FockBasis) = collect(f)
     ranges(f::FockBasis) = f.ranges
@@ -149,8 +150,8 @@ import Base: getindex,
     size(f::FockBasis) = map(length, ranges(f))
     size(f::FockBasis, i) = length(ranges(f, i))
     length(f::FockBasis) = prod(size(f))
-    ndims(f::FockBasis) = length(ranges(f))
-    nfactors(f::FockBasis) = ndims(f)
+    nfactors{S,N}(::FockBasis{S,N}) = N
+    ndims(f::FockBasis) = nfactors(f)
 
     samelabels(a::FockBasis, b::FockBasis) = ranges(a) == ranges(b)
 
@@ -160,14 +161,14 @@ import Base: getindex,
     # Accessor Functions #
     ######################
     ind_value(n, range, denom, modulus) = range[(div(n, denom) % modulus)+1]
-    tuple_at_ind(f::FockBasis, i) = ntuple(ndims(f), x->ind_value(i-1, ranges(f,x), f.denoms[x], size(f,x)))
+    tuple_at_ind(f::FockBasis, i) = ntuple(nfactors(f), x->ind_value(i-1, ranges(f,x), f.denoms[x], size(f,x)))
     pos_in_range(r::Range, i) = i in r ? (i-first(r))/step(r) : throw(BoundsError())
 
     in(label, f::FockBasis) = reduce(&, map(in, label, ranges(f)))
     getpos(f::FockBasis, s::AbstractState) = getpos(f, label(s))
     getpos(f::FockBasis, label) = int(sum(map(*, map(pos_in_range, ranges(f), label), f.denoms)))+1
 
-    getindex(f::FockBasis, i) = StateLabel(tuple_at_ind(f, i))
+    getindex{S,N}(f::FockBasis{S,N}, i) = StateLabel{N}(tuple_at_ind(f, i))
   
     getindex(f::FockBasis, s::AbstractState) = getpos(f, s) 
     getindex(f::FockBasis, label::StateLabel) = getpos(f, label) 
@@ -189,7 +190,7 @@ import Base: getindex,
     ##########################
     # Mathematical Functions #
     ##########################
-    tensor(a::FockBasis, b::FockBasis) = FockBasis(tuple(a.ranges..., b.ranges...))
+    tensor{S}(a::FockBasis{S}, b::FockBasis{S}) = FockBasis(tuple(a.ranges..., b.ranges...), S)
 
     ######################
     # Printing Functions #

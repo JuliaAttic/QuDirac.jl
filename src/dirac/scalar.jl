@@ -36,14 +36,12 @@ import Base: conj,
         ket::DiracKet{S}
     end
 
-    InnerProduct{A,B}(b::DiracBra{A}, k::DiracKet{B}) = InnerProduct{typejoin(A,B)}(b, k)
-
-    @defstructure InnerProduct
     ######################
     # Accessor Functions #
     ######################
     getbra(i::InnerProduct) = i.bra
     getket(i::InnerProduct) = i.ket
+    structure{S}(::Type{InnerProduct{S}}) = S
 
     ######################
     # Printing Functions #

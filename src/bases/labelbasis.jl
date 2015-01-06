@@ -37,12 +37,6 @@ import Base:
     # 
     # combine_hashes(hash1, hash2) = hash1 $ hash2 
 
-    nfactors(labels) = length(first(labels))
-    function samelength(labels)
-        n = nfactors(labels)
-        return all(map(x->length(x)==n, labels))
-    end
-
 ##############
 # LabelBasis #
 ##############
@@ -72,19 +66,19 @@ import Base:
     # The above example is from QuDirac. This functionality 
     # will be present here soon.
 
-    immutable LabelBasis{S<:AbstractStructure} <: AbstractLabelBasis{S}
-        labels::Vector{StateLabel}      # stores StateLabels
-        labelmap::Dict{StateLabel, Int} # used for basis[state] -> index functionality 
-        labels_hash::Uint64             # used for constant-time samelabels operation
+    immutable LabelBasis{S<:AbstractStructure,N} <: AbstractLabelBasis{S,N}
+        labels::Vector{StateLabel{N}}      # stores StateLabels
+        labelmap::Dict{StateLabel{N}, Int} # used for basis[state] -> index functionality 
+        labels_hash::Uint64                # used for constant-time samelabels operation
         
-        function LabelBasis(labels::Vector{StateLabel}, 
-                            labelmap::Dict{StateLabel, Int}, 
+        function LabelBasis(labels::Vector{StateLabel{N}}, 
+                            labelmap::Dict{StateLabel{N}, Int}, 
                             labels_hash::Uint64)
             return new(labels, labelmap, labels_hash)
         end 
 
-        function LabelBasis(labels::Vector{StateLabel}, ::Type{BypassFlag})
-            labelmap = Dict{StateLabel,Int}()
+        function LabelBasis(labels::Vector{StateLabel{N}})
+            labelmap = Dict{StateLabel{N},Int}()
             sizehint(labelmap, length(labels))
             
             labelmap[labels[1]] = 1
@@ -95,43 +89,38 @@ import Base:
             end
             
             if length(labels)==length(labelmap) # ensures uniqueness and correct lengths
-                return LabelBasis{S}(labels, labelmap, labels_hash)
+                return LabelBasis{S,N}(labels, labelmap, labels_hash)
             else
                 error("Basis states are malformed w.r.t. their index mapping; perhaps the labels are not unique?")
             end
         end
-
-        function LabelBasis(labels::Vector{StateLabel})
-            if samelength(labels)
-                return LabelBasis{S}(labels, BypassFlag)
-            else
-                error("input labels must be of uniform length")
-            end
-        end
-
-        LabelBasis(labels) = LabelBasis{S}(labelvec(labels))
-        LabelBasis(arrs::AbstractArray...) = LabelBasis{S}(cart_prod(map(labelvec, arrs)))
-        LabelBasis(labels...) = LabelBasis{S}(labelvec(labels...))
     end
     
-    LabelBasis(args...) = LabelBasis{AbstractStructure}(args...)
+    LabelBasis{S<:AbstractStructure, N}(::Type{S}, labels::Vector{StateLabel{N}}) = LabelBasis{S,N}(labels)
+    LabelBasis{S<:AbstractStructure}(::Type{S}, labels) = LabelBasis(S, labelvec(labels))
+    LabelBasis{S<:AbstractStructure}(::Type{S}, arrs::AbstractArray...) = LabelBasis(S, cart_prod(map(labelvec, arrs)))
+    LabelBasis{S<:AbstractStructure}(::Type{S}, labels...) = LabelBasis(S, labelvec(labels...))
+    LabelBasis(args...) = LabelBasis(AbstractStructure, args...)
 
-    convert{S}(::Type{LabelBasis{S}}, b::LabelBasis) = LabelBasis{S}(b.labels, b.labelmap, b.labels_hash)
-    copy{S}(b::LabelBasis{S}) = LabelBasis{S}(copy(b.labels), copy(b.labelmap), copy(b.labels_hash))
+    convert{A,B,N}(::Type{LabelBasis{A,N}}, b::LabelBasis{B,N}) = LabelBasis{A,N}(b.labels, b.labelmap, b.labels_hash)
+    copy{S,N}(b::LabelBasis{S,N}) = LabelBasis{S,N}(copy(b.labels), copy(b.labelmap), copy(b.labels_hash))
 
     ######################
     # Property Functions #
     ######################
-    @defstructure LabelBasis
+    structure{S}(::Type{LabelBasis{S}}) = S
+    structure{S,N}(::Type{LabelBasis{S,N}}) = S
 
     size(basis::LabelBasis) = size(basis.labels)
     length(basis::LabelBasis) = length(basis.labels)
+    nfactors{S,N}(::LabelBasis{S,N}) = N
 
     labelvec(basis::LabelBasis) = basis.labels
 
     samelabels(a::LabelBasis, b::LabelBasis) = a.labels_hash == b.labels_hash
-    =={S}(a::LabelBasis{S}, b::LabelBasis{S}) = samelabels(a,b)
-    =={A,B}(a::LabelBasis{A}, b::LabelBasis{B}) = false
+    =={A,B,C,D}(::LabelBasis{A,B}, ::LabelBasis{C,D}) = false
+    =={S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N}) = samelabels(a,b)
+
     hash{S}(basis::LabelBasis{S}) = hash(basis.labels_hash, hash(S))
     checkcoeffs(coeffs::AbstractArray, dim::Int, basis::LabelBasis) = size(coeffs, dim) == length(basis) 
 
@@ -158,19 +147,16 @@ import Base:
         return map
     end
 
-    function append{S}(b::LabelBasis{S}, label::StateLabel, ::Type{BypassFlag})
-        if nfactors(b) == length(label)
-            return LabelBasis{S}(vcat(b.labels, label), 
-                        append_label!(copy(b.labelmap), label), 
-                        hash(b.labels_hash, hash(label)))
-        else
-            error("input labels not of uniform length")
-        end
+    function append{S,N}(b::LabelBasis{S,N}, label::StateLabel{N}, ::Type{BypassFlag})
+        return LabelBasis{S,N}(vcat(b.labels, label), 
+                    append_label!(copy(b.labelmap), label), 
+                    hash(b.labels_hash, hash(label)))
     end
 
-    append(basis::LabelBasis, label::StateLabel) = label in basis ? basis : append(basis, label, BypassFlag)
-
-    function append{S}(a::LabelBasis{S}, b::LabelBasis{S}) 
+    append{S,A,B}(basis::LabelBasis{S,A}, label::StateLabel{B}) = error("Label must have the same number of factors as the basis")
+    append{S,N}(basis::LabelBasis{S,N}, label::StateLabel{N}) = label in basis ? basis : append(basis, label, BypassFlag)
+    
+    function append{S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N}) 
         if nfactors(a) == nfactors(b)
             labelmap = copy(a.labelmap)
             labels_hash = a.labels_hash
@@ -186,27 +172,28 @@ import Base:
         end
     end
 
-    function setdiff{S}(a::AbstractLabelBasis{S}, b::AbstractLabelBasis{S})
+    function setdiff{S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N})
         return LabelBasis{S}(setdiff(labelvec(a), labelvec(b)))
     end
 
-    function hcat_method(a::Vector{StateLabel}, b::Vector{StateLabel})
+    function hcat_labels{A, B}(a::Vector{StateLabel{A}}, b::Vector{StateLabel{B}})
         if length(a)==length(b)
-            return StateLabel[combine(a[i], b[i]) for i=1:length(a)]
+            return StateLabel{A+B}[combine(a[i], b[i]) for i=1:length(a)]
         else
             error("Could not take direct product of bases of differing length")
         end
     end
 
-    hcat_method(labels::(Vector{StateLabel}...,)) = reduce(dir_prod, labels)
+    hcat_labels(labels::(Vector...,)) = reduce(hcat_labels, labels)
 
     function hcat{S}(bases::AbstractLabelBasis{S}...)
-        return LabelBasis{S}(hcat_method(map(labelvec, bases)), BypassFlag)
+        return LabelBasis(S, hcat_labels(map(labelvec, bases)))
     end
 
-    function cart_prod(labels::(Vector{StateLabel}...,))
+    function cart_prod(labels::(Vector...,))
         lens = map(length, labels)
-        arr = Array(StateLabel, prod(lens))
+        N = sum(map(nfactors, map(eltype, labels)))
+        arr = Array(StateLabel{N}, prod(lens))
         index = 1
 
         function set_ind!(inds...)
@@ -219,19 +206,19 @@ import Base:
     end
 
 
-    function tensor(bases::AbstractLabelBasis...)
-        return LabelBasis{S}(cart_prod(map(labelvec, bases)), BypassFlag) 
+    function tensor{S}(bases::AbstractLabelBasis{S}...)
+        return LabelBasis(S, cart_prod(map(labelvec, bases))) 
     end
 
-    function factorize{S}(basis::LabelBasis{S})
+    function factorize{S,N}(basis::LabelBasis{S,N})
         n = nfactors(basis)
-        sets = ntuple(n, x->OrderedSet{StateLabel}()) # use OrderedSet here
+        sets = ntuple(n, x->OrderedSet{StateLabel,N}())
         for i=1:length(basis)
             for j=1:n
-                push!(sets[j], StateLabel(basis[i][j]))
+                push!(sets[j], StateLabel{1}(basis[i][j]))
             end
         end
-        return map(labels->LabelBasis{S}(labelvec(labels), BypassFlag), sets)
+        return map(labels->LabelBasis{S,1}(labelvec(labels), BypassFlag), sets)
     end
 
     ######################

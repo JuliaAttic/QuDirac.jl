@@ -42,7 +42,7 @@ import Base: getindex,
     # for all labeled concrete subtypes of AbstractQuantum
     samelabels(a::AbstractState, b::AbstractState) = label(a) == label(b)
 
-    convert(::Type{StateLabel}, s::AbstractState) = label(s)
+    convert{S<:StateLabel}(::Type{S}, s::AbstractState) = label(s)
 
 ##############
 # DiracState #
@@ -50,18 +50,34 @@ import Base: getindex,
     # A DiracState is the type representation of
     # an unscaled abstract vector, formulated in 
     # Dirac notation as a bra or ket.
-    immutable DiracState{D<:DualType, S<:AbstractStructure} <: AbstractState{D, S}
+    # immutable DiracState{D<:DualType,S<:AbstractStructure,N} <: AbstractState{D,S}
+    #     label::StateLabel{N}
+    # end
+
+    # typealias DiracKet{S,N} DiracState{Ket,S,N}
+    # typealias DiracBra{S,N} DiracState{Bra,S,N}
+
+    # convert{D,S,N}(::Type{DiracState{D,S,N}}, s::AbstractState) = DiracState{D,S,N}(label(s))
+
+    immutable DiracState{D<:DualType,S<:AbstractStructure} <: AbstractState{D,S}
         label::StateLabel
     end
 
-    typealias DiracKet{S} DiracState{Ket, S}
-    typealias DiracBra{S} DiracState{Bra, S}
+    typealias DiracKet{S} DiracState{Ket,S}
+    typealias DiracBra{S} DiracState{Bra,S}
 
     convert{D,S}(::Type{DiracState{D,S}}, s::AbstractState) = DiracState{D,S}(label(s))
+
 
     ############################
     # Convenience Constructors #
     ############################
+    # ket{N}(label::StateLabel{N}, S=AbstractStructure) = DiracKet{S,N}(label)
+    # ket(tup::Tuple, S=AbstractStructure) = ket(StateLabel(tup),S)
+    # ket(labels...) = ket(labels)
+    # bra{N}(label::StateLabel{N}, S=AbstractStructure) = DiracBra{S,N}(label)
+    # bra(tup::Tuple, S=AbstractStructure) = bra(StateLabel(tup),S)
+    # bra(labels...) = bra(labels)
     ket(label::StateLabel, S=AbstractStructure) = DiracKet{S}(label)
     ket(tup::Tuple, S=AbstractStructure) = ket(StateLabel(tup),S)
     ket(labels...) = ket(labels)
@@ -73,18 +89,20 @@ import Base: getindex,
     # AbstractState Functions #
     ###########################
     # We somewhat arbitrarily 
-    # default to Int as the 
+    # default to Complex128 as the 
     # coefficient type. Then 
     # coeff can just return the multiplicative
-    # identity of that chosen type - 1::Int
+    # identity of that chosen type.
     coefftype(s::DiracState) = Complex128
     coefftype{S<:DiracState}(::Type{S}) = Complex128
 
     dualtype(::Type{DiracState}) = DualType
+    dualtype{D}(::Type{DiracState{D}}) = D
     dualtype{D,S}(::Type{DiracState{D,S}}) = D
+    # dualtype{D,S,N}(::Type{DiracState{D,S,N}}) = D
 
-    structure(::Type{DiracState}) = AbstractStructure
     structure{D,S}(::Type{DiracState{D,S}}) = S
+    # structure{D,S,N}(::Type{DiracState{D,S,N}}) = S
 
     coeff(s::DiracState) = one(coefftype(s))
     state(s::DiracState) = s
@@ -154,14 +172,14 @@ import Base: getindex,
     # scalar.jl, while outer is 
     # defined in diracoperator.jl
     
-    tensor{D,A,B}(a::DiracState{D, A}, b::DiracState{D, B}) = DiracState{D, typejoin(A,B)}(combine(label(a), label(b))) 
-    tensor{D}(a::AbstractState{D}, b::AbstractState{D}) = ScaledState(kron(coeff(a),coeff(b)), tensor(state(a), state(b))) 
+    tensor{D,S}(a::DiracState{D,S}, b::DiracState{D,S}) = DiracState{D,S}(combine(label(a), label(b))) 
+    tensor{D,S}(a::AbstractState{D,S}, b::AbstractState{D,S}) = ScaledState(kron(coeff(a),coeff(b)), tensor(state(a), state(b))) 
     tensor(a::AbstractState{Ket}, b::AbstractState{Bra}) = outer(a,b)
     tensor(a::AbstractState{Bra}, b::AbstractState{Ket}) = outer(b,a)
 
     for op=(:*, :.*)
         @eval begin
-            ($op){D}(a::AbstractState{D}, b::AbstractState{D}) = tensor(a,b)
+            ($op){D,S}(a::AbstractState{D,S}, b::AbstractState{D,S}) = tensor(a,b)
             ($op)(c::Number, s::AbstractState) = ScaledState(($op)(c, coeff(s)), state(s))
             ($op)(s::AbstractState, c::Number) = ScaledState(($op)(coeff(s), c), state(s))
             ($op)(a::AbstractBra, b::AbstractKet) = inner(a, b)
