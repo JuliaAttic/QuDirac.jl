@@ -54,17 +54,13 @@ import Base:
     # it allows additive expressions like this:
     #   
     #   julia> 1/sqrt(2) * (ket('a','b') + ket(1,2))
-    #   2-element DiracVector{Ket, AbstractStructure, Float64, LabelBasis{AbstractBasis}}:
-    #    0.7071067811865475 | 'a','b' ⟩
-    #    0.7071067811865475 | 1,2 ⟩
+    #   KetVector in LabelBasis{AbstractStructure,2} with 2 Complex{Float64} entries:
+    #    0.7071067811865475 + 0.0im | 'a','b' ⟩
+    #    0.7071067811865475 + 0.0im | 1,2 ⟩
     # 
     # Obviously, this is a silly state - it's merely a good 
     # demonstration of the generality enabled by the `LabelBasis` 
     # type.
-    #
-    # Note that DiracArrays are not actually implemented yet.
-    # The above example is from QuDirac. This functionality 
-    # will be present here soon.
 
     immutable LabelBasis{S<:AbstractStructure,N} <: AbstractLabelBasis{S,N}
         labels::Vector{StateLabel{N}}      # stores StateLabels

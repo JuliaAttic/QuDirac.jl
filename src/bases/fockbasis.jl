@@ -24,10 +24,10 @@ import Base: getindex,
     # For example:
     #
     #   julia> f=FockBasis(2,2,2)
-    #    FockBasis{AbstractStructure}(2,2,2)    
+    #    FockBasis{AbstractStructure,3}(2,2,2)    
     #   
     #   julia> labelvec(f)
-    #    8-element Array{StateLabel,1}:
+    #    8-element Array{StateLabel{3},1}:
     #    StateLabel(0,0,0)
     #    StateLabel(1,0,0)
     #    StateLabel(0,1,0)
@@ -48,7 +48,7 @@ import Base: getindex,
     # any storage overhead:
     #
     #   julia> f = FockBasis(221,135,31,42,321,3)
-    #    FockBasis{AbstractStructure}(221,135,31,42,321,3)
+    #    FockBasis{AbstractStructure,6}(221,135,31,42,321,3)
     #
     #   julia> length(f)
     #    37407898710
@@ -65,10 +65,10 @@ import Base: getindex,
     # Arbitrary numeric ranges are supported for labels:
     #   
     #   julia> f=FockBasis(0.0:0.1:0.2, 4:7)
-    #   FockBasis{AbstractStructure}(0.0:0.1:0.2,4:7)     
+    #   FockBasis{AbstractStructure,2}(0.0:0.1:0.2,4:7)     
     #       
     #   julia> collect(f)
-    #   12-element Array{StateLabel,1}:
+    #   12-element Array{StateLabel{2},1}:
     #    StateLabel(0.0,4)
     #    StateLabel(0.1,4)
     #    StateLabel(0.2,4)

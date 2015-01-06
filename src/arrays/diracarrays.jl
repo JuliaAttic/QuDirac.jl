@@ -5,6 +5,7 @@ import Base: getindex,
     in,
     summary,
     +,
+    *,
     sum
 
 ####################
@@ -79,7 +80,7 @@ import Base: getindex,
         return DiracVector(QuArray(coeffs, basis), D)    
     end
 
-    DiracVector(coeffs::AbstractArray) = DiracVector(coeffs, FockBasis{AbstractStructure}(length(coeffs)-1))
+    DiracVector(coeffs::AbstractArray) = DiracVector(coeffs, FockBasis(length(coeffs)-1))
 
     DiracVector{K<:AbstractKet}(arr::AbstractArray{K}) = sum(arr)
     DiracVector{B<:AbstractBra}(arr::AbstractArray{B}) = sum(arr)
@@ -98,6 +99,7 @@ import Base: getindex,
     structure{D,S<:AbstractStructure}(::DiracVector{D,S}) = S
 
     copy{D}(dv::DiracVector{D}) = DiracVector(copy(coeffs(dv)), copy(basis(dv)), D)
+
     ###################
     # Basis Functions #
     ###################
@@ -160,7 +162,6 @@ import Base: getindex,
     ##########################
     # Mathematical Functions #
     ##########################
-
     function sum{K<:AbstractKet}(arr::AbstractArray{K})
         return DiracVector(makecoeffarr(arr), LabelBasis(arr), Ket)
     end
@@ -197,7 +198,7 @@ import Base: getindex,
 
     function +{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
-            return DiracVector(coeffs(a) + coeffs(b), bases(a), D)
+            return DiracVector(coeffs(a) + coeffs(b), basis(a), D)
         else
             return appendvec!(copy(a), b)
         end
@@ -206,6 +207,8 @@ import Base: getindex,
     +(dv::DiracVector, arr::AbstractArray) = DiracVector(coeffs(dv)+arr, basis(dv), dualtype(dv))
     +(arr::AbstractArray, dv::DiracVector) = DiracVector(arr+coeffs(dv), basis(dv), dualtype(dv))
 
+    *(c::Number, dv::DiracVector) = DiracVector(c*coeffs(dv), basis(dv), dualtype(dv))
+    *(dv::DiracVector, c::Number) = DiracVector(coeffs(dv)*c, basis(dv), dualtype(dv))
     ######################
     # Printing Functions #
     ######################
