@@ -7,7 +7,8 @@ import Base: getindex,
     Ac_mul_B, #TODO: Define other members of the A_mul_B family as necessary 
     +,
     -,
-    *,.*
+    *,.*,
+    promote_rule
 
 ################################
 # Abstract types and Functions #
@@ -135,6 +136,8 @@ import Base: getindex,
     typealias ScaledKet{S, T} ScaledState{Ket, S, T}
     typealias ScaledBra{S, T} ScaledState{Bra, S, T}
 
+    promote_rule{D,S,A,B}(::Type{ScaledState{D,S,A}}, ::Type{ScaledState{D,S,B}}) = ScaledState{D,S,promote_type(A,B)}
+
     ######################
     # Accessor Functions #
     ######################
@@ -173,13 +176,18 @@ import Base: getindex,
     # defined in diracoperator.jl
     
     tensor{D,S}(a::DiracState{D,S}, b::DiracState{D,S}) = DiracState{D,S}(combine(label(a), label(b))) 
+    tensor{D,S}(a::AbstractState{D,S}, b::DiracState{D,S}) = ScaledState(coeff(a), tensor(state(a), state(b))) 
+    tensor{D,S}(a::DiracState{D,S}, b::AbstractState{D,S}) = ScaledState(coeff(b), tensor(state(a), state(b))) 
     tensor{D,S}(a::AbstractState{D,S}, b::AbstractState{D,S}) = ScaledState(kron(coeff(a),coeff(b)), tensor(state(a), state(b))) 
+
     tensor(a::AbstractState{Ket}, b::AbstractState{Bra}) = outer(a,b)
     tensor(a::AbstractState{Bra}, b::AbstractState{Ket}) = outer(b,a)
 
     for op=(:*, :.*)
         @eval begin
             ($op){D,S}(a::AbstractState{D,S}, b::AbstractState{D,S}) = tensor(a,b)
+            ($op)(c::Number, s::DiracState) = ScaledState(c, s)
+            ($op)(s::DiracState, c::Number) = ScaledState(c, s)
             ($op)(c::Number, s::AbstractState) = ScaledState(($op)(c, coeff(s)), state(s))
             ($op)(s::AbstractState, c::Number) = ScaledState(($op)(coeff(s), c), state(s))
             ($op)(a::AbstractBra, b::AbstractKet) = inner(a, b)

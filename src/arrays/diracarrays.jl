@@ -181,7 +181,7 @@ import Base: getindex,
         if a == b 
             return DiracVector([coeff(a)+coeff(b)], LabelBasis(b), Ket) 
         else 
-            return DiracVector(vcat(coeff(a), coeff(b)), LabelBasis(a, b), Ket)
+            return DiracVector(vcat(coeff(a), coeff(b)), LabelBasis(label(a), label(b)), Ket)
         end
     end
 
@@ -189,7 +189,7 @@ import Base: getindex,
         if a == b 
             return DiracVector([coeff(a)+coeff(b)], LabelBasis(b), Bra) 
         else 
-            return DiracVector(hcat(coeff(a), coeff(b)), LabelBasis(a, b), Bra)
+            return DiracVector(hcat(coeff(a), coeff(b)), LabelBasis(label(a), label(b)), Bra)
         end
     end
 
@@ -211,7 +211,7 @@ import Base: getindex,
         end
     end
 
-    
+
     -(dv::DiracVector) = DiracVector(-coeffs(dv), basis(dv))
     -{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + (-b)
     *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(coeffs(a)*coeffs(b), hcat(basis(a),basis(b)), D)
