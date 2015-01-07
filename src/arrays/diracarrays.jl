@@ -211,17 +211,14 @@ import Base: getindex,
         end
     end
 
-    .+{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + b
-
+    
     -(dv::DiracVector) = DiracVector(-coeffs(dv), basis(dv))
     -{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + (-b)
-    .-{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a - b
-
     *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(coeffs(a)*coeffs(b), hcat(basis(a),basis(b)), D)
-    .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a * b
-    # defined to avoid ambiguity errors
-    *(t::Triangular, dv::DiracVector) = DiracVector(t*coeffs(dv), basis(dv), dualtype(dv))
 
+    .+{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + b
+    .-{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a - b
+    .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a * b
     function .^{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
             return DiracVector(coeffs(a).^coeffs(b), basis(a), D)
@@ -229,9 +226,6 @@ import Base: getindex,
             error("BasisMismatch")
         end
     end
-    # defined to avoid ambiguity errors
-    .^(c::MathConst{:e}, dv::DiracVector) = DiracVector(c.^coeffs(dv), basis(dv), dualtype(dv))
-
     function ./{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
             return DiracVector(coeffs(a)./coeffs(b), basis(a), D)
@@ -240,19 +234,16 @@ import Base: getindex,
         end
     end
 
-    for op = (:.+, :+,
-              :.-, :-,
-              :.*, :*, 
-              :./, :.^)
+    for op = (:*,:.*,
+              :/,:./,
+              :+,:.+,
+              :-,:.-,
+              :^,:.^)
         @eval begin
-            ($op)(dv::DiracVector, arr::AbstractArray) = DiracVector(($op)(coeffs(dv), arr), basis(dv), dualtype(dv))
-            ($op)(arr::AbstractArray, dv::DiracVector) = DiracVector(($op)(arr, coeffs(dv)), basis(dv), dualtype(dv))    
-            ($op)(c::Number, dv::DiracVector) = DiracVector(($op)(c,coeffs(dv)), basis(dv), dualtype(dv))
-            ($op)(dv::DiracVector, c::Number) = DiracVector(($op)(coeffs(dv),c), basis(dv), dualtype(dv))        
+            ($op)(dv::DiracVector, c) = DiracVector(($op)(coeffs(dv), c), basis(dv), dualtype(dv))
+            ($op)(c, dv::DiracVector) = DiracVector(($op)(c, coeffs(dv)), basis(dv), dualtype(dv))         
         end
     end
-
-    /(dv::DiracVector, c::Number) = DiracVector(coeffs(dv)/c, basis(dv), dualtype(dv))
 
     log(dv::DiracVector, i) = DiracVector(log(coeffs(dv), i), basis(dv), dualtype(dv))
     log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
