@@ -1,5 +1,6 @@
 import Base: filter,
-    map
+    map,
+    find
 
 ####################
 # Type Definitions #
@@ -44,9 +45,10 @@ import Base: filter,
         return [getstate(basis, i, D) for i in arr]
     end
 
-    filter{S}(f::Function, basis::AbstractLabelBasis{S}) = LabelBasis{S}(filter(f, labelvec(basis)), BypassFlag)
-    map{S}(f::Function, basis::AbstractLabelBasis{S}) = LabelBasis{S}(map(f, labelvec(basis)))
-    
+    filter{S}(f::Function, basis::AbstractLabelBasis{S}) = LabelBasis(S, filter(f, labelvec(basis)))
+    map{S}(f::Function, basis::AbstractLabelBasis{S}) = LabelBasis(S, map(f, labelvec(basis)))
+    find{S}(f::Function, basis::AbstractLabelBasis{S}) = find(f, labelvec(basis))
+
     xsubspace(basis::AbstractLabelBasis, x::Int) = filter(s->sum(s)==x, basis)
 
 export AbstractLabelBasis,

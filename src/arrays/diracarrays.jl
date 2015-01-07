@@ -4,8 +4,12 @@ import Base: getindex,
     size,
     in,
     summary,
-    +,
-    *,
+    +, .+,
+    *, .*,
+    -, .-,
+    /, ./,
+    ^, .^,
+    exp,
     sum
 
 ####################
@@ -57,9 +61,9 @@ import Base: getindex,
                      S<:AbstractStructure, 
                      T, 
                      B<:AbstractLabelBasis, 
-                     A} <: DiracArray{B, ScaledState{D, S, T}, 1}
-        quarr::QuVector{B, T, A}
-        function DiracVector{L<:AbstractLabelBasis{S}}(quarr::QuVector{L, T, A})
+                     A} <: DiracArray{B,ScaledState{D,S,T},1}
+        quarr::QuVector{B,T,A}
+        function DiracVector{L<:AbstractLabelBasis{S}}(quarr::QuVector{L,T,A})
             if checksize(D, quarr)
                 new(quarr)
             else 
@@ -70,7 +74,7 @@ import Base: getindex,
 
 
     function DiracVector{L<:AbstractLabelBasis,T,A}(quarr::QuVector{L,T,A}, D::DataType=Ket)
-        return DiracVector{D, structure(L), T, L, A}(quarr)
+        return DiracVector{D,structure(L),T,L,A}(quarr)
     end
 
     function DiracVector{T,S<:AbstractStructure}(
@@ -103,16 +107,19 @@ import Base: getindex,
     ###################
     # Basis Functions #
     ###################
-    in(s::AbstractState, dv::DiracVector) = in(label(s), basis(dv))
-    getpos(dv::DiracVector, s) = getpos(basis(dv), s)
+    in{D,S<:AbstractStructure}(s::AbstractState{D,S}, dv::DiracVector{D,S}) = in(label(s), basis(dv))
+    in(s::StateLabel, dv::DiracVector) = in(s, basis(dv))
+    getpos{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s::AbstractState{D,S}) = getpos(basis(dv), label(s))
+    getpos{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s) = getpos(basis(dv), s) 
+
     getstate{D,S<:AbstractStructure}(dv::DiracVector{D,S}, i) = DiracState{D,S}(basis(dv)[i])
     samelabels(a::DiracVector, b::DiracVector) = samelabels(basis(a), basis(b))
 
     #########################
     # Coefficient Functions #
     #########################
-    in(c, dv::DiracVector) = in(c, dv.quarr)
-    getcoeff(dv::DiracVector, s::AbstractState) = coeffs(dv)[getpos(dv, s)]
+    in(c, dv::DiracVector) = in(c, coeffs(dv))
+    getcoeff{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s::AbstractState{D,S}) = coeffs(dv)[getpos(dv, s)]
     getcoeff(dv::DiracVector, s::StateLabel) = coeffs(dv)[getpos(dv, s)]
     getcoeff(dv::DiracVector, s::Tuple) = coeffs(dv)[getpos(dv, s)]
     getcoeff(dv::DiracVector, i) = coeffs(dv)[i]
@@ -170,17 +177,17 @@ import Base: getindex,
         return DiracVector(makecoeffarr(arr), LabelBasis(arr), Bra)
     end
 
-    function +{S}(a::AbstractKet{S}, b::AbstractKet{S}) 
+    function +{S<:AbstractStructure}(a::AbstractKet{S}, b::AbstractKet{S}) 
         if a == b 
-            return DiracVector([coeff(a) + coeff(b)], LabelBasis(b), Ket) 
+            return DiracVector([coeff(a)+coeff(b)], LabelBasis(b), Ket) 
         else 
             return DiracVector(vcat(coeff(a), coeff(b)), LabelBasis(a, b), Ket)
         end
     end
 
-    function +{S}(a::AbstractBra{S}, b::AbstractBra{S}) 
+    function +{S<:AbstractStructure}(a::AbstractBra{S}, b::AbstractBra{S}) 
         if a == b 
-            return DiracVector([coeff(a) + coeff(b)], LabelBasis(b), Bra) 
+            return DiracVector([coeff(a)+coeff(b)], LabelBasis(b), Bra) 
         else 
             return DiracVector(hcat(coeff(a), coeff(b)), LabelBasis(a, b), Bra)
         end
@@ -198,17 +205,59 @@ import Base: getindex,
 
     function +{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
-            return DiracVector(coeffs(a) + coeffs(b), basis(a), D)
+            return DiracVector(coeffs(a)+coeffs(b), basis(a), D)
         else
             return appendvec!(copy(a), b)
         end
     end
 
-    +(dv::DiracVector, arr::AbstractArray) = DiracVector(coeffs(dv)+arr, basis(dv), dualtype(dv))
-    +(arr::AbstractArray, dv::DiracVector) = DiracVector(arr+coeffs(dv), basis(dv), dualtype(dv))
+    .+{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + b
 
-    *(c::Number, dv::DiracVector) = DiracVector(c*coeffs(dv), basis(dv), dualtype(dv))
-    *(dv::DiracVector, c::Number) = DiracVector(coeffs(dv)*c, basis(dv), dualtype(dv))
+    -(dv::DiracVector) = DiracVector(-coeffs(dv), basis(dv))
+    -{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + (-b)
+    .-{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a - b
+
+    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(coeffs(a)*coeffs(b), hcat(basis(a),basis(b)), D)
+    .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a * b
+    # defined to avoid ambiguity errors
+    *(t::Triangular, dv::DiracVector) = DiracVector(t*coeffs(dv), basis(dv), dualtype(dv))
+
+    function .^{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
+        if samelabels(a, b)
+            return DiracVector(coeffs(a).^coeffs(b), basis(a), D)
+        else
+            error("BasisMismatch")
+        end
+    end
+    # defined to avoid ambiguity errors
+    .^(c::MathConst{:e}, dv::DiracVector) = DiracVector(c.^coeffs(dv), basis(dv), dualtype(dv))
+
+    function ./{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
+        if samelabels(a, b)
+            return DiracVector(coeffs(a)./coeffs(b), basis(a), D)
+        else
+            error("BasisMismatch")
+        end
+    end
+
+    for op = (:.+, :+,
+              :.-, :-,
+              :.*, :*, 
+              :./, :.^)
+        @eval begin
+            ($op)(dv::DiracVector, arr::AbstractArray) = DiracVector(($op)(coeffs(dv), arr), basis(dv), dualtype(dv))
+            ($op)(arr::AbstractArray, dv::DiracVector) = DiracVector(($op)(arr, coeffs(dv)), basis(dv), dualtype(dv))    
+            ($op)(c::Number, dv::DiracVector) = DiracVector(($op)(c,coeffs(dv)), basis(dv), dualtype(dv))
+            ($op)(dv::DiracVector, c::Number) = DiracVector(($op)(coeffs(dv),c), basis(dv), dualtype(dv))        
+        end
+    end
+
+    /(dv::DiracVector, c::Number) = DiracVector(coeffs(dv)/c, basis(dv), dualtype(dv))
+
+    log(dv::DiracVector, i) = DiracVector(log(coeffs(dv), i), basis(dv), dualtype(dv))
+    log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
+    exp(dv::DiracVector) = DiracVector(exp(coeffs(dv)), basis(dv), dualtype(dv))
+
     ######################
     # Printing Functions #
     ######################
@@ -266,4 +315,6 @@ export DiracArray,
     DiracVector,
     DiracMatrix,
     ketvec,
-    bravec
+    bravec,
+    structure,
+    dualtype

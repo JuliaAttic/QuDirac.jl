@@ -20,8 +20,7 @@ import Base:
     first,
     ==,
     hash,
-    hcat,
-    vcat
+    hcat
 
 ####################
 # Helper Functions #
@@ -124,7 +123,6 @@ import Base:
     # Array-like Functions #
     ########################
     getpos(basis::LabelBasis, label::StateLabel) = basis.labelmap[label]
-    getpos(basis::LabelBasis, s::AbstractState) = getpos(basis, label(s)) 
     getpos(basis::LabelBasis, label::Tuple) = getpos(basis, StateLabel(label))
     
     in(label::StateLabel, basis::LabelBasis) = haskey(basis.labelmap, label)
@@ -132,78 +130,38 @@ import Base:
     getindex(basis::LabelBasis, s::AbstractState) = getpos(basis, s) 
     getindex(basis::LabelBasis, label::StateLabel) = getpos(basis, label) 
     getindex(basis::LabelBasis, label::Tuple) = getpos(basis, label)
-    
     getindex(basis::LabelBasis, i) = basis.labels[i]
 
     #####################
     # Joining Functions #
     #####################
-    function append_label!(map::Dict, label::StateLabel)
-        map[label] = length(map)+1
-        return map
-    end
-
     function append{S,N}(b::LabelBasis{S,N}, label::StateLabel{N}, ::Type{BypassFlag})
         return LabelBasis{S,N}(vcat(b.labels, label), 
                     append_label!(copy(b.labelmap), label), 
                     hash(b.labels_hash, hash(label)))
     end
-
+    
     append{S,A,B}(basis::LabelBasis{S,A}, label::StateLabel{B}) = error("Label must have the same number of factors as the basis")
     append{S,N}(basis::LabelBasis{S,N}, label::StateLabel{N}) = label in basis ? basis : append(basis, label, BypassFlag)
     
     function append{S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N}) 
-        if nfactors(a) == nfactors(b)
-            labelmap = copy(a.labelmap)
-            labels_hash = a.labels_hash
-            for label in b.labels
-                if ! in(label,a)
-                    append_label!(labelmap, label)
-                    labels_hash = hash(labels_hash, hash(label))
-                end
+        labelmap = copy(a.labelmap)
+        labels_hash = a.labels_hash
+        for label in b.labels
+            if ! in(label,a)
+                append_label!(labelmap, label)
+                labels_hash = hash(labels_hash, hash(label))
             end
-            return LabelBasis{S}(unique(vcat(a.labels, b.labels)), labelmap, labels_hash)
-        else
-            error("input labels not of uniform length")
         end
+        return LabelBasis{S}(unique(vcat(a.labels, b.labels)), labelmap, labels_hash)
     end
 
     function setdiff{S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N})
         return LabelBasis{S}(setdiff(labelvec(a), labelvec(b)))
     end
 
-    function hcat_labels{A, B}(a::Vector{StateLabel{A}}, b::Vector{StateLabel{B}})
-        if length(a)==length(b)
-            return StateLabel{A+B}[combine(a[i], b[i]) for i=1:length(a)]
-        else
-            error("Could not take direct product of bases of differing length")
-        end
-    end
-
-    hcat_labels(labels::(Vector...,)) = reduce(hcat_labels, labels)
-
     function hcat{S}(bases::AbstractLabelBasis{S}...)
         return LabelBasis(S, hcat_labels(map(labelvec, bases)))
-    end
-
-    function cart_prod(labels::(Vector...,))
-        lens = map(length, labels)
-        N = sum(map(nfactors, map(eltype, labels)))
-        arr = Array(StateLabel{N}, prod(lens))
-        index = 1
-
-        function set_ind!(inds...)
-            arr[index] = combine(map(getindex, labels, inds))
-            index += 1
-        end
-        
-        cartesianmap(set_ind!, lens)
-        return arr
-    end
-
-
-    function tensor{S}(bases::AbstractLabelBasis{S}...)
-        return LabelBasis(S, cart_prod(map(labelvec, bases))) 
     end
 
     function factorize{S,N}(basis::LabelBasis{S,N})
@@ -215,6 +173,18 @@ import Base:
             end
         end
         return map(labels->LabelBasis{S,1}(labelvec(labels), BypassFlag), sets)
+    end
+
+
+    # Tensor product of labels
+    function tensor{S}(bases::AbstractLabelBasis{S}...)
+        return LabelBasis(S, cart_prod(map(labelvec, bases))) 
+    end
+    function tensor{S}(basis::AbstractLabelBasis{S}, label::StateLabel)
+        return LabelBasis(S, map(s->combine(s, label), labelvec(bases))) 
+    end
+    function tensor{S}(label::StateLabel, basis::AbstractLabelBasis{S})
+        return LabelBasis(S, map(s->combine(label, s), labelvec(bases))) 
     end
 
     ######################
@@ -253,6 +223,39 @@ import Base:
             println(io)
             print(io, " ($(labelstr(basis[i])))")
         end
+    end
+
+    ####################
+    # Helper Functions #
+    ####################
+    function append_label!(map::Dict, label::StateLabel)
+        map[label] = length(map)+1
+        return map
+    end
+
+    function hcat_labels{A,B}(a::Vector{StateLabel{A}}, b::Vector{StateLabel{B}})
+        if length(a)==length(b)
+            return StateLabel{A+B}[combine(a[i], b[i]) for i=1:length(a)]
+        else
+            error("Could not take direct product of bases of differing length")
+        end
+    end
+
+    hcat_labels(labels::(Vector...,)) = reduce(hcat_labels, labels)
+
+    function cart_prod(labels::(Vector...,))
+        lens = map(length, labels)
+        N = sum(map(nfactors, map(eltype, labels)))
+        arr = Array(StateLabel{N}, prod(lens))
+        index = 1
+
+        function set_ind!(inds...)
+            arr[index] = combine(map(getindex, labels, inds))
+            index += 1
+        end
+        
+        cartesianmap(set_ind!, lens)
+        return arr
     end
 
 export LabelBasis,
