@@ -10,7 +10,8 @@ import Base: getindex,
     /, ./,
     ^, .^,
     exp,
-    sum
+    sum,
+    ctranspose
 
 ####################
 # Helper Functions #
@@ -211,14 +212,22 @@ import Base: getindex,
         end
     end
 
-
     -(dv::DiracVector) = DiracVector(-coeffs(dv), basis(dv))
+    -{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::AbstractState{D,S}) = a + (-b)
+    -{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = a + (-b)
+    -{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = a + (-b)
     -{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + (-b)
-    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(coeffs(a)*coeffs(b), hcat(basis(a),basis(b)), D)
+
+    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeffs(a),coeffs(b)), tensor(basis(a),basis(b)), D)
+    *{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeff(a),coeffs(b)), tensor(label(a),basis(b)), D)
+    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = DiracVector(kron(coeffs(a),coeff(b)), tensor(basis(a),label(b)), D)
 
     .+{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + b
     .-{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a - b
-    .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a * b
+    .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(coeffs(a).*coeffs(b), hcat(basis(a),basis(b)), D)
+    
+    .*{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = a*b
+    .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = a*b
     function .^{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
             return DiracVector(coeffs(a).^coeffs(b), basis(a), D)
@@ -248,6 +257,8 @@ import Base: getindex,
     log(dv::DiracVector, i) = DiracVector(log(coeffs(dv), i), basis(dv), dualtype(dv))
     log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
     exp(dv::DiracVector) = DiracVector(exp(coeffs(dv)), basis(dv), dualtype(dv))
+
+    ctranspose(dv::DiracVector) = DiracVector(coeffs(dv)', basis(dv), dualtype(dv)')
 
     ######################
     # Printing Functions #
