@@ -100,10 +100,10 @@ import Base: getindex,
 
     end
 
-    FockBasis{N,S<:AbstractStructure}(lens::NTuple{N,Range}, ::Type{S}) = FockBasis{S,N}(lens)
-    FockBasis{S<:AbstractStructure}(lens::Tuple, ::Type{S}) = FockBasis(map(torange, lens), S)
-    FockBasis(lens::Tuple) = FockBasis(lens, AbstractStructure)
-    FockBasis(lens...) = FockBasis(lens, AbstractStructure)
+    FockBasis{N,S<:AbstractStructure}(::Type{S}, lens::NTuple{N,Range}) = FockBasis{S,N}(lens)
+    FockBasis{S<:AbstractStructure}(::Type{S}, lens::Tuple) = FockBasis(S, map(torange, lens))
+    FockBasis(lens::Tuple) = FockBasis(AbstractStructure, lens)
+    FockBasis(lens...) = FockBasis(AbstractStructure, lens)
 
     convert{A,B,N}(::Type{FockBasis{A,N}}, f::FockBasis{B,N}) = FockBasis{A,N}(f.ranges, f.denoms, BypassFlag)
     convert{A,B,N}(::Type{FiniteBasis{A,N}}, f::FockBasis{B,N}) = FiniteBasis{A,N}(size(f))
@@ -190,7 +190,7 @@ import Base: getindex,
     ##########################
     # Mathematical Functions #
     ##########################
-    tensor{S}(a::FockBasis{S}, b::FockBasis{S}) = FockBasis(tuple(a.ranges..., b.ranges...), S)
+    tensor{S}(a::FockBasis{S}, b::FockBasis{S}) = FockBasis(S, tuple(a.ranges..., b.ranges...))
 
     ######################
     # Printing Functions #

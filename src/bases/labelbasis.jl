@@ -98,6 +98,8 @@ import Base:
     LabelBasis(args...) = LabelBasis(AbstractStructure, args...)
 
     convert{A,B,N}(::Type{LabelBasis{A,N}}, b::LabelBasis{B,N}) = LabelBasis{A,N}(b.labels, b.labelmap, b.labels_hash)
+    convert{A,B,N}(::Type{LabelBasis{A,N}}, b::AbstractLabelBasis{B,N}) = LabelBasis(A, labelvec(b))
+
     copy{S,N}(b::LabelBasis{S,N}) = LabelBasis{S,N}(copy(b.labels), copy(b.labelmap), copy(b.labels_hash))
 
     ######################
@@ -135,26 +137,9 @@ import Base:
     #####################
     # Joining Functions #
     #####################
-    function append{S,N}(b::LabelBasis{S,N}, label::StateLabel{N}, ::Type{BypassFlag})
-        return LabelBasis{S,N}(vcat(b.labels, label), 
-                    append_label!(copy(b.labelmap), label), 
-                    hash(b.labels_hash, hash(label)))
-    end
-    
-    append{S,A,B}(basis::LabelBasis{S,A}, label::StateLabel{B}) = error("Label must have the same number of factors as the basis")
-    append{S,N}(basis::LabelBasis{S,N}, label::StateLabel{N}) = label in basis ? basis : append(basis, label, BypassFlag)
-    
-    function append{S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N}) 
-        labelmap = copy(a.labelmap)
-        labels_hash = a.labels_hash
-        for label in b.labels
-            if ! in(label,a)
-                append_label!(labelmap, label)
-                labels_hash = hash(labels_hash, hash(label))
-            end
-        end
-        return LabelBasis{S}(unique(vcat(a.labels, b.labels)), labelmap, labels_hash)
-    end
+    append{S,N}(basis::LabelBasis{S,N}, label::StateLabel{N}) = label in basis ? basis : append_label(basis, label)
+    append{S,N}(a::LabelBasis{S,N}, b::AbstractLabelBasis{S,N}) = append_labelvec(a, labelvec(b))
+    append{S,N}(a::AbstractLabelBasis{S,N}, b) = append(convert(LabelBasis{S,N}, a), b)
 
     function setdiff{S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N})
         return LabelBasis{S}(setdiff(labelvec(a), labelvec(b)))
@@ -175,16 +160,15 @@ import Base:
         return map(labels->LabelBasis{S,1}(labelvec(labels), BypassFlag), sets)
     end
 
-
     # Tensor product of labels
     function tensor{S}(bases::AbstractLabelBasis{S}...)
         return LabelBasis(S, cart_prod(map(labelvec, bases))) 
     end
     function tensor{S}(basis::AbstractLabelBasis{S}, label::StateLabel)
-        return LabelBasis(S, map(s->combine(s, label), labelvec(bases))) 
+        return LabelBasis(S, map(s->combine(s, label), labelvec(basis))) 
     end
     function tensor{S}(label::StateLabel, basis::AbstractLabelBasis{S})
-        return LabelBasis(S, map(s->combine(label, s), labelvec(bases))) 
+        return LabelBasis(S, map(s->combine(label, s), labelvec(basis))) 
     end
 
     ######################
@@ -232,6 +216,24 @@ import Base:
         map[label] = length(map)+1
         return map
     end
+    
+    function append_label{S,N}(b::LabelBasis{S,N}, label::StateLabel{N})
+        return LabelBasis{S,N}(vcat(b.labels, label), 
+                    append_label!(copy(b.labelmap), label), 
+                    hash(b.labels_hash, hash(label)))
+    end
+
+    function append_labelvec{S,N}(a::LabelBasis{S,N}, b::Vector{StateLabel{N}})
+        labelmap = copy(a.labelmap)
+        labels_hash = a.labels_hash
+        for label in b
+            if ! in(label,a)
+                append_label!(labelmap, label)
+                labels_hash = hash(labels_hash, hash(label))
+            end
+        end
+        return LabelBasis{S}(unique(vcat(a.labels, b)), labelmap, labels_hash)
+    end
 
     function hcat_labels{A,B}(a::Vector{StateLabel{A}}, b::Vector{StateLabel{B}})
         if length(a)==length(b)
@@ -265,4 +267,5 @@ export LabelBasis,
     labelvec,
     getpos,
     samelabels,
-    append
+    append,
+    tensor
