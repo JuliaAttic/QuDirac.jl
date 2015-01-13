@@ -34,7 +34,7 @@ module QuDirac
     ######################
         include("dirac/dirac.jl")
         include("bases/bases.jl")
-        include("arrays/diracarrays.jl")
+        include("arrays/diracarray.jl")
 end 
 
 using QuBase

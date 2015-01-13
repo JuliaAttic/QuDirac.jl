@@ -144,7 +144,6 @@ import Base: show,
 
 export DiracOperator,
     ScaledOperator,
-    outer,
     operator,
     getket,
     getbra,

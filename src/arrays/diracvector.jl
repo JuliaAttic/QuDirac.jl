@@ -9,48 +9,10 @@ import Base: getindex,
     -, .-,
     /, ./,
     ^, .^,
+    Ac_mul_B,
     exp,
     sum,
     ctranspose
-
-####################
-# Helper Functions #
-####################
-    makecoeffarr(states::AbstractArray) = map(coeff, states)
-    makecoeffarr(states...) = makecoeffarr(collect(states))
-
-##############
-# DiracArray #
-##############
-    # Dirac arrays are subtypes of AbstractQuArrays which generate
-    # ScaledStates and ScaledOperators as elements. These 
-    # quantum elements are formed by multiplying together 
-    # the underlying QuArray's basis states with the associated
-    # coefficients. 
-    #
-    # For example, the nth element of DiracVector{Ket, S} is 
-    # the nth coefficient times a DiracState{Ket, S} whose label
-    # is the nth label in the basis. 
-    #
-    # Likewise, the (ith, jth) element of DiracMatrix{Ket, S} is 
-    # the (ith, jth) coefficient times a DiracOperator{S} whose 
-    # ket label is the ith label in the row basis, and whose 
-    # bra label is the jth label in the column basis.
-    #
-    # This kind of structure means we can do two cool things:
-    # 
-    # 1) If operations are being done within a single basis, we can 
-    # bypass the performance cost of using states/basis and 
-    # just operate on the coefficient arrays. If we're doing 
-    # mixed basis operations, however, we can perform operations
-    # utilizing the bras and kets themselves. 
-    #
-    # 2) Storing a basis of labels allows for label-based methods 
-    # of analysis. An easy example is arbitrary selection/extraction 
-    # of subspaces using methods like `filter`. (not yet implemented
-    # here, but examples of which can be found in the old QuDirac repo).
-
-    abstract DiracArray{B, T<:AbstractDirac, N} <: AbstractQuArray{B, T, N}
 
 ###############
 # DiracVector #
@@ -72,7 +34,6 @@ import Base: getindex,
             end
         end
     end
-
 
     function DiracVector{L<:AbstractLabelBasis,T,A}(quarr::QuVector{L,T,A}, D::DataType=Ket)
         return DiracVector{D,structure(L),T,L,A}(quarr)
@@ -167,9 +128,19 @@ import Base: getindex,
         return DiracVector(hcat(coeffs(dv), coeff(state)), append(basis(dv), label(state)), Bra)
     end
 
-    ##########################
-    # Mathematical Functions #
-    ##########################
+    ######################
+    # Printing Functions #
+    ######################
+    summary{S<:AbstractStructure,T,B}(dv::KetVector{S,T,B}) = "KetVector in $B with $(length(dv)) $T entries"
+    summary{S<:AbstractStructure,T,B}(dv::BraVector{S,T,B}) = "BraVector in $B with $(length(dv)) $T entries"
+
+##########################
+# Mathematical Functions #
+##########################
+
+    ############
+    # Addition #
+    ############
     function sum{K<:AbstractKet}(arr::AbstractArray{K})
         return DiracVector(makecoeffarr(arr), LabelBasis(arr), Ket)
     end
@@ -218,16 +189,34 @@ import Base: getindex,
     -{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = a + (-b)
     -{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + (-b)
 
-    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeffs(a),coeffs(b)), tensor(basis(a),basis(b)), D)
-    *{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeff(a),coeffs(b)), tensor(label(a),basis(b)), D)
-    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = DiracVector(kron(coeffs(a),coeff(b)), tensor(basis(a),label(b)), D)
-
     .+{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a + b
     .-{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = a - b
+
+    ##################
+    # Multiplication #
+    ##################
+    function inner{S<:AbstractStructure}(b::BraVector{S}, k::KetVector{S})
+        result = zero(ScalarExpr)
+        for i=1:length(b)
+            for j=1:length(k)
+                result = (b[i]*k[j]) + result       
+            end
+        end
+        return result
+    end
+        
+    tensor{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeffs(a),coeffs(b)), tensor(basis(a),basis(b)), D)
+    tensor{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeff(a),coeffs(b)), tensor(label(a),basis(b)), D)
+    tensor{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = DiracVector(kron(coeffs(a),coeff(b)), tensor(basis(a),label(b)), D)
+    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = tensor(a,b)
+    *{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = tensor(a,b)
+    *{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = tensor(a,b)
+
     .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(coeffs(a).*coeffs(b), hcat(basis(a),basis(b)), D)
     
     .*{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = a*b
     .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = a*b
+
     function .^{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
             return DiracVector(coeffs(a).^coeffs(b), basis(a), D)
@@ -235,6 +224,7 @@ import Base: getindex,
             error("BasisMismatch")
         end
     end
+
     function ./{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
         if samelabels(a, b)
             return DiracVector(coeffs(a)./coeffs(b), basis(a), D)
@@ -243,6 +233,18 @@ import Base: getindex,
         end
     end
 
+    #####################
+    # Special Functions #
+    #####################
+    log(dv::DiracVector, i) = DiracVector(log(coeffs(dv), i), basis(dv), dualtype(dv))
+    log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
+    exp(dv::DiracVector) = DiracVector(exp(coeffs(dv)), basis(dv), dualtype(dv))
+
+    ctranspose(dv::DiracVector) = DiracVector(coeffs(dv)', basis(dv), dualtype(dv)')
+
+    ######################
+    # Generic Arithmetic #
+    ######################
     for op = (:*,:.*,
               :/,:./,
               :+,:.+,
@@ -254,35 +256,9 @@ import Base: getindex,
         end
     end
 
-    log(dv::DiracVector, i) = DiracVector(log(coeffs(dv), i), basis(dv), dualtype(dv))
-    log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
-    exp(dv::DiracVector) = DiracVector(exp(coeffs(dv)), basis(dv), dualtype(dv))
-
-    ctranspose(dv::DiracVector) = DiracVector(coeffs(dv)', basis(dv), dualtype(dv)')
-
-    ######################
-    # Printing Functions #
-    ######################
-    summary{S<:AbstractStructure,T,B}(dv::KetVector{S,T,B}) = "KetVector in $B with $(length(dv)) $T entries"
-    summary{S<:AbstractStructure,T,B}(dv::BraVector{S,T,B}) = "BraVector in $B with $(length(dv)) $T entries"
-
-###############
-# DiracMatrix #
-###############
-    type DiracMatrix{S<:AbstractStructure, 
-                     T, 
-                     B<:AbstractLabelBasis, 
-                     C<:AbstractLabelBasis,
-                     A} <: DiracArray{B, ScaledOperator{S, T}, 2}
-        quarr::QuMatrix{B, T, A}
-        function DiracMatrix{B<:AbstractLabelBasis{S}}(arr::QuMatrix{B, T, A})
-            return new(quarr)
-        end
-    end
-
-############################
-# Convenience Constructors #
-############################
+    ############################
+    # Convenience Constructors #
+    ############################
     one_at_ind!(arr, i) = setindex!(arr, one(eltype(arr)), i)
     single_coeff(i, lens...) = one_at_ind!(zeros(lens), i)
     diraccoeffs(i, len, ::Type{Ket}) = single_coeff(i, len)
@@ -313,9 +289,7 @@ import Base: getindex,
     bravec(s::Tuple) = bravec(s, s)
     bravec(s::Number) = bravec(s, tuple(s-1))
 
-export DiracArray,
-    DiracVector,
-    DiracMatrix,
+export DiracVector,
     ketvec,
     bravec,
     structure,
