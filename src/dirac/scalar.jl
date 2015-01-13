@@ -82,7 +82,7 @@ import Base: conj,
     ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
 
     convert(::Type{ScalarExpr}, s::ScalarExpr) = s
-    convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(:(1*$(n)))
+    convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
 
     one(::ScalarExpr) = ScalarExpr(1)
     zero(::ScalarExpr) = ScalarExpr(0)
@@ -280,6 +280,24 @@ import Base: conj,
             ($elop)(a::Number, b::DiracScalar) = ($op)(a,b)
         end
     end
+
+    ########################
+    ## Printing Functions ##
+    ########################
+
+    function repr(s::ScalarExpr)
+        if s[1]==+
+            if length(s)==2
+                return repr(s[2])
+            else
+                return repr(Expr(:call, s.ex[2:end]...))[3:end-1]
+            end
+        else
+            return repr(s.ex)[2:end]
+        end
+    end
+
+    show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
 export InnerProduct,
     structure,
