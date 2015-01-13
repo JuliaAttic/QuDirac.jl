@@ -89,13 +89,13 @@ import Base: getindex,
     ###########################
     # AbstractState Functions #
     ###########################
-    # We somewhat arbitrarily 
-    # default to Complex128 as the 
-    # coefficient type. Then 
-    # coeff can just return the multiplicative
-    # identity of that chosen type.
-    coefftype(s::DiracState) = Complex128
-    coefftype{S<:DiracState}(::Type{S}) = Complex128
+    # We default to Int as the coefficient
+    # type and let promotion rules handle 
+    # the rest. Then coeff() can just return 
+    # the multiplicative identity of that 
+    # chosen type.
+    coefftype(s::DiracState) = Int
+    coefftype{S<:DiracState}(::Type{S}) = Int
 
     dualtype(::Type{DiracState}) = DualType
     dualtype{D}(::Type{DiracState{D}}) = D
