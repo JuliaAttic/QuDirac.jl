@@ -40,7 +40,7 @@ import Base: getindex,
     #   julia> f[6]
     #    StateLabel(1,0,1)
     #
-    #   julia> f[StateLabel(1,0,1)]
+    #   julia> getpos(f,StateLabel(1,0,1))
     #    6
     # 
     # Because the labels are generated rather than actually 
@@ -59,7 +59,7 @@ import Base: getindex,
     #   julia> f[34234134]
     #    StateLabel(128,60,0,37,0,0)
     #
-    #   julia> f[StateLabel(128,60,0,37,0,0)]
+    #   julia> getpos(f, StateLabel(128,60,0,37,0,0))
     #    34234134
     # 
     # Arbitrary numeric ranges are supported for labels:
@@ -82,7 +82,7 @@ import Base: getindex,
     #    StateLabel(0.1,7)
     #    StateLabel(0.2,7)        
     #
-    #   julia> f[f[(0.0, 7)]] == StateLabel(0.0, 7)
+    #   julia> f[getpos(f,(0.0, 7))] == StateLabel(0.0, 7)
     #   true
     
     immutable FockBasis{S<:AbstractStructure,N} <: AbstractLabelBasis{S,N}
@@ -165,15 +165,11 @@ import Base: getindex,
     pos_in_range(r::Range, i) = i in r ? (i-first(r))/step(r) : throw(BoundsError())
 
     in(label, f::FockBasis) = reduce(&, map(in, label, ranges(f)))
+    
     getpos(f::FockBasis, s::AbstractState) = getpos(f, label(s))
     getpos(f::FockBasis, label) = int(sum(map(*, map(pos_in_range, ranges(f), label), f.denoms)))+1
 
     getindex{S,N}(f::FockBasis{S,N}, i) = StateLabel{N}(tuple_at_ind(f, i))
-  
-    getindex(f::FockBasis, s::AbstractState) = getpos(f, s) 
-    getindex(f::FockBasis, label::StateLabel) = getpos(f, label) 
-    getindex(f::FockBasis, label::Tuple) = getpos(f, label)
-
     getindex(f::FockBasis, arr::AbstractArray) = [f[i] for i in arr]
 
     ######################

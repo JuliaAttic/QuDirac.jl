@@ -22,20 +22,6 @@ import Base:
     hash,
     hcat
 
-####################
-# Helper Functions #
-####################
-
-    # XORing hashes is commutative; using this instead
-    # of the normal hash function to mix hashes would allow 
-    # for constant time checking of whether two LabelBasis objects have 
-    # the same labels regardless of label order. 
-    # This is not currently in use because, in most cases, I
-    # think the user will only care if the labels are both
-    # the same and in order...
-    # 
-    # combine_hashes(hash1, hash2) = hash1 $ hash2 
-
 ##############
 # LabelBasis #
 ##############
@@ -63,7 +49,7 @@ import Base:
 
     immutable LabelBasis{S<:AbstractStructure,N} <: AbstractLabelBasis{S,N}
         labels::Vector{StateLabel{N}}      # stores StateLabels
-        labelmap::Dict{StateLabel{N}, Int} # used for basis[state] -> index functionality 
+        labelmap::Dict{StateLabel{N}, Int} # used for getpos(basis,label) -> index functionality 
         labels_hash::Uint64                # used for constant-time samelabels operation
         
         function LabelBasis(labels::Vector{StateLabel{N}}, 
@@ -129,9 +115,6 @@ import Base:
     
     in(label::StateLabel, basis::LabelBasis) = haskey(basis.labelmap, label)
 
-    getindex(basis::LabelBasis, s::AbstractState) = getpos(basis, s) 
-    getindex(basis::LabelBasis, label::StateLabel) = getpos(basis, label) 
-    getindex(basis::LabelBasis, label::Tuple) = getpos(basis, label)
     getindex(basis::LabelBasis, i) = basis.labels[i]
 
     #####################

@@ -74,14 +74,15 @@ import Base: getindex,
     getpos{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s::AbstractState{D,S}) = getpos(basis(dv), label(s))
     getpos{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s) = getpos(basis(dv), s) 
 
-    getstate{D,S<:AbstractStructure}(dv::DiracVector{D,S}, i) = DiracState{D,S}(basis(dv)[i])
+    getlabel(dv::DiracVector, i) = basis(dv)[i]
+    getstate{D,S<:AbstractStructure}(dv::DiracVector{D,S}, i) = DiracState{D,S}(getlabel(dv,i))
     samelabels(a::DiracVector, b::DiracVector) = samelabels(basis(a), basis(b))
 
     #########################
     # Coefficient Functions #
     #########################
     in(c, dv::DiracVector) = in(c, coeffs(dv))
-    getcoeff{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s::AbstractState{D,S}) = coeffs(dv)[getpos(dv, s)]
+    getcoeff{D,S<:AbstractStructure}(dv::DiracVector{D,S}, s::AbstractState{D,S}) = coeffs(dv)[getpos(dv, label(s))]
     getcoeff(dv::DiracVector, s::StateLabel) = coeffs(dv)[getpos(dv, s)]
     getcoeff(dv::DiracVector, s::Tuple) = coeffs(dv)[getpos(dv, s)]
     getcoeff(dv::DiracVector, i) = coeffs(dv)[i]
@@ -97,13 +98,15 @@ import Base: getindex,
     getindex(dv::DiracVector, label::Tuple) = getcoeff(dv, label) * s
     getindex(dv::KetVector, i, j) = j==1 ? dv[i] : throw(BoundsError())
     getindex(dv::BraVector, i, j) = i==1 ? dv[j] : throw(BoundsError())
-    
+
     generic_setind!(dv, c, i) = (setindex!(coeffs(dv), c, i); return dv)
     setindex!(dv::DiracVector, c, s::AbstractState) = generic_setind!(dv, c, getpos(dv, s))
     setindex!(dv::DiracVector, c, i::Real) = generic_setind!(dv, c, i)
     setindex!(dv::DiracVector, c, i) = generic_setind!(dv, c, i)
     setindex!(v::KetVector, c, i, j) = j==1 ? generic_setind!(v, c, i) : throw(BoundsError())
     setindex!(v::BraVector, c, i, j) = i==1 ? generic_setind!(v, c, j) : throw(BoundsError())
+
+    getas{D,S<:AbstractStructure}(dv::DiracVector{D,S}, i, T=D) =  ScaledState(getcoeff(dv, i), DiracState{T,S}(getlabel(dv,i)))
 
     #####################
     # Joining Functions #
@@ -150,7 +153,7 @@ import Base: getindex,
     end
 
     function +{S<:AbstractStructure}(a::AbstractKet{S}, b::AbstractKet{S}) 
-        if a == b 
+        if state(a) == state(b) 
             return DiracVector([coeff(a)+coeff(b)], LabelBasis(b), Ket) 
         else 
             return DiracVector(vcat(coeff(a), coeff(b)), LabelBasis(label(a), label(b)), Ket)
@@ -158,7 +161,7 @@ import Base: getindex,
     end
 
     function +{S<:AbstractStructure}(a::AbstractBra{S}, b::AbstractBra{S}) 
-        if a == b 
+        if state(a) == state(b) 
             return DiracVector([coeff(a)+coeff(b)], LabelBasis(b), Bra) 
         else 
             return DiracVector(hcat(coeff(a), coeff(b)), LabelBasis(label(a), label(b)), Bra)
@@ -195,16 +198,18 @@ import Base: getindex,
     ##################
     # Multiplication #
     ##################
-    function inner{S<:AbstractStructure}(b::BraVector{S}, k::KetVector{S})
-        result = zero(ScalarExpr)
+    function inner(b::BraVector, k::KetVector)
+        result = 0
         for i=1:length(b)
             for j=1:length(k)
-                result = (b[i]*k[j]) + result       
+                result = inner(b[i],k[k]) + result       
             end
         end
         return result
     end
-        
+
+    *(b::BraVector, k::KetVector) = inner(a,b)
+
     tensor{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeffs(a),coeffs(b)), tensor(basis(a),basis(b)), D)
     tensor{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeff(a),coeffs(b)), tensor(label(a),basis(b)), D)
     tensor{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = DiracVector(kron(coeffs(a),coeff(b)), tensor(basis(a),label(b)), D)
