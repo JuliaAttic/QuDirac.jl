@@ -2,8 +2,18 @@ import Base: getindex,
     setindex!,
     copy,
     size,
+    length,
     in,
     summary,
+    show,
+    showcompact,
+    start,
+    done,
+    next,
+    endof,
+    last,
+    first,
+    collect,
     +, .+,
     *, .*,
     -, .-,
@@ -19,36 +29,40 @@ import Base: getindex,
 ###############
 # DiracVector #
 ###############
-    checksize(::Type{Ket}, qa) = size(qa, 2) == 1 
-    checksize(::Type{Bra}, qa) = size(qa, 1) == 1 
-
     type DiracVector{D, 
                      S<:AbstractStructure, 
                      T, 
                      B<:AbstractLabelBasis, 
                      A} <: DiracArray{B,ScaledState{D,S,T},1}
-        quarr::QuVector{B,T,A}
-        function DiracVector{L<:AbstractLabelBasis{S}}(quarr::QuVector{L,T,A})
-            if checksize(D, quarr)
-                new(quarr)
-            else 
-                error("Coefficient array does not conform to input bases")
-            end
-        end
+        quvec::QuVector{B,T,A}
     end
 
-    function DiracVector{L<:AbstractLabelBasis,T,A}(quarr::QuVector{L,T,A}, D::DataType=Ket)
-        return DiracVector{D,structure(L),T,L,A}(quarr)
+    function DiracVector{L<:AbstractLabelBasis,T}(quket::QuBase.QuKet{L,T})
+        return DiracVector{Ket,structure(L),T,L,typeof(coeffs(quket))}(quket)
     end
 
-    function DiracVector{T,S<:AbstractStructure}(
-                        coeffs::AbstractArray{T}, 
-                        basis::AbstractLabelBasis{S}, 
-                        D::DataType=Ket)
-        return DiracVector(QuArray(coeffs, basis), D)    
+    function DiracVector{L<:AbstractLabelBasis,T}(qubra::QuBase.QuBra{L,T})
+        return DiracVector{Bra,structure(L),T,L,typeof(coeffs(qubra))}(qubra)
     end
 
-    DiracVector(coeffs::AbstractArray) = DiracVector(coeffs, FockBasis(length(coeffs)-1))
+    function DiracVector{S<:AbstractStructure}(
+                        coeffs,
+                        basis::AbstractLabelBasis{S})
+        return DiracVector(QuArray(coeffs, basis))    
+    end
+
+    # function DiracVector{L<:AbstractLabelBasis,T,A}(quarr::QuArray{L,T,1,A}, D::DataType=Ket)
+    #     return DiracVector{D,structure(L),T,L,A}(quarr)
+    # end
+
+    # function DiracVector{S<:AbstractStructure}(
+    #                     coeffs, 
+    #                     basis::AbstractLabelBasis{S}, 
+    #                     D::DataType=Ket)
+    #     return DiracVector(QuArray(coeffs, basis), D)    
+    # end
+
+    DiracVector(coeffs::AbstractArray) = DiracVector(QuBase.QuCoeffs(coeffs), FockBasis(length(coeffs)-1))
 
     DiracVector{K<:AbstractKet}(arr::AbstractArray{K}) = sum(arr)
     DiracVector{B<:AbstractBra}(arr::AbstractArray{B}) = sum(arr)
@@ -59,10 +73,10 @@ import Base: getindex,
     ######################
     # Property Functions #
     ######################
-    size(dv::DiracVector, i...) = size(dv.quarr, i...)
-    bases(dv::DiracVector) = bases(dv.quarr)
+    quvec(dv::DiracVector) = dv.quvec
+    bases(dv::DiracVector) = bases(quvec(dv))
     basis(dv::DiracVector) = first(bases(dv))
-    coeffs(dv::DiracVector) = coeffs(dv.quarr)
+    coeffs(dv::DiracVector) = coeffs(quvec(dv))
     dualtype{D}(::DiracVector{D}) = D
     structure{D,S<:AbstractStructure}(::DiracVector{D,S}) = S
 
@@ -110,6 +124,17 @@ import Base: getindex,
 
     getas{D,S<:AbstractStructure}(dv::DiracVector{D,S}, i, T=D) =  ScaledState(getcoeff(dv, i), DiracState{T,S}(getlabel(dv,i)))
 
+    ######################
+    # Iterator Functions #
+    ######################
+    start(::DiracVector) = 1
+    done(dv::DiracVector, state) = length(dv) == state-1
+    next(dv::DiracVector, state) = dv[state], state+1
+    endof(dv::DiracVector) = length(dv)
+    last(dv::DiracVector) = dv[length(dv)]
+    first(dv::DiracVector) = dv[1]
+    collect(dv::DiracVector) = dv[1:end]
+
     #####################
     # Joining Functions #
     #####################
@@ -138,6 +163,36 @@ import Base: getindex,
     ######################
     summary{S<:AbstractStructure,T,B}(dv::KetVector{S,T,B}) = "KetVector in $B with $(length(dv)) $T entries"
     summary{S<:AbstractStructure,T,B}(dv::BraVector{S,T,B}) = "BraVector in $B with $(length(dv)) $T entries"
+    
+    function printrange(io, dv, range, pad="  ")
+        print(io, "$pad$(dv[range[1]])")
+        for i in range[2:end]
+            println(io)
+            print(io, "$pad$(dv[i])")
+        end
+    end
+
+    function show(io::IO, dv::DiracVector)
+        println(io, "$(summary(dv)):")
+        maxlen = 30
+        if length(dv) > maxlen + 1
+            limit = div(maxlen,2)
+            printrange(io, dv, 1:limit)
+            println(io)
+            println(io, "  "*vdots)
+            printrange(io, dv, length(dv)-limit:length(dv))
+        else
+            printrange(io, dv, 1:length(dv))
+        end
+    end
+
+    function showcompact(io::IO, dv::DiracVector)
+        print(io, first(dv))
+        for i=2:length(dv)
+            print(io, " + ")
+            print(io, dv[i])
+        end
+    end
 
 ##########################
 # Mathematical Functions #
@@ -224,32 +279,32 @@ import Base: getindex,
     .*{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = a*b
     .*{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::AbstractState{D,S}) = a*b
 
-    function .^{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
-        if samelabels(a, b)
-            return DiracVector(coeffs(a).^coeffs(b), basis(a), D)
-        else
-            error("BasisMismatch")
-        end
-    end
+    # function .^{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
+    #     if samelabels(a, b)
+    #         return DiracVector(coeffs(a).^coeffs(b), basis(a))
+    #     else
+    #         error("BasisMismatch")
+    #     end
+    # end
 
-    function ./{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
-        if samelabels(a, b)
-            return DiracVector(coeffs(a)./coeffs(b), basis(a), D)
-        else
-            error("BasisMismatch")
-        end
-    end
+    # function ./{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S})
+    #     if samelabels(a, b)
+    #         return DiracVector(coeffs(a)./coeffs(b), basis(a))
+    #     else
+    #         error("BasisMismatch")
+    #     end
+    # end
 
     #####################
     # Special Functions #
     #####################
-    log(dv::DiracVector, i) = DiracVector(log(coeffs(dv), i), basis(dv), dualtype(dv))
-    log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
-    exp(dv::DiracVector) = DiracVector(exp(coeffs(dv)), basis(dv), dualtype(dv))
+    log(dv::DiracVector, i) = DiracVector(log(quvec(dv), i))
+    log(dv::DiracVector) = DiracVector(log(quvec(dv)))
+    exp(dv::DiracVector) = DiracVector(exp(quvec(dv)))
 
-    conj(dv::DiracVector) = DiracVector(conj(coeffs(dv)), basis(dv), dualtype(dv))
-    transpose(dv::DiracVector) = DiracVector(coeffs(dv).', basis(dv), dualtype(dv))
-    ctranspose(dv::DiracVector) = DiracVector(coeffs(dv)', basis(dv), dualtype(dv)')
+    conj(dv::DiracVector) = DiracVector(conj(quvec(dv)))
+    transpose(dv::DiracVector) = DiracVector(quvec(dv).')
+    ctranspose(dv::DiracVector) = DiracVector(quvec(dv)')
 
     ######################
     # Generic Arithmetic #
@@ -260,8 +315,8 @@ import Base: getindex,
               :-,:.-,
               :^,:.^)
         @eval begin
-            ($op)(dv::DiracVector, c) = DiracVector(($op)(coeffs(dv), c), basis(dv), dualtype(dv))
-            ($op)(c, dv::DiracVector) = DiracVector(($op)(c, coeffs(dv)), basis(dv), dualtype(dv))         
+            ($op)(dv::DiracVector, c) = DiracVector(($op)(quvec(dv), c))
+            ($op)(c, dv::DiracVector) = DiracVector(($op)(c, quvec(dv)))         
         end
     end
 
@@ -269,12 +324,10 @@ import Base: getindex,
     # Convenience Constructors #
     ############################
     one_at_ind!(arr, i) = setindex!(arr, one(eltype(arr)), i)
-    single_coeff(i, lens...) = one_at_ind!(zeros(lens), i)
-    diraccoeffs(i, len, ::Type{Ket}) = single_coeff(i, len)
-    diraccoeffs(i, len, ::Type{Bra}) = single_coeff(i, 1, len)
+    single_coeff(i, len) = one_at_ind!(zeros(lens), i)
 
-    diracvec(i::Int, b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(i, length(b), D), b, D)
-    diracvec(tup::Tuple, b::AbstractLabelBasis, D=Ket) = DiracVector(diraccoeffs(getpos(b, tup), length(b), D), b, D)
+    ketcons(i::Int, b::AbstractLabelBasis) = DiracVector(single_coeff(i, length(b)), b)
+    bracons(tup::Tuple, b::AbstractLabelBasis) = DiracVector(single_coeff(getpos(b, tup), length(b))', b)
 
     # `s` is the index at which 
     # the one coefficient resides;
@@ -286,13 +339,13 @@ import Base: getindex,
     # be treated like an index
     # into the coefficient
     # array
-    ketvec(s, basis::FockBasis) = diracvec(s, basis, Ket)
+    ketvec(s, basis::FockBasis) = ketcons(s, basis)
     ketvec(s, lens::Tuple) = ketvec(s, FockBasis(lens))
     ketvec(s, lens...=s) = ketvec(s, lens)
     ketvec(s::Tuple) = ketvec(s, s)
     ketvec(s::Number) = ketvec(s, tuple(s-1))
 
-    bravec(s, basis::FockBasis) = diracvec(s, basis, Bra)
+    bravec(s, basis::FockBasis) = bracons(s, basis)
     bravec(s, lens::Tuple) = bravec(s, FockBasis(lens))
     bravec(s, lens...=s) = bravec(s, lens)
     bravec(s::Tuple) = bravec(s, s)

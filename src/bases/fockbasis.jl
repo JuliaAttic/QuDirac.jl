@@ -154,7 +154,6 @@ import Base: getindex,
     ndims(f::FockBasis) = nfactors(f)
 
     samelabels(a::FockBasis, b::FockBasis) = ranges(a) == ranges(b)
-
     checkcoeffs(coeffs, dim, f::FockBasis) = size(coeffs, dim) == length(f)
 
     ######################
