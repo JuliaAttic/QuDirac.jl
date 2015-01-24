@@ -12,7 +12,9 @@ import Base: getindex,
     Ac_mul_B,
     exp,
     sum,
-    ctranspose
+    ctranspose,
+    conj,
+    transpose
 
 ###############
 # DiracVector #
@@ -202,13 +204,13 @@ import Base: getindex,
         result = 0
         for i=1:length(b)
             for j=1:length(k)
-                result = inner(b[i],k[k]) + result       
+                result = inner(b[i],k[j]) + result       
             end
         end
         return result
     end
 
-    *(b::BraVector, k::KetVector) = inner(a,b)
+    *(b::BraVector, k::KetVector) = inner(b,k)
 
     tensor{D,S<:AbstractStructure}(a::DiracVector{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeffs(a),coeffs(b)), tensor(basis(a),basis(b)), D)
     tensor{D,S<:AbstractStructure}(a::AbstractState{D,S}, b::DiracVector{D,S}) = DiracVector(kron(coeff(a),coeffs(b)), tensor(label(a),basis(b)), D)
@@ -245,6 +247,8 @@ import Base: getindex,
     log(dv::DiracVector) = DiracVector(log(coeffs(dv)), basis(dv), dualtype(dv))
     exp(dv::DiracVector) = DiracVector(exp(coeffs(dv)), basis(dv), dualtype(dv))
 
+    conj(dv::DiracVector) = DiracVector(conj(coeffs(dv)), basis(dv), dualtype(dv))
+    transpose(dv::DiracVector) = DiracVector(coeffs(dv).', basis(dv), dualtype(dv))
     ctranspose(dv::DiracVector) = DiracVector(coeffs(dv)', basis(dv), dualtype(dv)')
 
     ######################
