@@ -155,7 +155,7 @@ import Base: getindex,
 
     samelabels(a::FockBasis, b::FockBasis) = ranges(a) == ranges(b)
 
-    checkcoeffs(coeffs::AbstractArray, dim::Int, f::FockBasis) = size(coeffs, dim) == length(f)
+    checkcoeffs(coeffs, dim, f::FockBasis) = size(coeffs, dim) == length(f)
 
     ######################
     # Accessor Functions #

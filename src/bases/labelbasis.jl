@@ -105,7 +105,7 @@ import Base:
     =={S,N}(a::LabelBasis{S,N}, b::LabelBasis{S,N}) = samelabels(a,b)
 
     hash{S}(basis::LabelBasis{S}) = hash(basis.labels_hash, hash(S))
-    checkcoeffs(coeffs::AbstractArray, dim::Int, basis::LabelBasis) = size(coeffs, dim) == length(basis) 
+    checkcoeffs(coeffs, dim, basis::LabelBasis) = size(coeffs, dim) == length(basis) 
 
     ########################
     # Array-like Functions #
