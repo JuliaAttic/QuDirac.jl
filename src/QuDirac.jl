@@ -8,7 +8,10 @@ module QuDirac
         checkcoeffs,
         nfactors,
         bases,
-        coeffs
+        coeffs,
+        QuCoeffs,
+        QuBra,
+        QuKet
 
     ####################
     # String Constants #

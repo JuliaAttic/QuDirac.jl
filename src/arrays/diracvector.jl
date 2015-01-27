@@ -37,38 +37,41 @@ import Base: getindex,
         quvec::QuVector{B,T,A}
     end
 
-    function DiracVector{L<:AbstractLabelBasis,T}(quket::QuBase.QuKet{L,T})
+    function DiracVector{L<:AbstractLabelBasis,T}(quket::QuKet{L,T})
         return DiracVector{Ket,structure(L),T,L,typeof(coeffs(quket))}(quket)
     end
 
-    function DiracVector{L<:AbstractLabelBasis,T}(qubra::QuBase.QuBra{L,T})
+    function DiracVector{L<:AbstractLabelBasis,T}(qubra::QuBra{L,T})
         return DiracVector{Bra,structure(L),T,L,typeof(coeffs(qubra))}(qubra)
     end
 
     function DiracVector{S<:AbstractStructure}(
-                        coeffs,
+                        coeffs::QuCoeffs,
                         basis::AbstractLabelBasis{S})
         return DiracVector(QuArray(coeffs, basis))    
     end
 
-    # function DiracVector{L<:AbstractLabelBasis,T,A}(quarr::QuArray{L,T,1,A}, D::DataType=Ket)
-    #     return DiracVector{D,structure(L),T,L,A}(quarr)
-    # end
-
-    # function DiracVector{S<:AbstractStructure}(
-    #                     coeffs, 
-    #                     basis::AbstractLabelBasis{S}, 
-    #                     D::DataType=Ket)
-    #     return DiracVector(QuArray(coeffs, basis), D)    
-    # end
-
-    DiracVector(coeffs::AbstractArray) = DiracVector(QuBase.QuCoeffs(coeffs), FockBasis(length(coeffs)-1))
+    DiracVector(coeffs::AbstractArray) = DiracVector(QuCoeffs(coeffs), FockBasis(length(coeffs)-1))
 
     DiracVector{K<:AbstractKet}(arr::AbstractArray{K}) = sum(arr)
     DiracVector{B<:AbstractBra}(arr::AbstractArray{B}) = sum(arr)
 
     typealias KetVector{S<:AbstractStructure, T, B<:AbstractLabelBasis} DiracVector{Ket, S, T, B}
     typealias BraVector{S<:AbstractStructure, T, B<:AbstractLabelBasis} DiracVector{Bra, S, T, B}
+
+    function make_dvec{S<:AbstractStructure}(
+                        coeffs,
+                        basis::AbstractLabelBasis{S}
+                        ::Type{Ket})
+        return DiracVector(QuCoeffs(coeffs, ConjBool{false}, TranBool{false}), basis)   
+    end
+
+    function make_dvec{S<:AbstractStructure}(
+                        coeffs,
+                        basis::AbstractLabelBasis{S}
+                        ::Type{Bra})
+        return DiracVector(QuCoeffs(coeffs, ConjBool{true}, TranBool{true}), basis)  
+    end
 
     ######################
     # Property Functions #
@@ -302,8 +305,8 @@ import Base: getindex,
     log(dv::DiracVector) = DiracVector(log(quvec(dv)))
     exp(dv::DiracVector) = DiracVector(exp(quvec(dv)))
 
-    conj(dv::DiracVector) = DiracVector(conj(quvec(dv)))
-    transpose(dv::DiracVector) = DiracVector(quvec(dv).')
+    conj(dv::DiracVector) = conj(quvec(dv))
+    transpose(dv::DiracVector) = quvec(dv).'
     ctranspose(dv::DiracVector) = DiracVector(quvec(dv)')
 
     ######################
