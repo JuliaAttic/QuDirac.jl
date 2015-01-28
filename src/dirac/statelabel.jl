@@ -15,11 +15,6 @@ import Base: getindex,
 ##############
 # StateLabel #
 ##############
-    # The `StateLabel` type provides a foundational label structure 
-    # for Dirac states/operators. The `combine` function allows it 
-    # to easily support tensor product structures.
-    # Note that objects of this type are not 
-    # in and of themselves quantum objects.
     immutable StateLabel{N}
         label::NTuple{N}
     end
@@ -43,9 +38,9 @@ import Base: getindex,
     #####################
     # Joining Functions #
     #####################
-    binarycombine(a::StateLabel, b::StateLabel) = StateLabel(tuple(gettuple(a)..., gettuple(b)...)) 
-    combine(s::(StateLabel...)) = reduce(binarycombine, s)
-    combine(s::StateLabel...) = combine(s)
+    binarytensor(a::StateLabel, b::StateLabel) = StateLabel(tuple(gettuple(a)..., gettuple(b)...)) 
+    tensor(s::(StateLabel...)) = reduce(binarytensor, s)
+    tensor(s::StateLabel...) = tensor(s)
 
     separate(s::StateLabel) = map(StateLabel, gettuple(s))
 
@@ -67,6 +62,7 @@ import Base: getindex,
     last(s::StateLabel) = s[length(s)]
     first(s::StateLabel) = s[1]
     collect(s::StateLabel) = s[1:end]
+
     map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, gettuple(s)))
     map(f, s::StateLabel) = StateLabel(map(f, gettuple(s)))
 
@@ -75,12 +71,3 @@ import Base: getindex,
     labelvec(labels...) = labelvec(collect(labels))
     labelvec{S<:StateLabel}(labels::AbstractArray{S}) = collect(labels)
     labelvec{S<:StateLabel}(labels::Set{S}) = collect(labels)
-    labelvec{S<:StateLabel}(labels::OrderedSet{S}) = collect(labels)
-
-export StateLabel,
-    label,
-    labelvec,
-    gettuple,
-    combine,
-    nfactors,
-    separate

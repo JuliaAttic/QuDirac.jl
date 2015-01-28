@@ -1,7 +1,8 @@
 module QuDirac
     
-    using DataStructures.OrderedSet
     using QuBase
+    using Iterators
+    using DataStructures
 
     import QuBase: tensor,
         structure,
@@ -36,8 +37,7 @@ module QuDirac
     # Include Statements #
     ######################
         include("dirac/dirac.jl")
-        include("bases/bases.jl")
-        include("arrays/diracarray.jl")
+        include("diracstate.jl")
 end 
 
 using QuBase

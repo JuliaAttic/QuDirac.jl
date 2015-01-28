@@ -42,8 +42,9 @@ import Base: getindex,
     # This comparison method is useful to define
     # for all labeled concrete subtypes of AbstractQuantum
     samelabels(a::AbstractState, b::AbstractState) = label(a) == label(b)
-
     convert{S<:StateLabel}(::Type{S}, s::AbstractState) = label(s)
+
+    labelhash(s::AbstractState) = hash(label(s))
 
 ##############
 # DiracState #
