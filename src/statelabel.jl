@@ -67,7 +67,6 @@ import Base: getindex,
     map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, gettuple(s)))
     map(f, s::StateLabel) = StateLabel(map(f, gettuple(s)))
 
-
     permute(s::StateLabel, p) = StateLabel(permute!(collect(gettuple(s)), p)...)
 
     function switch(s::StateLabel, i, j)
