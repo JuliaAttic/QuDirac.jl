@@ -16,9 +16,13 @@ import Base:
     last,
     first,
     collect,
-    values
+    values,
+    filter,
+    filter!,
+    haskey
 
-abstract Orthonormal <: AbstractStructure
+abstract Orthogonal <: AbstractStructure
+abstract Orthonormal <: Orthogonal
 
 type DiracState{D,B,N,T}
     labels::Dict{StateLabel{N},T}   
@@ -51,6 +55,7 @@ copy{D,B}(ds::DiracState{D,B}) = DiracState(copy(labels(ds)), D, B)
 
 length(ds::DiracState) = length(labels(ds))
 
+getindex(ds::DiracState, label::StateLabel) = ds.labels[label]
 getindex(ds::DiracState, i...) = ds.labels[StateLabel(i...)]
 getstate(ds::DiracState, i...) = ds[i...] * ket(i...)
 
@@ -62,7 +67,10 @@ last(ds::DiracState) = last(labels(ds))
 first(ds::DiracState) = first(labels(ds))
 collect{D,B}(ds::DiracState{D,B}) = DiracState(collect(labels(ds)), D, B)
 
+haskey(ds::DiracState, label) = haskey(labels(ds), label)
 values(ds::DiracState) = values(labels(ds))
+filter!(f::Function, ds::DiracState) = filter!(f, labels(ds))
+filter(f::Function, ds::DiracState) = filter!(f, copy(ds))
 
 ##########################
 # Mathematical Functions #
@@ -75,6 +83,14 @@ function inner{B}(db::DiracBra{B}, dk::DiracKet{B})
         end
     end
     return result
+end
+
+function inner{B<:Orthogonal}(db::DiracBra{B}, dk::DiracKet{B})
+    if length(db) > length(dk)
+        return ortho_inner(labels(dk), labels(db))
+    else
+        return ortho_inner(labels(db), labels(dk))
+    end
 end
 
 +{D,B,N}(a::DiracState{D,B,N}, b::DiracState{D,B,N}) = DiracState(mergef(+, labels(a), labels(b)), D, B)
@@ -119,6 +135,16 @@ end
 ####################
 # Helper Functions #
 ####################
+function ortho_inner(a, b)
+    result = 0
+    for (label,c) in a
+        if haskey(b, label)
+            result += b[label]
+        end
+    end
+    return result
+end
+
 assoc_nfactors{N}(::Associative{StateLabel{N}}) = N
 
 function singlet_dict{N,T}(label::StateLabel{N}, c::T)
