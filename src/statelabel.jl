@@ -38,7 +38,8 @@ import Base: getindex,
     #####################
     # Joining Functions #
     #####################
-    binarytensor(a::StateLabel, b::StateLabel) = StateLabel(tuple(gettuple(a)..., gettuple(b)...)) 
+    tupletensor(a, b) = tuple(a..., b...)
+    binarytensor(a::StateLabel, b::StateLabel) = StateLabel(tupletensor(gettuple(a), gettuple(b))) 
     tensor(s::(StateLabel...)) = reduce(binarytensor, s)
     tensor(s::StateLabel...) = tensor(s)
 
@@ -65,6 +66,17 @@ import Base: getindex,
 
     map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, gettuple(s)))
     map(f, s::StateLabel) = StateLabel(map(f, gettuple(s)))
+
+
+    permute(s::StateLabel, p) = StateLabel(permute!(collect(gettuple(s)), p)...)
+
+    function switch(s::StateLabel, i, j)
+        v = collect(gettuple(s)) 
+        tmp = v[i]
+        v[i] = v[j]
+        v[j] = tmp
+        return StateLabel(v...)
+    end
 
     labelvec(labels::Array) = map(StateLabel, labels)
     labelvec(labels::AbstractArray) = collect(map(StateLabel, labels))

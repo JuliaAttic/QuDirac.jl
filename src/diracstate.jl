@@ -8,6 +8,7 @@ import Base:
     *,
     -,
     getindex,
+    setindex!,
     show,
     start,
     done,
@@ -59,6 +60,9 @@ getindex(ds::DiracState, label::StateLabel) = ds.labels[label]
 getindex(ds::DiracState, i...) = ds.labels[StateLabel(i...)]
 getstate(ds::DiracState, i...) = ds[i...] * ket(i...)
 
+setindex!(ds::DiracState, x, i...) = setindex!(labels(ds), x, StateLabel(i...))
+setindex!(ds::DiracState, x, label::StateLabel) = setindex!(labels(ds), x, label)
+
 start(ds::DiracState) = start(labels(ds))
 done(ds::DiracState, state) = done(labels(ds), state)
 next(ds::DiracState, state) = next(labels(ds), state)
@@ -107,6 +111,13 @@ ctranspose{D,B}(ds::DiracState{D,B}) = DiracState(labels(conj(ds)), D', B)
 
 norm(ds::DiracState) = sqrt(sum(v->v^2, values(ds)))
 normalize(ds::DiracState) = (1/norm(ds))*ds
+
+xsubspace(ds::DiracState, x) = filter((k,v)->sum(k)==x, ds)
+labels_at(ds::DiracState, x, y) = filter((k,v)-> x==k[y], ds)
+labels_in(ds::DiracState, x) = filter((k,v)-> x in k, ds)
+
+switch(ds::DiracState, i, j) = mapkeys(k->switch(k,i,j), ds)
+permute(ds::DiracState, p) = mapkeys(k->permute(k,p), ds)
 
 ######################
 # Printing Functions #
@@ -207,11 +218,14 @@ end
 function mapkv!(f::Function, d, result)
     for (k,v) in d
         (k0,v0) = f(k,v)
-        delete!(d,k)
+        delete!(result,k)
         result[k0] = v0
     end
     return result
 end
+
+mapkv(f::Function, d) = mapkv!(f, d, copy(d))
+mapkv{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapkv(f, copy(labels(ds))), D, B)
 
 function mapvals!(f::Function, d, result)
     for (k,v) in d
@@ -221,13 +235,25 @@ function mapvals!(f::Function, d, result)
 end
 
 mapvals(f::Function, d) = mapvals!(f, d, copy(d))
-mapvals{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapvals(f, labels(ds)), D, B)
+mapvals{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapvals(f, copy(labels(ds))), D, B)
 
-mapkv(f::Function, d) = mapkv!(f, d, copy(d))
-mapkv{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapkv(f, labels(ds)), D, B)
+function mapkeys(f::Function, d, result)
+    for (k,v) in d
+        result[f(k)] = v
+    end
+    return result
+end
+
+mapkeys(f::Function, d) = mapkeys(f, d, similar(d))
+mapkeys{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapkeys(f, copy(labels(ds))), D, B)
 
 export DiracState,
     ket,
     bra,
     getstate,
-    normalize
+    normalize,
+    xsubspace,
+    labels_at,
+    labels_in,
+    switch,
+    permute
