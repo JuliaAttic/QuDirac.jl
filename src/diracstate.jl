@@ -1,24 +1,40 @@
 import Base: 
     eltype,
     copy,
+    norm,
+    ctranspose,
+    conj,
     +,
     *,
     -,
-    show
+    getindex,
+    show,
+    start,
+    done,
+    next,
+    endof,
+    last,
+    first,
+    collect,
+    values
 
-abstract BasisType
-abstract Orthonormal <: BasisType
+abstract Orthonormal <: AbstractStructure
 
-immutable DiracState{D,B,N,T}
-    labels::OrderedDict{StateLabel{N},T}   
+type DiracState{D,B,N,T}
+    labels::Dict{StateLabel{N},T}   
 end
 
-function DiracState{D,N,T,B}(labels::OrderedDict{StateLabel{N},T}, ::Type{D}=Ket, ::Type{B}=Orthonormal) 
+typealias DiracKet{B,N,T} DiracState{Ket,B,N,T}
+typealias DiracBra{B,N,T} DiracState{Bra,B,N,T}
+
+function DiracState{D,N,T,B}(labels::Dict{StateLabel{N},T}, ::Type{D}, ::Type{B}) 
     return DiracState{D,B,N,T}(labels)
 end
 
-ket(label...) = DiracState(singlet_dict(StateLabel(label...), 1), Ket)
-bra(label...) = DiracState(singlet_dict(StateLabel(label...), 1), Bra)
+ket{B}(::Type{B}, label...) = DiracState(singlet_dict(StateLabel(label...), 1), Ket, B)
+ket(label...) = ket(Orthonormal, label...)
+bra{B}(::Type{B}, label...) = DiracState(singlet_dict(StateLabel(label...), 1), Bra, B)
+bra(label...) = bra(Orthonormal, label...)
 
 labels(ds::DiracState) = ds.labels
 nfactors{D,B,N}(ds::DiracState{D,B,N}) = N
@@ -29,30 +45,68 @@ eltype{D,B,N,T}(::DiracState{D,B,N,T}) = T
 
 copy{D,B}(ds::DiracState{D,B}) = DiracState(copy(labels(ds)), D, B)
 
+#######################
+# Dict-Like Functions #
+#######################
+
+length(ds::DiracState) = length(labels(ds))
+
+getindex(ds::DiracState, i...) = ds.labels[StateLabel(i...)]
+getstate(ds::DiracState, i...) = ds[i...] * ket(i...)
+
+start(ds::DiracState) = start(labels(ds))
+done(ds::DiracState, state) = done(labels(ds), state)
+next(ds::DiracState, state) = next(labels(ds), state)
+endof(ds::DiracState) = endof(labels(ds))
+last(ds::DiracState) = last(labels(ds))
+first(ds::DiracState) = first(labels(ds))
+collect{D,B}(ds::DiracState{D,B}) = DiracState(collect(labels(ds)), D, B)
+
+values(ds::DiracState) = values(labels(ds))
+
+##########################
+# Mathematical Functions #
+##########################
+function inner{B}(db::DiracBra{B}, dk::DiracKet{B})
+    result = 0
+    for (b,c) in labels(db)
+        for (k,v) in labels(dk)
+            result += c*v*inner(B,b,k) 
+        end
+    end
+    return result
+end
+
 +{D,B,N}(a::DiracState{D,B,N}, b::DiracState{D,B,N}) = DiracState(mergef(+, labels(a), labels(b)), D, B)
 -{D,B,N}(a::DiracState{D,B,N}, b::DiracState{D,B,N}) = a + (-b)
--(ds::DiracState) = DiracState(mapvals((k,v)->-v, labels(ds)), dualtype(ds), basistype(ds))
+-(ds::DiracState) = DiracState(mapvals(-, labels(ds)), dualtype(ds), basistype(ds))
 
-# *(a::DiracState, b::DiracState) = error("mismatched mutliplication")
+*(a::DiracBra, b::DiracKet) = inner(a,b)
 *{D,B}(a::DiracState{D,B}, b::DiracState{D,B}) = DiracState(mergecart(tensor_reduce, labels(a), labels(b)), D, B)
 *(c, ds::DiracState) = DiracState(castvals(*, labels(ds), c), dualtype(ds), basistype(ds))
 *(ds::DiracState, c) = DiracState(castvals(*, c, labels(ds)), dualtype(ds), basistype(ds))
 
+conj(ds::DiracState) = mapvals(conj, ds)
+ctranspose{D,B}(ds::DiracState{D,B}) = DiracState(labels(conj(ds)), D', B)
+
+norm(ds::DiracState) = sqrt(sum(v->v^2, values(ds)))
+normalize(ds::DiracState) = (1/norm(ds))*ds
+
 ######################
 # Printing Functions #
 ######################
-statestr(c, label, ::Type{Ket}) = "$c | $(labelstr(label)) $rang"
-statestr(c, label, ::Type{Bra}) = "$c $lang $(labelstr(label)) |"
+statestr(label, ::Type{Ket}) = "| $(labelstr(label)) $rang"
+statestr(label, ::Type{Bra}) = "$lang $(labelstr(label)) |"
 
 function show{D}(io::IO, ds::DiracState{D})
-    print(io, "$(summary(ds)):")
+    print(io, "$(summary(ds)) with $(length(ds)) state(s):")
     pad = "  "
     maxlen = 30
     i = 1
     for (k,v) in labels(ds)
         if i <= maxlen
             println(io)
-            print(io, "$pad$(statestr(v,k,D))")
+            print(io, "$pad$v $(statestr(k,D))")
             i = i + 1
         else  
             println(io)
@@ -68,7 +122,7 @@ end
 assoc_nfactors{N}(::Associative{StateLabel{N}}) = N
 
 function singlet_dict{N,T}(label::StateLabel{N}, c::T)
-    od = OrderedDict(StateLabel{N}, T)
+    od = Dict{StateLabel{N}, T}()
     od[label] = c
     return od
 end
@@ -86,7 +140,7 @@ function tensor_reduce(pairs)
 end
 
 function mergecart(f::Function, d...)
-    result = OrderedDict(StateLabel{sum(map(assoc_nfactors, d))}, value_type(d...))
+    result = Dict{StateLabel{sum(map(assoc_nfactors, d))}, value_type(d...)}()
     for pairs in product(d...)
         merged_pair = f(pairs)
         result[merged_pair[1]] = merged_pair[2]
@@ -108,7 +162,7 @@ function mergef!(f::Function, d, others...)
 end
 
 function mergef{K}(f::Function, d::Associative{K}, others::Associative{K}...)
-    return mergef!(f, OrderedDict(K,value_type(d, others...)), d, others...)
+    return mergef!(f, Dict{K,value_type(d, others...)}(), d, others...)
 end
 
 
@@ -117,29 +171,37 @@ function castvals{K,V}(f::Function, a::Associative{K,V}, b::Associative{K,V})
 end
 
 function castvals{K,V,T}(f::Function, d::Associative{K,V}, c::T)
-    return mapvals!((k,v)->f(v,c), d, OrderedDict(K, promote_type(V,T)))
+    return mapvals!(v->f(v,c), d, Dict{K, promote_type(V,T)}())
 end
 
 function castvals{T,K,V}(f::Function, c::T, d::Associative{K,V})
-    return mapvals!((k,v)->f(c,v), d, OrderedDict(K, promote_type(V,T)))
+    return mapvals!(v->f(c,v), d, Dict{K, promote_type(V,T)}())
 end
 
-function mapvals!(f::Function, d)
+function mapkv!(f::Function, d, result)
     for (k,v) in d
-        d[k] = f(k,v)
-    end
-    return d
-end
-
-function mapvals!(f::Function, d, result)
-    for (k,v) in d
-        result[k] = f(k,v)
+        (k0,v0) = f(k,v)
+        delete!(d,k)
+        result[k0] = v0
     end
     return result
 end
 
-mapvals(f::Function, d) = mapvals!(f, copy(d))
+function mapvals!(f::Function, d, result)
+    for (k,v) in d
+        result[k] = f(v)
+    end
+    return result
+end
+
+mapvals(f::Function, d) = mapvals!(f, d, copy(d))
+mapvals{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapvals(f, labels(ds)), D, B)
+
+mapkv(f::Function, d) = mapkv!(f, d, copy(d))
+mapkv{D,B}(f::Function, ds::DiracState{D,B}) = DiracState(mapkv(f, labels(ds)), D, B)
 
 export DiracState,
     ket,
-    bra
+    bra,
+    getstate,
+    normalize
