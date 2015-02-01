@@ -104,10 +104,10 @@ end
 
 *(a::DiracBra, b::DiracKet) = inner(a,b)
 *{D,B}(a::DiracState{D,B}, b::DiracState{D,B}) = DiracState(mergecart(tensor_reduce, labels(a), labels(b)), D, B)
-*(c, ds::DiracState) = DiracState(castvals(*, labels(ds), c), dualtype(ds), basistype(ds))
-*(ds::DiracState, c) = DiracState(castvals(*, c, labels(ds)), dualtype(ds), basistype(ds))
+*(c, ds::DiracState) = castvals(*, ds, c)
+*(ds::DiracState, c) = castvals(*, c, ds)
 
-/(a::DiracState, c) = DiracState(castvals(/, labels(ds), c), dualtype(ds), basistype(ds))
+/(ds::DiracState, c) = castvals(/, ds, c)
 
 conj(ds::DiracState) = mapvals(conj, ds)
 ctranspose{D,B}(ds::DiracState{D,B}) = DiracState(labels(conj(ds)), D', B)
@@ -206,17 +206,21 @@ function mergef{K}(f::Function, d::Associative{K}, others::Associative{K}...)
 end
 
 
-function castvals{K,V}(f::Function, a::Associative{K,V}, b::Associative{K,V})
+function assoc_castvals{K,V}(f::Function, a::Associative{K,V}, b::Associative{K,V})
     return mergef(f, a, b)
 end
 
-function castvals{K,V,T}(f::Function, d::Associative{K,V}, c::T)
+function assoc_castvals{K,V,T}(f::Function, d::Associative{K,V}, c::T)
     return mapvals!(v->f(v,c), d, Dict{K, promote_type(V,T)}())
 end
 
-function castvals{T,K,V}(f::Function, c::T, d::Associative{K,V})
+function assoc_castvals{T,K,V}(f::Function, c::T, d::Associative{K,V})
     return mapvals!(v->f(c,v), d, Dict{K, promote_type(V,T)}())
 end
+
+castvals{D,B}(f::Function, a::DiracState{D,B}, b::DiracState{D,B}) = DiracState(assoc_castvals(f, labels(a), labels(b)), D, B)
+castvals(f::Function, c, ds::DiracState{D,B}) = DiracState(assoc_castvals(f, c, labels(ds)), D, B)
+castvals(f::Function, ds::DiracState{D,B}, c) = DiracState(assoc_castvals(f, labels(ds), c), D, B)
 
 function mapkv!(f::Function, d, result)
     for (k,v) in d
