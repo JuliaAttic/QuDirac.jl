@@ -6,6 +6,7 @@ import Base:
     conj,
     +,
     *,
+    /,
     -,
     getindex,
     setindex!,
@@ -73,7 +74,7 @@ collect{D,B}(ds::DiracState{D,B}) = DiracState(collect(labels(ds)), D, B)
 
 haskey(ds::DiracState, label) = haskey(labels(ds), label)
 values(ds::DiracState) = values(labels(ds))
-filter!(f::Function, ds::DiracState) = filter!(f, labels(ds))
+filter!(f::Function, ds::DiracState) = (filter!(f, labels(ds)); return ds)
 filter(f::Function, ds::DiracState) = filter!(f, copy(ds))
 
 ##########################
@@ -105,6 +106,8 @@ end
 *{D,B}(a::DiracState{D,B}, b::DiracState{D,B}) = DiracState(mergecart(tensor_reduce, labels(a), labels(b)), D, B)
 *(c, ds::DiracState) = DiracState(castvals(*, labels(ds), c), dualtype(ds), basistype(ds))
 *(ds::DiracState, c) = DiracState(castvals(*, c, labels(ds)), dualtype(ds), basistype(ds))
+
+/(a::DiracState, c) = DiracState(castvals(/, labels(ds), c), dualtype(ds), basistype(ds))
 
 conj(ds::DiracState) = mapvals(conj, ds)
 ctranspose{D,B}(ds::DiracState{D,B}) = DiracState(labels(conj(ds)), D', B)
