@@ -15,9 +15,11 @@ import Base: getindex,
 ##############
 # StateLabel #
 ##############
-    immutable StateLabel{N}
-        label::NTuple{N}
+    type StateLabel{T<:Tuple}
+        label::T
     end
+
+    typealias NLabel{N,T} StateLabel{NTuple{N,T}}
 
     StateLabel(s::StateLabel) = StateLabel(gettuple(s))
     StateLabel(s::AbstractState) = label(s)
@@ -30,19 +32,12 @@ import Base: getindex,
     ###############################
     label(s::StateLabel) = s
     gettuple(s::StateLabel) = s.label
-    getindex(s::StateLabel, i) = getindex(s.label, i)
-    nfactors{N}(::StateLabel{N}) = N
-    nfactors{N}(::Type{StateLabel{N}}) = N
-    length{N}(::StateLabel{N}) = N
+    nfactors{N}(::NLabel{N}) = N
 
     #####################
     # Joining Functions #
     #####################
-    tupletensor(a, b) = tuple(a..., b...)
-    binarytensor(a::StateLabel, b::StateLabel) = StateLabel(tupletensor(gettuple(a), gettuple(b))) 
-    tensor(s::(StateLabel...)) = reduce(binarytensor, s)
-    tensor(s::StateLabel...) = tensor(s)
-
+    tensor(s::StateLabel...) = apply(StateLabel, s...)
     separate(s::StateLabel) = map(StateLabel, gettuple(s))
 
     ######################
@@ -56,13 +51,16 @@ import Base: getindex,
     #################################
     # Iterator/Array-like Functions #
     #################################
-    start(::StateLabel) = 1
-    done(s::StateLabel, state) = length(s) == state-1
-    next(s::StateLabel, state) = s[state], state+1
-    endof(s::StateLabel) = length(s)
-    last(s::StateLabel) = s[length(s)]
-    first(s::StateLabel) = s[1]
-    collect(s::StateLabel) = s[1:end]
+    length(s::StateLabel) = length(s.label)
+    getindex(s::StateLabel, i) = getindex(s.label, i)
+
+    start(s::StateLabel) = start(s.label)
+    done(s::StateLabel, state) = done(s.label, state)
+    next(s::StateLabel, state) = next(s.label, state)
+    endof(s::StateLabel) = endof(s.label)
+    last(s::StateLabel) = last(s.label)
+    first(s::StateLabel) = first(s.label)
+    collect(s::StateLabel) = collect(s.label)
 
     map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, gettuple(s)))
     map(f, s::StateLabel) = StateLabel(map(f, gettuple(s)))
@@ -76,9 +74,3 @@ import Base: getindex,
         v[j] = tmp
         return StateLabel(v...)
     end
-
-    labelvec(labels::Array) = map(StateLabel, labels)
-    labelvec(labels::AbstractArray) = collect(map(StateLabel, labels))
-    labelvec(labels...) = labelvec(collect(labels))
-    labelvec{S<:StateLabel}(labels::AbstractArray{S}) = collect(labels)
-    labelvec{S<:StateLabel}(labels::Set{S}) = collect(labels)

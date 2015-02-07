@@ -30,6 +30,7 @@ import Base: ctranspose
     ctranspose(::Type{Ket}) = Bra
     ctranspose(::Type{Bra}) = Ket
 
+    tensor() = error("tensor() without arguments is undefined") 
 
 export Ket,
     Bra,

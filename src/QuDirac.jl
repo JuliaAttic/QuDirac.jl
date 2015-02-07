@@ -37,9 +37,11 @@ module QuDirac
     # Include Statements #
     ######################
         include("dirac.jl")
-        include("statelabel.jl")
+        # include("statelabel.jl")
+        include("bases.jl")
+        include("dicthelpers.jl")
         include("diracstate.jl")
-        include("scalar.jl")
+        # include("scalar.jl")
 
 end 
 
