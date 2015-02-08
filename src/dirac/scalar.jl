@@ -1,20 +1,3 @@
-import Base: conj,
-    repr,
-    show,
-    getindex,
-    length,
-    convert,
-    one,
-    zero,
-    promote_rule,
-    exp,
-    log,
-    abs,
-    ctranspose,
-    ^, .^,
-    -, .-,
-    /, ./,
-    *, .*
 
 ################
 # InnerProduct #
@@ -23,29 +6,30 @@ import Base: conj,
     # represents an abstract scalar formulated in
     # Dirac notation - a bra-ket product.
     immutable InnerProduct{S} <: DiracScalar
-        bralabel::StateLabel
-        ketlabel::StateLabel
+        bralabel::Tuple
+        ketlabel::Tuple
     end
+
+    inner{S<:AbstractStructure}(::Type{S}, ketlabel, bralabel) = InnerProduct{S}(ketlabel, bralabel)
+    inner(::Type{Orthonormal}, ketlabel, bralabel) = ketlabel === bralabel ? 1 : 0
 
     ######################
     # Accessor Functions #
     ######################
     bralabel(i::InnerProduct) = i.bralabel
     ketlabel(i::InnerProduct) = i.ketlabel
-    structure{S}(::Type{InnerProduct{S}}) = S
+    QuBase.structure{S}(::Type{InnerProduct{S}}) = S
 
     ######################
     # Printing Functions #
     ######################
-    repr(i::InnerProduct) = statestr(bralabel(i), Bra)*statestr(ketlabel(i), Ket)[2:end]
-    show(io::IO, i::InnerProduct) = print(io, repr(i))
+    Base.repr(i::InnerProduct) = statestr(bralabel(i), Bra)*statestr(ketlabel(i), Ket)[2:end]
+    Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 
     ###########################
     # Mathematical Operations #
     ###########################
-    inner{B<:AbstractStructure}(::Type{B},ketlabel,bralabel) = InnerProduct{B}(ketlabel, bralabel)
-    inner(::Type{Orthonormal}, ketlabel, bralabel) = ketlabel == bralabel ? 1 : 0
-    conj{S}(i::InnerProduct{S}) = InnerProduct{S}(getketlabel(i), getbralabel(i))
+    Base.conj{S}(i::InnerProduct{S}) = InnerProduct{S}(getketlabel(i), getbralabel(i))
 
 ##############
 # ScalarExpr #
@@ -71,16 +55,16 @@ import Base: conj,
     ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
     ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
 
-    convert(::Type{ScalarExpr}, s::ScalarExpr) = s
-    convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
+    Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
+    Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
 
-    one(::ScalarExpr) = ScalarExpr(1)
-    zero(::ScalarExpr) = ScalarExpr(0)
+    Base.one(::ScalarExpr) = ScalarExpr(1)
+    Base.zero(::ScalarExpr) = ScalarExpr(0)
 
-    promote_rule{N<:Number}(::Type{ScalarExpr}, ::Type{N}) = ScalarExpr
+    Base.promote_rule{N<:Number}(::Type{ScalarExpr}, ::Type{N}) = ScalarExpr
 
-    length(s::ScalarExpr) = length(s.ex.args)
-    getindex(s::ScalarExpr, i) = s.ex.args[i]
+    Base.length(s::ScalarExpr) = length(s.ex.args)
+    Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 
     ##########
     # queval #
@@ -103,7 +87,7 @@ import Base: conj,
     ######################
     # Printing Functions #
     ######################
-    show(io::IO, s::ScalarExpr) = print(io, repr(s.ex)[2:end])
+    Base.show(io::IO, s::ScalarExpr) = print(io, repr(s.ex)[2:end])
 
     ##################
     # Exponentiation #
@@ -124,7 +108,7 @@ import Base: conj,
     ^(s::DiracScalar, n::Rational) = exponentiate(s,n)
     ^(s::DiracScalar, n::Number) = exponentiate(s,n)
 
-    exp(s::DiracScalar) = ScalarExpr(:(exp($(s))))
+    Base.exp(s::DiracScalar) = ScalarExpr(:(exp($(s))))
 
     # The reason we don't actually implement the below comment
     # out method for exp() is that we don't know for sure that 
@@ -132,12 +116,12 @@ import Base: conj,
     # not worth it in most cases to check. 
     # exp(s::DiracScalar) = length(s)==2 && s[1]==:log ? s[2] : ScalarExpr(:(exp($(s))))
 
-    log(s::DiracScalar) = length(s)==2 && s[1]==:exp ? s[2] : ScalarExpr(:(log($(s))))
-    log(a::MathConst{:e}, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
+    Base.log(s::DiracScalar) = length(s)==2 && s[1]==:exp ? s[2] : ScalarExpr(:(log($(s))))
+    Base.log(a::MathConst{:e}, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
 
-    log(a::DiracScalar, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
-    log(a::DiracScalar, b::Number) = ScalarExpr(:(log($(a),$(b))))
-    log(a::Number, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
+    Base.log(a::DiracScalar, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
+    Base.log(a::DiracScalar, b::Number) = ScalarExpr(:(log($(a),$(b))))
+    Base.log(a::Number, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
 
     ##################
     # Multiplication #
@@ -249,15 +233,15 @@ import Base: conj,
     ####################
     ## Absolute Value ##
     ####################
-    abs(s::ScalarExpr) = length(s)==2 && s[1]==:abs ? s :  ScalarExpr(:(abs($(s))))
-    abs(s::DiracScalar) = ScalarExpr(:(abs($i)))
+    Base.abs(s::ScalarExpr) = length(s)==2 && s[1]==:abs ? s :  ScalarExpr(:(abs($(s))))
+    Base.abs(s::DiracScalar) = ScalarExpr(:(abs($i)))
 
     #######################
     ## Complex Conjugate ##
     #######################
-    conj(s::ScalarExpr) = length(s)==2 && s[1]==:conj ? ScalarExpr(s[2]) :  ScalarExpr(:(conj($(s))))
-    conj(s::DiracScalar) = ScalarExpr(:(conj($(s))))
-    ctranspose(s::DiracScalar) = conj(s)
+    Base.conj(s::ScalarExpr) = length(s)==2 && s[1]==:conj ? ScalarExpr(s[2]) :  ScalarExpr(:(conj($(s))))
+    Base.conj(s::DiracScalar) = ScalarExpr(:(conj($(s))))
+    Base.ctranspose(s::DiracScalar) = conj(s)
 
     ############################
     ## Elementwise Operations ##
@@ -274,8 +258,7 @@ import Base: conj,
     ########################
     ## Printing Functions ##
     ########################
-
-    function repr(s::ScalarExpr)
+    function Base.repr(s::ScalarExpr)
         if s[1]==+
             if length(s)==2
                 return repr(s[2])
@@ -287,10 +270,9 @@ import Base: conj,
         end
     end
 
-    show(io::IO, s::ScalarExpr) = print(io, repr(s))
+    Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
 export InnerProduct,
-    structure,
     getket,
     getbra,
     inner,

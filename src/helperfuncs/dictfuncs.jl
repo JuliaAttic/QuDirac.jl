@@ -29,9 +29,9 @@ function mergef(f::Function, d, others...)
     return mergef!(f, similar(d), d, others...)
 end
 
-dict_castvals(f::Function, a::ObjectIdDict, b::ObjectIdDict) = mergef(f, a, b)
-dict_castvals(f::Function, d::ObjectIdDict, c) = mapvals(v->f(c,v), d)
-dict_castvals(f::Function, c, d::ObjectIdDict) = mapvals(v->f(c,v), d)
+castvals(f::Function, a::ObjectIdDict, b::ObjectIdDict) = mergef(f, a, b)
+castvals(f::Function, d::ObjectIdDict, c) = mapvals(v->f(c,v), d)
+castvals(f::Function, c, d::ObjectIdDict) = mapvals(v->f(c,v), d)
 
 function mapkv!(f::Function, result, d)
     for (k,v) in d

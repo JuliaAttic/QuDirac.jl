@@ -2,17 +2,12 @@ module QuDirac
     
     using QuBase
     using Iterators
-    using DataStructures
 
-    import QuBase: tensor,
-        structure,
-        checkcoeffs,
-        nfactors,
-        bases,
-        coeffs,
-        QuCoeffs,
-        QuBra,
-        QuKet
+    import Base: +, .+,
+                 -, .-,
+                 /, ./,
+                 *, .*,
+                 ^, .^
 
     ####################
     # String Constants #
@@ -33,16 +28,43 @@ module QuDirac
         # you're sure of what you're doing, and don't export this.
         abstract BypassFlag
 
+        abstract DualType
+        abstract Ket <: DualType
+        abstract Bra <: DualType
+
+        abstract AbstractDirac{S<:AbstractStructure} <: AbstractQuantum{S}
+        abstract AbstractOperator{S<:AbstractStructure} <: AbstractDirac{S}
+        abstract AbstractState{D<:DualType, S<:AbstractStructure} <: AbstractDirac{S}
+
+        abstract DiracScalar <: Number
+
+        typealias AbstractKet{S<:AbstractStructure} AbstractState{Ket, S}
+        typealias AbstractBra{S<:AbstractStructure} AbstractState{Bra, S}
+
+    #############
+    # Functions #
+    #############
+        dualtype{D,S}(::AbstractState{D,S}) = D
+
+        QuBase.tensor() = error("Cannot call tensor function without arguments")
+        Base.ctranspose(::Type{Ket}) = Bra
+        Base.ctranspose(::Type{Bra}) = Ket
+    
     ######################
     # Include Statements #
     ######################
-        include("dirac.jl")
-        # include("statelabel.jl")
-        include("bases.jl")
-        include("dicthelpers.jl")
-        include("diracstate.jl")
-        # include("scalar.jl")
+        include("helperfuncs/tuplefuncs.jl")
+        include("helperfuncs/dictfuncs.jl")
+        
+        include("bases/fockbasis.jl")
 
+        include("dirac/scalar.jl")
+        include("dirac/diracstate.jl")
+        include("dirac/diracop.jl")
+
+    export Ket,
+        Bra,
+        dualtype
 end 
 
 using QuBase
