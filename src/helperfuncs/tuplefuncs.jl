@@ -6,7 +6,9 @@ second(t::Tuple) = t[2]
 #####################
 # Joining Functions #
 #####################
-tensor_tup(items) = apply(tuple, items...)
+join_tup(items::Tuple) = apply(tuple, items...)
+join_tup(items...) = join_tup(items)
+
 separate(t::Tuple) = map(tuple, t)
 
 ######################
@@ -26,3 +28,6 @@ function switch(t::Tuple, i, j)
     v[j] = tmp
     return tuple(v...)
 end
+
+apply_at(f, arr, i) = join_tup(arr[1:i-1], f(arr[i]), arr[i+1:end])
+except(arr, i) = join_tup(arr[1:i-1], arr[i+1:end])

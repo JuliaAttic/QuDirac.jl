@@ -10,6 +10,21 @@
 ################
 # Constructors #
 ################
+    function DiracOp{S}(f::Function, ket::DiracKet{S})
+        return DiracOp(f, S, keys(ket))
+    end
+
+    function DiracOp{S}(f::Function, ::Type{S}, labels)
+        coeffs = ObjectIdDict()
+        for i in labels
+            for j in labels 
+                (new_j, c) = f(j)
+                coeffs[i,j] = c * inner(S, i, new_j)
+            end
+        end
+        return DiracOp{S}(coeffs)
+    end
+
     function DiracOp{S}(ket::DiracKet{S}, bra::DiracBra{S})
         coeffs = ObjectIdDict()
         for (k,kc) in ket
@@ -20,7 +35,7 @@
         return DiracOp{S}(coeffs)
     end
 
-    copy_type{S}(::DiracOp{S}, coeffs) = DiracState{S}(coeffs)
+    copy_type{S}(::DiracOp{S}, coeffs) = DiracOp{S}(coeffs)
 
     Base.copy(o::DiracOp) = copy_type(o, copy(o.coeffs))
     Base.similar(o::DiracOp) = copy_type(o, ObjectIdDict())
@@ -34,7 +49,7 @@
     Base.getindex(o::DiracOp, labels...) = o[labels]
 
     Base.setindex!(o::DiracOp, c, labels::(Tuple,Tuple)) = setindex!(o.coeffs, c, labels)
-    Base.setindex!(o::DiracOp, c, labels...) = setindex!(o, c, labels)
+    Base.setindex!(o::DiracOp, c, k::Tuple, b::Tuple) = setindex!(o, c, (k,b))
 
     Base.start(o::DiracOp) = start(o.coeffs)
     Base.done(o::DiracOp, state) = done(o.coeffs, state)
@@ -96,7 +111,7 @@
                 result[ak,bb] += ac*bc*inner(S,ab,bk) 
             end
         end
-        return op
+        return result
     end
 
     *{S}(a::DiracOp{S}, b::DiracOp{S}) = inner(a,b)
@@ -127,34 +142,73 @@
 
     normalize(o::DiracOp) = (1/norm(o))*o
 
+    function ptrace{S<:Orthonormal}(o::DiracOp{S}, over::Integer...)
+        result = o.coeffs
+        for i in over
+            result = ptrace_coeffs(result, i)
+        end
+        return DiracOp{S}(result)
+    end
+
+    xsubspace(o::DiracOp, x, i=1) = filter((k,v)->sum(k[i])==x, o)
+    matchlabel_at(o::DiracOp, x, y, i) = filter((k,v)-> x==k[i][y], o)
+    matchlabel_at(o::DiracOp, x, y) = filter((k,v)-> x==k[1][y] && x==k[2][y], o)
+    matchlabel_in(o::DiracOp, x, i) = filter((k,v)-> x in k[i], o)
+    matchlabel_in(o::DiracOp, x) = filter((k,v)-> x in k[1] && x in k[2], o)
+
 ######################
 # Printing Functions #
 ######################
-
-function Base.show(io::IO, o::DiracOp)
-    print(io, "$(summary(o)) with $(length(o)) operator(s):")
-    pad = "  "
-    maxlen = 30
-    i = 1
-    for (k,v) in o
-        if i <= maxlen
-            println(io)
-            print(io, "$pad$v $(statestr(first(k),Ket))$(statestr(second(k),Bra))")
-            i = i + 1
-        else  
-            println(io)
-            print(io, "$pad$vdots")
-            break
+    function Base.show(io::IO, o::DiracOp)
+        print(io, "$(summary(o)) with $(length(o)) operator(s):")
+        pad = "  "
+        maxlen = 30
+        i = 1
+        for (k,v) in o
+            if i <= maxlen
+                println(io)
+                print(io, "$pad$v $(statestr(first(k),Ket))$(statestr(second(k),Bra))")
+                i = i + 1
+            else  
+                println(io)
+                print(io, "$pad$vdots")
+                break
+            end
         end
     end
-end
 
 ####################
 # Helper Functions #
 ####################
+    function ptrace_coeffs(coeffs, over::Integer)
+        result = ObjectIdDict()
+        for tr_label in factor_labels(coeffs, over) # labels to be traced over
+            for key in filter_at_labels(coeffs, tr_label, over)
+                new_label = (except(key[1], over), except(key[2], over))
+                if haskey(result, new_label)
+                    result[new_label] += coeffs[key]
+                else
+                    result[new_label] = coeffs[key]
+                end
+            end
+        end  
+        return result
+    end
+
+    filter_at_labels(coeffs, tr_label, i) = filter(k -> tr_label==k[1][i] && tr_label==k[2][i], keys(coeffs))
+    factor_labels(coeffs, factor) = distinct(imap(i->i[1][factor], keys(coeffs)))
+
+    # function factor_labels(labels, factor)
+    #     result = ObjectIdDict()
+    #     for (a,b) in keys(labels)
+    #         result[a[factor]] = nothing
+    #     end
+    #     return keys(result)
+    # end
+
     function tensor_op(pairs)
         k = map(first, pairs)
-        return ((tensor_tup(map(first, k)), tensor_tup(map(second, k))), prod(second, pairs))
+        return ((join_tup(map(first, k)), join_tup(map(second, k))), prod(second, pairs))
     end
 
     function mergelabels{S}(f::Function, a::DiracOp{S}, b::DiracOp{S})
@@ -168,4 +222,9 @@ end
     mapvals(f::Function, o::DiracOp) = copy_type(o, mapvals(f, o.coeffs))
     mapkeys(f::Function, o::DiracOp) = copy_type(o, mapkeys(f, o.coeffs))
 
-export DiracOp
+export DiracOp,
+    ptrace,
+    normalize,
+    xsubspace,
+    matchlabel_at,
+    matchlabel_in

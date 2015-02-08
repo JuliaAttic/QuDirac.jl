@@ -140,7 +140,7 @@
     end
 
     function tensor_state(pairs)
-        return (tensor_tup(map(first, pairs)), prod(second, pairs))
+        return (join_tup(map(first, pairs)), prod(second, pairs))
     end
 
     mapkv(f::Function, ds::DiracState) = copy_type(ds, mapkv(f, ds.coeffs))
