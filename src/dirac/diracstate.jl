@@ -99,7 +99,7 @@
     matchlabel_in(ds::DiracState, x) = filter((k,v)-> x in k, ds)
 
     switch(ds::DiracState, i, j) = mapkeys(k->switch(k,i,j), ds)
-    permute(ds::DiracState, p) = mapkeys(k->permute(k,p), ds)
+    permute(ds::DiracState, p::Array{Int}) = mapkeys(k->permute(k,p), ds)
 
 ######################
 # Printing Functions #

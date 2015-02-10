@@ -19,7 +19,7 @@ labelstr(label::Tuple) = strip(repr(label)[2:end-1], ',')
 ############################
 # Combinatorical Functions #
 ############################
-permute(t::Tuple, p) = tuple(permute!(collect(gettuple(s)), p)...)
+permute(t::Tuple, p::Array{Int}) = t[p]
 
 function switch(t::Tuple, i, j)
     v = collect(t) 

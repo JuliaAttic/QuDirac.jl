@@ -61,4 +61,4 @@ function mapkeys!(f::Function, result, d)
     return result
 end
 
-mapkeys(f::Function, d) = mapkeys(f, similar(d), d)
+mapkeys(f::Function, d) = mapkeys!(f, similar(d), d)
