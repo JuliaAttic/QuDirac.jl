@@ -139,6 +139,10 @@
     Base.trace(o::DiracOp) = sum(k->o[k], filter(k->k[1]==k[2], keys(o)))
 
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, ObjectIdDict(), ops))
+    QuBase.tensor{S}(k::DiracKet{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, ObjectIdDict(), k, o))
+    QuBase.tensor{S}(o::DiracOp{S}, b::DiracBra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, ObjectIdDict(), o, b))
+    QuBase.tensor{S}(o::DiracOp{S}, k::DiracKet{S}) = tensor(k, o)
+    QuBase.tensor{S}(b::DiracBra{S}, o::DiracOp{S}) = tensor(o, b)
 
     normalize(o::DiracOp) = (1/norm(o))*o
 
@@ -198,18 +202,23 @@
     filter_at_labels(coeffs, tr_label, i) = filter(k -> tr_label==k[1][i] && tr_label==k[2][i], keys(coeffs))
     factor_labels(coeffs, factor) = distinct(imap(i->i[1][factor], keys(coeffs)))
 
-    # function factor_labels(labels, factor)
-    #     result = ObjectIdDict()
-    #     for (a,b) in keys(labels)
-    #         result[a[factor]] = nothing
-    #     end
-    #     return keys(result)
-    # end
-
     function tensor_op(pairs)
+        #pairs structure is: (((op1ketlabel, op1bralabel), op1value), ((op2ketlabel, op2bralabel), op2value)...,)
         k = map(first, pairs)
         return ((join_tup(map(first, k)), join_tup(map(second, k))), prod(second, pairs))
     end
+
+
+    function tensor_ket_to_op(pairs)
+        #pairs structure is: ((ketlabel, ketvalue), ((opketlabel, opbralabel), opvalue))
+        return ((join_tup(pairs[1][1], pairs[2][1][1]), pairs[2][1][2]), prod(second, pairs))
+    end
+
+    function tensor_bra_to_op(pairs)
+        #pairs structure is: (((opketlabel, opbralabel), opvalue), (bralabel, bravalue))
+        return ((pairs[1][1][1], join_tup(pairs[1][1][2], pairs[2][1])), prod(second, pairs))
+    end
+
 
     function mergelabels{S}(f::Function, a::DiracOp{S}, b::DiracOp{S})
         return DiracOp{S}(mergef(f, a.coeffs, b.coeffs))

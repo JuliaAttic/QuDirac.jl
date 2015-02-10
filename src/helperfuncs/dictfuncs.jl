@@ -4,13 +4,15 @@ function singlet_dict(label, c)
     return o
 end
 
-function mergecart!(f::Function, result, d)
+function mergecart!(f::Function, result, d::Tuple)
     for pairs in product(d...)
         (k,v) = f(pairs)
         result[k] = v
     end
     return result
 end
+
+mergecart!(f::Function, result, d...) = mergecart!(f, result, d)
 
 function mergef!(f::Function, d, others...)
     for other in others

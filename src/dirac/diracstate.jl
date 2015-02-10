@@ -140,6 +140,7 @@
     end
 
     function tensor_state(pairs)
+        #pairs structure is: ((label1, value1), (label2, value2)....,)
         return (join_tup(map(first, pairs)), prod(second, pairs))
     end
 
