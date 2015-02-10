@@ -72,17 +72,15 @@
         ranges::NTuple{N,Range}
         denoms::NTuple{N,Float64}
         FockBasis(ranges, denoms, ::Type{BypassFlag}) = new(ranges, denoms)
-
         FockBasis(::()) = error("")
         FockBasis() = error("")
-
         function FockBasis(ranges::NTuple{N,Range})
             # reverse is done to match cartesianmap order
             return FockBasis{S,N}(ranges, precompute_denoms(reverse(map(length,ranges))), BypassFlag) 
         end
 
     end
-
+    
     FockBasis{N,S<:AbstractStructure}(::Type{S}, lens::NTuple{N,Range}) = FockBasis{S,N}(lens)
     FockBasis{S<:AbstractStructure}(::Type{S}, lens::Tuple) = FockBasis(S, map(torange, lens))
     FockBasis(lens::Tuple) = FockBasis(AbstractStructure, lens)
@@ -139,11 +137,10 @@
     # Accessor Functions #
     ######################
     ind_value(n, range, denom, modulus) = range[(div(n, denom) % modulus)+1]
-    tuple_at_ind(f::FockBasis, i) = ntuple(nfactors(f), x->ind_value(i-1, ranges(f,x), f.denoms[x], size(f,x)))
+    tuple_at_ind{S,N}(f::FockBasis{S,N}, i) = ntuple(N, x->ind_value(i-1, ranges(f,x), f.denoms[x], size(f,x)))
     pos_in_range(r::Range, i) = i in r ? (i-first(r))/step(r) : throw(BoundsError())
     
-    getpos(f::FockBasis, s::AbstractState) = getpos(f, label(s))
-    getpos(f::FockBasis, label) = int(sum(map(*, map(pos_in_range, ranges(f), label), f.denoms)))+1
+    getpos(f::FockBasis, label) = int(sum(map(*, map(pos_in_range, ranges(f), label), f.denoms))+1)
 
     Base.in(label, f::FockBasis) = reduce(&, map(in, label, ranges(f)))
 
