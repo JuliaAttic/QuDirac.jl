@@ -17,9 +17,13 @@
 
     ket{S}(::Type{S}, label...) = single_state(Ket,S,label)
     ket(label...) = single_state(Ket,Orthonormal,label)
+    ket{S}(::Type{S}) = DiracKet{S}()
+    ket() = DiracKet{Orthonormal}()
 
     bra{S}(::Type{S}, label...) = single_state(Bra,S,label)
     bra(label...) = single_state(Bra,Orthonormal,label)
+    bra{S}(::Type{S}) = DiracBra{S}()
+    bra() = DiracBra{Orthonormal}()
 
     copy_type{D,S}(::DiracState{D,S}, new_coeffs) = DiracState{D,S}(new_coeffs)
 
@@ -149,6 +153,8 @@
     mapkeys(f::Function, ds::DiracState) = copy_type(ds, mapkeys(f, ds.coeffs))
 
 export DiracState,
+    DiracKet,
+    DiracBra,
     ket,
     bra,
     getstate,
