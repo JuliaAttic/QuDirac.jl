@@ -63,11 +63,11 @@
 ##########################
 # Mathematical Functions #
 ##########################
-    function inner{S}(db::DiracBra{S}, dk::DiracKet{S})
+    function inner{A,B}(db::DiracBra{A}, dk::DiracKet{B})
         result = 0
         for (b,c) in db
             for (k,v) in dk
-                result += c*v*inner(S,b,k) 
+                result += c*v*inner_eval(A,B,b,k) 
             end
         end
         return result

@@ -19,7 +19,7 @@
         for i in labels
             for j in labels 
                 (new_j, c) = f(j)
-                coeffs[i,j] = c * inner(S, i, new_j)
+                coeffs[i,j] = c * inner_rule(S, i, new_j)
             end
         end
         return DiracOp{S}(coeffs)
@@ -71,53 +71,53 @@
 ##########################
 # Mathematical Functions #
 ##########################
-    function inner{S}(s::DiracBra{S}, o::DiracOp{S})
-        result = DiracBra{S}()
+    function inner{A,B}(s::DiracBra{A}, o::DiracOp{B})
+        result = DiracBra{typejoin(A,B)}()
         for ((ok,ob),oc) in o            
             if !haskey(result, ob)
                 result[ob] = 0
             end
             coeff = 0
             for (sb,sc) in s
-                coeff += sc*oc*inner(S,sb,ok) 
+                coeff += sc*oc*inner_eval(A,B,sb,ok) 
             end
             result[ob] += coeff
         end
         return result
     end
 
-    function inner{S}(o::DiracOp{S}, s::DiracKet{S})
-        result = DiracKet{S}()
+    function inner{A,B}(o::DiracOp{A}, s::DiracKet{B})
+        result = DiracKet{typejoin(A,B)}()
         for ((ok,ob),oc) in o            
             if !haskey(result, ok)
                 result[ok] = 0
             end
             coeff = 0
             for (sk,sc) in s
-                coeff += oc*sc*inner(S,ob,sk) 
+                coeff += oc*sc*inner_eval(A,B,ob,sk) 
             end
             result[ok] += coeff
         end
         return result
     end
 
-    function inner{S}(a::DiracOp{S}, b::DiracOp{S})
-        result = DiracOp{S}()
+    function inner{A,B}(a::DiracOp{A}, b::DiracOp{B})
+        result = DiracOp{typejoin(A,B)}()
         for ((ak,ab),ac) in a
             for ((bk,bb),bc) in b
                 if !haskey(result, (ak,bb))
                     result[ak,bb] = 0
                 end
-                result[ak,bb] += ac*bc*inner(S,ab,bk) 
+                result[ak,bb] += ac*bc*inner_eval(A,B,ab,bk) 
             end
         end
         return result
     end
 
-    *{S}(a::DiracOp{S}, b::DiracOp{S}) = inner(a,b)
+    *(a::DiracOp, b::DiracOp) = inner(a,b)
 
-    *{S}(b::DiracBra{S}, o::DiracOp{S}) = inner(b,o)
-    *{S}(o::DiracOp{S}, k::DiracKet{S}) = inner(o,k)
+    *(b::DiracBra, o::DiracOp) = inner(b,o)
+    *(o::DiracOp, k::DiracKet) = inner(o,k)
 
     *{S}(k::DiracKet{S}, o::DiracOp{S}) = tensor(k,o)
     *{S}(o::DiracOp{S}, b::DiracBra{S}) = tensor(o,b)

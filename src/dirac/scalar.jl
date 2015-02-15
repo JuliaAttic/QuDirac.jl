@@ -10,8 +10,9 @@
         ketlabel::Tuple
     end
 
-    inner{S<:AbstractStructure}(::Type{S}, ketlabel, bralabel) = InnerProduct{S}(ketlabel, bralabel)
-    inner(::Type{Orthonormal}, ketlabel, bralabel) = ketlabel === bralabel ? 1 : 0
+    inner_eval{A<:AbstractStructure, B<:AbstractStructure}(::Type{A}, ::Type{B}, ketlabel, bralabel) = inner_rule(typejoin(A,B), ketlabel, bralabel)
+    inner_rule{S<:AbstractStructure}(::Type{S}, ketlabel, bralabel) = InnerProduct{S}(ketlabel, bralabel)
+    inner_rule{O<:Orthonormal}(::Type{O}, ketlabel, bralabel) = ketlabel === bralabel ? 1 : 0
 
     ######################
     # Accessor Functions #
@@ -272,9 +273,5 @@
 
     Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
-export InnerProduct,
-    getket,
-    getbra,
-    inner,
-    ScalarExpr,
+export ScalarExpr,
     queval
