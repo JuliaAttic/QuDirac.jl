@@ -56,7 +56,8 @@
     Base.filter!(f::Function, ds::DiracState) = (filter!(f, ds.coeffs); return ds)
     Base.filter(f::Function, ds::DiracState) = copy_type(ds, filter(f, ds.coeffs))
     Base.map(f::Function, ds::DiracState) = mapkv(f, ds)
-
+    Base.delete!(ds::DiracState, label) = delete!(ds.coeffs, label)
+    
     getstate{D,S}(ds::DiracState{D,S}, label::Tuple) = ds[label] * DiracState{D,S}(singlet_dict(label, 1))
     getstate(ds::DiracState, i...) = getstate(ds, i)
 

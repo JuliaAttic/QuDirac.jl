@@ -67,6 +67,7 @@
     Base.filter!(f::Function, o::DiracOp) = (filter!(f, o.coeffs); return o)
     Base.filter(f::Function, o::DiracOp) = copy_type(o, filter(f, o.coeffs))
     Base.map(f::Function, o::DiracOp) = mapkv(f, o)
+    Base.delete!(o::DiracOp, label) = delete!(o.coeffs, label)
 
 ##########################
 # Mathematical Functions #
