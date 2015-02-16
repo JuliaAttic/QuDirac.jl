@@ -1,15 +1,16 @@
 #############
 # FockBasis #
 #############
-    # A FockBasis uses precomputed values to efficiently 
-    # generate labels for given indices in the basis, or
-    # vice versa (an index for a given state in the basis).
+    # A FockBasis uses precomputed values to generate labels 
+    # for given indices in the basis, or vice versa (an index 
+    # for a given state in the basis).
+    #
     # For example:
     #
     #   julia> f=FockBasis(2,2,2)
     #    FockBasis{AbstractStructure,3}(0:2,0:2,0:2)    
     #   
-    #   julia> labelvec(f)
+    #   julia> collect(f)
     #    8-element Array{(Any...,),1}:
     #    (0,0,0)
     #    (1,0,0)
@@ -162,7 +163,7 @@
     ##########################
     # Mathematical Functions #
     ##########################
-    QuBase.tensor{S}(a::FockBasis{S}, b::FockBasis{S}) = FockBasis(S, tensor_tup(a.ranges, b.ranges))
+    QuBase.tensor{S}(a::FockBasis{S}, b::FockBasis{S}) = FockBasis(S, (a.ranges..., b.ranges...))
 
     ######################
     # Printing Functions #
