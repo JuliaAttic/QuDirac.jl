@@ -26,14 +26,14 @@
         return DiracOp{S}(coeffs)
     end
 
-    function DiracOp{S}(ket::DiracKet{S}, bra::DiracBra{S})
+    function DiracOp{A,B}(ket::DiracKet{A}, bra::DiracBra{B})
         coeffs = ObjectIdDict()
         for (k,kc) in ket
             for (b,bc) in bra
                 coeffs[k,b] = kc * bc
             end
         end
-        return DiracOp{S}(coeffs)
+        return DiracOp{typejoin(A,B)}(coeffs)
     end
 
     copy_type{S}(::DiracOp{S}, coeffs) = DiracOp{S}(coeffs)
