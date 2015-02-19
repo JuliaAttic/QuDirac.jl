@@ -120,14 +120,14 @@
         return result
     end
 
+    mult_state_op(b::DiracBra, o::DiracOp) = inner(b,o)
+    mult_state_op(o::DiracOp, k::DiracKet) = inner(o,k)
+    mult_state_op{S}(k::DiracKet{S}, o::DiracOp{S}) = tensor(k,o)
+    mult_state_op{S}(o::DiracOp{S}, b::DiracBra{S}) = tensor(o,b)
+
+    *(s::DiracState, o::DiracOp) = mult_state_op(s, o)
+    *(o::DiracOp, s::DiracState) = mult_state_op(o, s)
     *(a::DiracOp, b::DiracOp) = inner(a,b)
-
-    *(b::DiracBra, o::DiracOp) = inner(b,o)
-    *(o::DiracOp, k::DiracKet) = inner(o,k)
-
-    *{S}(k::DiracKet{S}, o::DiracOp{S}) = tensor(k,o)
-    *{S}(o::DiracOp{S}, b::DiracBra{S}) = tensor(o,b)
-
     *(k::DiracKet, b::DiracBra) = DiracOp(k,b)
     *(c, o::DiracOp) = copy_type(o, castvals(*, c, o.coeffs))
     *(o::DiracOp, c) = copy_type(o, castvals(*, o.coeffs, c))
