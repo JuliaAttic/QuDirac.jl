@@ -251,4 +251,6 @@ export DiracOp,
     normalize,
     xsubspace,
     matchlabel_at,
-    matchlabel_in
+    matchlabel_in,
+    filternz,
+    filternz!
