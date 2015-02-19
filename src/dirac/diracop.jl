@@ -70,6 +70,10 @@
     Base.map(f::Function, o::DiracOp) = mapkv(f, o)
     Base.delete!(o::DiracOp, label) = copy_type(o, delete!(o.coeffs, label))
 
+    filternz!(o::DiracOp) = filter!((k, v) -> v != 0, o)
+    filternz(o::DiracOp) = filter((k, v) -> v != 0, o)
+
+
 ##########################
 # Mathematical Functions #
 ##########################
