@@ -146,9 +146,9 @@
 
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, ObjectIdDict(), ops))
     QuBase.tensor{S}(k::DiracKet{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, ObjectIdDict(), k, o))
+    QuBase.tensor{S}(o::DiracOp{S}, k::DiracKet{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, ObjectIdDict(), o, k))
     QuBase.tensor{S}(o::DiracOp{S}, b::DiracBra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, ObjectIdDict(), o, b))
-    QuBase.tensor{S}(o::DiracOp{S}, k::DiracKet{S}) = tensor(k, o)
-    QuBase.tensor{S}(b::DiracBra{S}, o::DiracOp{S}) = tensor(o, b)
+    QuBase.tensor{S}(b::DiracBra{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, ObjectIdDict(), b, o))
 
     normalize(o::DiracOp) = (1/norm(o))*o
 
@@ -220,11 +220,20 @@
         return ((join_tup(pairs[1][1], pairs[2][1][1]), pairs[2][1][2]), prod(second, pairs))
     end
 
+    function tensor_op_to_ket(pairs)
+        #pairs structure is: (((opketlabel, opbralabel), (ketlabel, ketvalue), opvalue))
+        return ((join_tup(pairs[1][1][1], pairs[2][1]), pairs[1][1][2]), prod(second, pairs))
+    end
+
     function tensor_bra_to_op(pairs)
         #pairs structure is: (((opketlabel, opbralabel), opvalue), (bralabel, bravalue))
         return ((pairs[1][1][1], join_tup(pairs[1][1][2], pairs[2][1])), prod(second, pairs))
     end
 
+    function tensor_op_to_bra(pairs)
+        #pairs structure is: ((bralabel, bravalue), ((opketlabel, opbralabel), opvalue))
+        return ((pairs[2][1][1], join_tup(pairs[1][1], pairs[2][1][2])), prod(second, pairs))
+    end
 
     function mergelabels{S}(f::Function, a::DiracOp{S}, b::DiracOp{S})
         return DiracOp{S}(mergef(f, a.coeffs, b.coeffs))
