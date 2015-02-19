@@ -14,11 +14,12 @@
         return DiracOp(f, S, keys(ket))
     end
 
+    # f(label) -> (eigval, eiglabel)
     function DiracOp{S}(f::Function, ::Type{S}, labels)
         coeffs = ObjectIdDict()
         for i in labels
             for j in labels 
-                (new_j, c) = f(j)
+                (c, new_j) = f(j)
                 coeffs[i,j] = c * inner_rule(S, i, new_j)
             end
         end
