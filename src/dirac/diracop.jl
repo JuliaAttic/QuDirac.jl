@@ -1,9 +1,11 @@
 ###########
 # DiracOp #
 ###########
+    typealias OpCoeffs Dict{(Tuple,Tuple),Number}
+
     type DiracOp{S} <: AbstractOperator{S}
-        coeffs::ObjectIdDict
-        DiracOp() = new(ObjectIdDict())
+        coeffs::OpCoeffs
+        DiracOp() = new(OpCoeffs())
         DiracOp(coeffs) = new(coeffs)
     end
 
@@ -16,7 +18,7 @@
 
     # f(label) -> (eigval, eiglabel)
     function DiracOp{S}(f::Function, ::Type{S}, labels)
-        coeffs = ObjectIdDict()
+        coeffs = OpCoeffs()
         for i in labels
             for j in labels 
                 (c, new_j) = f(j)
@@ -27,7 +29,7 @@
     end
 
     function DiracOp{A,B}(ket::DiracKet{A}, bra::DiracBra{B})
-        coeffs = ObjectIdDict()
+        coeffs = OpCoeffs()
         for (k,kc) in ket
             for (b,bc) in bra
                 coeffs[k,b] = kc * bc
@@ -39,7 +41,7 @@
     copy_type{S}(::DiracOp{S}, coeffs) = DiracOp{S}(coeffs)
 
     Base.copy(o::DiracOp) = copy_type(o, copy(o.coeffs))
-    Base.similar(o::DiracOp) = copy_type(o, ObjectIdDict())
+    Base.similar(o::DiracOp) = copy_type(o, OpCoeffs)
 
 #######################
 # Dict-Like Functions #
@@ -144,11 +146,11 @@
     Base.norm(o::DiracOp) = sqrt(sum(v->v^2, values(o)))
     Base.trace(o::DiracOp) = sum(k->o[k], filter(k->k[1]==k[2], keys(o)))
 
-    QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, ObjectIdDict(), ops))
-    QuBase.tensor{S}(k::DiracKet{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, ObjectIdDict(), k, o))
-    QuBase.tensor{S}(o::DiracOp{S}, k::DiracKet{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, ObjectIdDict(), o, k))
-    QuBase.tensor{S}(o::DiracOp{S}, b::DiracBra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, ObjectIdDict(), o, b))
-    QuBase.tensor{S}(b::DiracBra{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, ObjectIdDict(), b, o))
+    QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), ops))
+    QuBase.tensor{S}(k::DiracKet{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), k, o))
+    QuBase.tensor{S}(o::DiracOp{S}, k::DiracKet{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, OpCoeffs(), o, k))
+    QuBase.tensor{S}(o::DiracOp{S}, b::DiracBra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, OpCoeffs(), o, b))
+    QuBase.tensor{S}(b::DiracBra{S}, o::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, OpCoeffs(), b, o))
 
     normalize(o::DiracOp) = (1/norm(o))*o
 
@@ -191,7 +193,7 @@
 # Helper Functions #
 ####################
     function ptrace_coeffs(coeffs, over::Integer)
-        result = ObjectIdDict()
+        result = OpCoeffs()
         for tr_label in factor_labels(coeffs, over) # labels to be traced over
             for key in filter_at_labels(coeffs, tr_label, over)
                 new_label = (except(key[1], over), except(key[2], over))

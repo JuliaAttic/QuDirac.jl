@@ -1,9 +1,11 @@
 ##############
 # DiracState #
 ##############
+    typealias StateCoeffs Dict{Tuple,Number}
+
     type DiracState{D,S} <: AbstractState{D,S}
-        coeffs::ObjectIdDict
-        DiracState() = new(ObjectIdDict())
+        coeffs::StateCoeffs
+        DiracState() = new(StateCoeffs())
         DiracState(coeffs) = new(coeffs)
     end
 
@@ -13,7 +15,7 @@
 ################
 # Constructors #
 ################
-    single_state{D,S}(::Type{D}, ::Type{S}, label::Tuple) = DiracState{D,S}(singlet_dict(label, 1))
+    single_state{D,S}(::Type{D}, ::Type{S}, label::Tuple) = DiracState{D,S}(single_dict(StateCoeffs(), label, 1))
 
     ket{S}(::Type{S}, label...) = single_state(Ket,S,label)
     ket(label...) = single_state(Ket,Orthonormal,label)
@@ -28,7 +30,7 @@
     copy_type{D,S}(::DiracState{D,S}, new_coeffs) = DiracState{D,S}(new_coeffs)
 
     Base.copy(ds::DiracState) = copy_type(ds, copy(ds.coeffs))
-    Base.similar(ds::DiracState) = copy_type(ds, ObjectIdDict())
+    Base.similar(ds::DiracState) = copy_type(ds, StateCoeffs())
 
 #######################
 # Dict-Like Functions #
@@ -58,7 +60,7 @@
     Base.map(f::Function, ds::DiracState) = mapkv(f, ds)
     Base.delete!(ds::DiracState, label) = copy_type(ds, delete!(ds.coeffs, label))
 
-    getstate{D,S}(ds::DiracState{D,S}, label::Tuple) = ds[label] * DiracState{D,S}(singlet_dict(label, 1))
+    getstate{D,S}(ds::DiracState{D,S}, label::Tuple) = ds[label] * single_state(D,S,label)
     getstate(ds::DiracState, i...) = getstate(ds, i)
 
 ##########################
@@ -95,7 +97,7 @@
     Base.ctranspose{D,S}(ds::DiracState{D,S}) = DiracState{D',S}(conj(ds.coeffs))
     Base.norm(ds::DiracState) = sqrt(sum(v->v^2, values(ds)))
 
-    QuBase.tensor{D,S}(states::DiracState{D,S}...) = DiracState{D,S}(mergecart!(tensor_state, ObjectIdDict(), states))
+    QuBase.tensor{D,S}(states::DiracState{D,S}...) = DiracState{D,S}(mergecart!(tensor_state, StateCoeffs(), states))
 
     normalize(ds::DiracState) = (1/norm(ds))*ds
 

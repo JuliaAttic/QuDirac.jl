@@ -32,6 +32,7 @@ end
 apply_at(f, arr, i) = join_tup(arr[1:i-1], f(arr[i]), arr[i+1:end])
 except(arr, i) = join_tup(arr[1:i-1], arr[i+1:end])
 
-# Placing here for now
+# Placing here for now - may be useful for subscripting label factors
+# in the future
 digit_subscript(i::Int) = Base.REPLCompletions.latex_completions("\\_$i",3)[2][1][1]
 subscript(i::Int) = reduce(*, reverse(map(digit_subscript, digits(i))))

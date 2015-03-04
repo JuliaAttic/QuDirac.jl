@@ -1,8 +1,4 @@
-function singlet_dict(label, c)
-    o = ObjectIdDict()
-    o[label] = c
-    return o
-end
+single_dict(dict, label, c) = (dict[label] = c; return dict)
 
 function mergecart!(f::Function, result, d::Tuple)
     for pairs in product(d...)
@@ -31,9 +27,9 @@ function mergef(f::Function, d, others...)
     return mergef!(f, similar(d), d, others...)
 end
 
-castvals(f::Function, a::ObjectIdDict, b::ObjectIdDict) = mergef(f, a, b)
-castvals(f::Function, d::ObjectIdDict, c) = mapvals(v->f(c,v), d)
-castvals(f::Function, c, d::ObjectIdDict) = mapvals(v->f(c,v), d)
+castvals(f::Function, a::Associative, b::Associative) = mergef(f, a, b)
+castvals(f::Function, d::Associative, c) = mapvals(v->f(c,v), d)
+castvals(f::Function, c, d::Associative) = mapvals(v->f(c,v), d)
 
 function mapkv!(f::Function, result, d)
     for (k,v) in d
