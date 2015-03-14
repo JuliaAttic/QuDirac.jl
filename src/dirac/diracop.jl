@@ -75,7 +75,6 @@
     filternz!(o::DiracOp) = filter!((k, v) -> v != 0, o)
     filternz(o::DiracOp) = filter((k, v) -> v != 0, o)
 
-
 ##########################
 # Mathematical Functions #
 ##########################
