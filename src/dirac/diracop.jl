@@ -46,6 +46,9 @@
 #######################
 # Dict-Like Functions #
 #######################
+    Base.(:(==)){S}(a::DiracOp{S}, b::DiracOp{S}) = a.coeffs == b.coeffs
+    Base.hash(o::DiracOp) = hash(o.coeffs, hash(typeof(o)))
+
     Base.length(o::DiracOp) = length(o.coeffs)
 
     Base.getindex(o::DiracOp, labels::(Tuple,Tuple)) = o.coeffs[labels]

@@ -35,6 +35,9 @@
 #######################
 # Dict-Like Functions #
 #######################
+    Base.(:(==)){D,S}(a::DiracState{D,S}, b::DiracState{D,S}) = a.coeffs == b.coeffs
+    Base.hash(ds::DiracState) = hash(ds.coeffs, hash(typeof(ds)))
+
     Base.length(ds::DiracState) = length(ds.coeffs)
 
     Base.getindex(ds::DiracState, label::Tuple) = ds.coeffs[label]
