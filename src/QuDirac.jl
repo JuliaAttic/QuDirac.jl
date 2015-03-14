@@ -56,8 +56,6 @@ module QuDirac
         include("helperfuncs/tuplefuncs.jl")
         include("helperfuncs/dictfuncs.jl")
         
-        include("bases/fockbasis.jl")
-
         include("dirac/scalar.jl")
         include("dirac/diracstate.jl")
         include("dirac/diracop.jl")
