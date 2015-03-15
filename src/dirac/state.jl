@@ -1,6 +1,6 @@
-##############
-# DiracState #
-##############
+###########
+# Ket/Bra #
+###########
     typealias StateCoeffs Dict{Tuple,Number}
 
     type Ket{S} <: AbstractState{S}
@@ -58,36 +58,49 @@
     Base.haskey(s::AbstractState, label) = haskey(coeffs(s), label)
     Base.get(s::AbstractState, label, default) = haskey(s, label) ? s[label] : default
 
-    Base.filter!(f::Function, s::AbstractState) = (filter!(f, coeffs(s)); return s)
-    Base.filter(f::Function, s::AbstractState) = typeof(s)(filter(f, coeffs(s)))
-    Base.map(f::Function, s::AbstractState) = typeof(s)(mapkv(f, coeffs(s)))
     Base.delete!(s::AbstractState, label) = (delete!(coeffs(s), label); return s)
+
+##################################################
+# Function-passing functions (filter, map, etc.) #
+##################################################
+    Base.filter!(f::Function, ket::Ket) = (filter!(f, coeffs(ket)); return ket)
+    Base.filter{S}(f::Function, ket::Ket{S}) = Ket{S}(filter(f, coeffs(ket)))
+
+    Base.filter!(f::Function, bra::Bra) = (filter!((k,v)->f(k,v'), bra.ket); return bra)
+    Base.filter(f::Function, bra::Bra) = Bra(filter((k,v)->f(k,v'), bra.ket))
+
+    Base.map{S}(f::Function, ket::Ket{S}) = Ket{S}(mapkv(f, coeffs(ket)))
+    Base.map(f::Function, bra::Bra) = mapkv!((k,v)->f(k,v'), similar(bra), bra.ket)
+
+    mapcoeffs{S}(f::Function, ket::Ket{S}) = Ket{S}(mapvals(f, coeffs(ket)))
+    mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket))
+    maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, coeffs(s)))
 
 ##########################
 # Mathematical Functions #
 ##########################
-    function inner{A,B}(a::Ket{A}, b::Ket{B})
+    function inner{A,B}(bra::Bra{A}, ket::Ket{B})
         result = 0
-        for (bralabel,c) in a
-            for (ketlabel,v) in b
-                result += c'*v*inner_eval(A,B,bralabel,ketlabel) 
+        for (b,c) in bra.ket
+            for (k,v) in ket
+                result += c'*v*inner_eval(A,B,b,k) 
             end
         end
         return result
     end
 
-    function inner{A<:Orthogonal,B<:Orthogonal}(a::Ket{A}, b::Ket{B})
+    function inner{A<:Orthogonal,B<:Orthogonal}(bra::Bra{A}, ket::Ket{B})
         result = 0
-        if length(a) < length(b)
-            for (label, c) in a
-                if haskey(b, label)
-                    result += c'*b[label]*inner_eval(A,B,label,label)
+        if length(bra) < length(ket)
+            for (label, c) in bra.ket
+                if haskey(ket, label)
+                    result += c'*ket[label]*inner_eval(A,B,label,label)
                 end
             end
         else
-            for (label, v) in b
-                if haskey(a, label)
-                    result += v*a[label]'*inner_eval(A,B,label,label)
+            for (label, v) in ket
+                if haskey(bra, label)
+                    result += v*bra[label]*inner_eval(A,B,label,label)
                 end
             end
         end
@@ -100,22 +113,21 @@
     Base.scale(c::Number, s::AbstractState) = typeof(s)(castvals(*, c, coeffs(s)))
     Base.scale(s::AbstractState, c::Number) = typeof(s)(castvals(*, coeffs(s), c))
 
-    +{S}(a::Ket{S}, b::Ket{S}) = Ket{S}(mergef(+, coeffs(a), coeffs(b)))
-    -{S}(a::Ket{S}, b::Ket{S}) = a + (-b)
-    -{S}(ket::Ket{S}) = Ket{S}(mapvals(-, coeffs(ket)))
+    Base.(:+){S}(a::Ket{S}, b::Ket{S}) = Ket{S}(mergef(+, coeffs(a), coeffs(b)))
+    Base.(:-){S}(a::Ket{S}, b::Ket{S}) = a + (-b)
+    Base.(:-){S}(ket::Ket{S}) = mapcoeffs(-, ket)
 
-    +(a::Bra, b::Bra) = Bra(a.ket+b.ket)
-    -(a::Bra, b::Bra) = Bra(a.ket-b.ket)
-    -(bra::Bra) = Bra(-bra.ket)
+    Base.(:+)(a::Bra, b::Bra) = Bra(a.ket+b.ket)
+    Base.(:-)(a::Bra, b::Bra) = Bra(a.ket-b.ket)
+    Base.(:-)(bra::Bra) = Bra(-bra.ket)
 
-    *(bra::Bra, ket::Ket) = inner(bra.ket,ket)
-    *(ket::Ket, bra::Bra) = outer(bra.ket,ket)
-    *(a::Ket, b::Ket) = tensor(a,b)
-    *(a::Bra, b::Bra) = tensor(a,b)
+    Base.(:*)(bra::Bra, ket::Ket) = inner(bra,ket)
+    Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
+    Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
 
-    *(c::Number, s::AbstractState) = scale(c, s)
-    *(s::AbstractState, c::Number) = scale(s, c)
-    /(s::AbstractState, c::Number) = scale(s, 1/c)
+    Base.(:*)(c::Number, s::AbstractState) = scale(c, s)
+    Base.(:*)(s::AbstractState, c::Number) = scale(s, c)
+    Base.(:/)(s::AbstractState, c::Number) = scale(s, 1/c)
 
     Base.ctranspose(k::Ket) = Bra(k)
     Base.ctranspose(b::Bra) = b.ket
@@ -128,11 +140,11 @@
     QuBase.normalize!(s::AbstractState) = scale!(1/norm(s), s)
 
     xsubspace(s::AbstractState, x) = filter((k,v)->sum(k)==x, s)
-    matchlabel_at(s::AbstractState, x, y) = filter((k,v)-> x==k[y], s)
-    matchlabel_in(s::AbstractState, x) = filter((k,v)-> x in k, s)
+    switch(s::AbstractState, i, j) = maplabels(label->switch(label,i,j), s)
+    permute(s::AbstractState, p::Array{Int}) = maplabels(label->permute(label,p), s)
 
-    switch(s::AbstractState, i, j) = mapkeys(k->switch(k,i,j), coeffs(s))
-    permute(s::AbstractState, p::Array{Int}) = mapkeys(k->permute(k,p), coeffs(s))
+    filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
+    filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
 
 ######################
 # Printing Functions #
@@ -140,19 +152,18 @@
     labelstr(label) = strip(repr(label)[2:end-1], ',')
     ketstr(label) = "| $(labelstr(label)) $rang"
     brastr(label) = "$lang $(labelstr(label)) |"
-    statestr(::Ket, label) = ketstr(label)
-    statestr(::Bra, label) = brastr(label)
+    statestr{K<:Ket}(label, ::Type{K}) = ketstr(label)
+    statestr{B<:Bra}(label, ::Type{B}) = brastr(label)
 
     function Base.show(io::IO, s::AbstractState)
         print(io, "$(typeof(s)) with $(length(s)) state(s):")
         pad = "  "
         maxlen = 30
         i = 1
-        for (label,v) in coeffs(s)
+        for label in keys(coeffs(s))
             if i <= maxlen
                 println(io)
-                v = typeof(s)<:Bra ? v' : v
-                print(io, "$pad$v $(statestr(s,label))")
+                print(io, "$pad$(s[label]) $(statestr(label, typeof(s)))")
                 i = i + 1
             else  
                 println(io)
@@ -170,15 +181,12 @@
         return (join_tup(map(first, pairs)), prod(second, pairs))
     end
 
-    mapkv(f::Function, s::AbstractState) = typeof(s)(mapkv(f, coeffs(s)))
-    mapvals(f::Function, s::AbstractState) = typeof(s)(mapvals(f, coeffs(s)))
-    mapkeys(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, coeffs(s)))
-
 export Ket,
     Bra,
-    normalize,
+    maplabels,
+    mapcoeffs,
     xsubspace,
-    matchlabel_at,
-    matchlabel_in,
     switch,
-    permute
+    permute,
+    filternz!,
+    filternz

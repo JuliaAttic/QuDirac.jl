@@ -19,7 +19,6 @@
     ######################
     bralabel(i::InnerProduct) = i.bralabel
     ketlabel(i::InnerProduct) = i.ketlabel
-    QuBase.structure{S}(::Type{InnerProduct{S}}) = S
 
     ######################
     # Printing Functions #
@@ -105,9 +104,9 @@
         end
     end
 
-    ^(s::DiracScalar, n::Integer) = exponentiate(s,n)
-    ^(s::DiracScalar, n::Rational) = exponentiate(s,n)
-    ^(s::DiracScalar, n::Number) = exponentiate(s,n)
+    Base.(:^)(s::DiracScalar, n::Integer) = exponentiate(s,n)
+    Base.(:^)(s::DiracScalar, n::Rational) = exponentiate(s,n)
+    Base.(:^)(s::DiracScalar, n::Number) = exponentiate(s,n)
 
     Base.exp(s::DiracScalar) = ScalarExpr(:(exp($(s))))
 
@@ -127,11 +126,11 @@
     ##################
     # Multiplication #
     ##################
-    *(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)*$(b)))
-    *(a::Bool, b::DiracScalar) = a ? *(1,b) : *(0,b)
-    *(a::DiracScalar, b::Bool) = b ? *(a,1) : *(a,0)
+    Base.(:*)(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)*$(b)))
+    Base.(:*)(a::Bool, b::DiracScalar) = a ? *(1,b) : *(0,b)
+    Base.(:*)(a::DiracScalar, b::Bool) = b ? *(a,1) : *(a,0)
 
-    function *(a::DiracScalar, b::Number)
+    function Base.(:*)(a::DiracScalar, b::Number)
         if b==1
             return ScalarExpr(a)
         elseif b==0
@@ -141,7 +140,7 @@
         end
     end
 
-    function *(a::Number, b::DiracScalar)
+    function Base.(:*)(a::Number, b::DiracScalar)
         if a==1
             return ScalarExpr(b)
         elseif a==0
@@ -154,11 +153,11 @@
     ##############
     ## Division ##
     ##############
-    /(a::DiracScalar, b::DiracScalar) = a==b ? ScalarExpr(1) : ScalarExpr(:($(a)/$(b)))
+    Base.(:/)(a::DiracScalar, b::DiracScalar) = a==b ? ScalarExpr(1) : ScalarExpr(:($(a)/$(b)))
 
     # the below is only implemented to prevent
     # ambiguity warnings
-    function /(a::DiracScalar, b::Complex)
+    function Base.(:/)(a::DiracScalar, b::Complex)
         if b==0
             return ScalarExpr(Inf)
         elseif b==1
@@ -168,7 +167,7 @@
         end
     end
 
-    function /(a::DiracScalar, b::Number)
+    function Base.(:/)(a::DiracScalar, b::Number)
         if b==0
             return ScalarExpr(Inf)
         elseif b==1
@@ -178,7 +177,7 @@
         end
     end
 
-    function /(a::Number, b::DiracScalar)
+    function Base.(:/)(a::Number, b::DiracScalar)
         if a==0
             return ScalarExpr(0)
         else
@@ -189,9 +188,9 @@
     ##############
     ## Addition ##
     ##############
-    +(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)+$(b)))
+    Base.(:+)(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)+$(b)))
 
-    function +(a::DiracScalar, b::Number)
+    function Base.(:+)(a::DiracScalar, b::Number)
         if b==0
             return ScalarExpr(a)
         else
@@ -199,7 +198,7 @@
         end
     end
 
-    function +(a::Number, b::DiracScalar)
+    function Base.(:+)(a::Number, b::DiracScalar)
         if a==0
             return ScalarExpr(b)
         else
@@ -210,12 +209,12 @@
     #################
     ## Subtraction ##
     #################
-    -(s::ScalarExpr) = length(s)==2 && s[1]==:- ? ScalarExpr(s[2]) :  ScalarExpr(:(-$(s)))
-    -(s::DiracScalar) = ScalarExpr(:(-$(s)))
+    Base.(:-)(s::ScalarExpr) = length(s)==2 && s[1]==:- ? ScalarExpr(s[2]) :  ScalarExpr(:(-$(s)))
+    Base.(:-)(s::DiracScalar) = ScalarExpr(:(-$(s)))
 
-    -(a::DiracScalar, b::DiracScalar) = a==b ? ScalarExpr(0) : ScalarExpr(:($(a)-$(b)))
+    Base.(:-)(a::DiracScalar, b::DiracScalar) = a==b ? ScalarExpr(0) : ScalarExpr(:($(a)-$(b)))
 
-    function -(a::DiracScalar, b::Number)
+    function Base.(:-)(a::DiracScalar, b::Number)
         if b==0
             return ScalarExpr(a)
         else
@@ -223,7 +222,7 @@
         end
     end
 
-    function -(a::Number, b::DiracScalar)
+    function Base.(:-)(a::Number, b::DiracScalar)
         if a==0
             return ScalarExpr(-b)
         else

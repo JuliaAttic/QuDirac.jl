@@ -27,13 +27,11 @@ function mergef(f::Function, d, others...)
     return mergef!(f, similar(d), d, others...)
 end
 
-castvals(f::Function, a::Associative, b::Associative) = mergef(f, a, b)
-castvals(f::Function, d::Associative, c) = mapvals(v->f(c,v), d)
-castvals(f::Function, c, d::Associative) = mapvals(v->f(c,v), d)
+castvals(f::Function, d::Associative, c::Number) = mapvals(v->f(c,v), d)
+castvals(f::Function, c::Number, d::Associative) = mapvals(v->f(c,v), d)
 
-castvals!(f::Function, a::Associative, b::Associative) = mergef!(f, a, b)
-castvals!(f::Function, d::Associative, c) = mapvals!(v->f(c,v), d)
-castvals!(f::Function, c, d::Associative) = mapvals!(v->f(c,v), d)
+castvals!(f::Function, d::Associative, c::Number) = mapvals!(v->f(c,v), d)
+castvals!(f::Function, c::Number, d::Associative) = mapvals!(v->f(c,v), d)
 
 function mapkv!(f::Function, result, d)
     for (k,v) in d
