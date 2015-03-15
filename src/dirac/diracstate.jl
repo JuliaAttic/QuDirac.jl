@@ -96,8 +96,7 @@
     *(ds::DiracState, c) = copy_type(ds, castvals(*, ds.coeffs, c))
     /(ds::DiracState, c) = copy_type(ds, castvals(/, ds.coeffs, c))
 
-    Base.conj(ds::DiracState) = mapvals(conj, ds)
-    Base.ctranspose{D,S}(ds::DiracState{D,S}) = DiracState{D',S}(conj(ds.coeffs))
+    Base.ctranspose{D,S}(ds::DiracState{D,S}) = DiracState{D',S}(mapvals(ctranspose, ds.coeffs))
     Base.norm(ds::DiracState) = sqrt(sum(v->v^2, values(ds)))
 
     QuBase.tensor{D,S}(states::DiracState{D,S}...) = DiracState{D,S}(mergecart!(tensor_state, StateCoeffs(), states))
