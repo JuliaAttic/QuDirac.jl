@@ -29,7 +29,7 @@
 # Constructors #
 ################
     Base.copy(s::AbstractState) = typeof(s)(copy(coeffs(s)))
-    Base.similar(s::AbstractState) = typeof(s)(StateCoeffs())
+    Base.similar(s::AbstractState) = typeof(s)(similar(coeffs(s)))
 
 #######################
 # Dict-Like Functions #
