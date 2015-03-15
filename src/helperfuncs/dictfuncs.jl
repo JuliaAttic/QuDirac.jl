@@ -31,9 +31,22 @@ castvals(f::Function, a::Associative, b::Associative) = mergef(f, a, b)
 castvals(f::Function, d::Associative, c) = mapvals(v->f(c,v), d)
 castvals(f::Function, c, d::Associative) = mapvals(v->f(c,v), d)
 
+castvals!(f::Function, a::Associative, b::Associative) = mergef!(f, a, b)
+castvals!(f::Function, d::Associative, c) = mapvals!(v->f(c,v), d)
+castvals!(f::Function, c, d::Associative) = mapvals!(v->f(c,v), d)
+
 function mapkv!(f::Function, result, d)
     for (k,v) in d
         (k0,v0) = f(k,v)
+        result[k0] = v0
+    end
+    return result
+end
+
+function mapkv!(f::Function, d)
+    for (k,v) in d
+        (k0,v0) = f(k,v)
+        delete!(d, k)
         result[k0] = v0
     end
     return result
@@ -48,11 +61,20 @@ function mapvals!(f::Function, result, d)
     return result
 end
 
+mapvals!(f::Function, d) = mapvals!(f,d,d)
 mapvals(f::Function, d) = mapvals!(f, similar(d), d)
 
 function mapkeys!(f::Function, result, d)
     for (k,v) in d
         result[f(k)] = v
+    end
+    return result
+end
+
+function mapkeys!(f::Function, d)
+    for (k,v) in d
+        delete!(d,k)
+        d[f(k)] = v
     end
     return result
 end
