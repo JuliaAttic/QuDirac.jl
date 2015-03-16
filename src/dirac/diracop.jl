@@ -1,15 +1,17 @@
 ##################
 # DiracOp/DualOp #
 ##################
+    abstract GenericOperator{S} <: AbstractOperator{S}
+
     typealias OpCoeffs Dict{(Tuple,Tuple),Number}
 
-    type DiracOp{S} <: AbstractOperator{S}
+    type DiracOp{S} <: GenericOperator{S}
         coeffs::OpCoeffs
         DiracOp() = new(OpCoeffs())
         DiracOp(coeffs) = new(coeffs)
     end
 
-    type DualOp{S} <: AbstractOperator{S}
+    type DualOp{S} <: GenericOperator{S}
         op::DiracOp{S}
         DualOp(items...) = new(DiracOp{S}(items...))
         DualOp(op::DiracOp{S}) = new(op)
@@ -50,8 +52,8 @@
     coeffs(op::DiracOp) = op.coeffs
     coeffs(opc::DualOp) = coeffs(opc.op)
 
-    Base.copy(op::AbstractOperator) = typeof(op)(copy(coeffs(op)))
-    Base.similar(op::AbstractOperator) = typeof(op)(similar(coeffs(op)))
+    Base.copy(op::GenericOperator) = typeof(op)(copy(coeffs(op)))
+    Base.similar(op::GenericOperator) = typeof(op)(similar(coeffs(op)))
 
 #######################
 # Dict-Like Functions #
@@ -61,21 +63,21 @@
     Base.(:(==)){S}(op::DiracOp{S}, opc::DualOp{S}) = op == eager_ctran(opc.op)
     Base.(:(==)){S}(a::DualOp{S}, b::DualOp{S}) = a.op == b.op
 
-    Base.hash(op::AbstractOperator) = hash(coeffs(op), hash(typeof(op)))
+    Base.hash(op::GenericOperator) = hash(coeffs(op), hash(typeof(op)))
 
-    Base.length(op::AbstractOperator) = length(coeffs(op))
+    Base.length(op::GenericOperator) = length(coeffs(op))
 
     Base.getindex(op::DiracOp, label::(Tuple,Tuple)) = coeffs(op)[label]
     Base.getindex(op::DiracOp, k::Tuple, b::Tuple) = op[(k,b)]
     Base.getindex(opc::DualOp, label::(Tuple,Tuple)) = opc.op[reverse(label)]'
     Base.getindex(opc::DualOp, k::Tuple, b::Tuple) = opc.op[(b,k)]'
-    Base.getindex(op::AbstractOperator, k, b) = op[tuple(k),tuple(b)]
+    Base.getindex(op::GenericOperator, k, b) = op[tuple(k),tuple(b)]
 
     Base.setindex!(op::DiracOp, c, label::(Tuple,Tuple)) = setindex!(coeffs(op), c, label)
     Base.setindex!(op::DiracOp, c, k::Tuple, b::Tuple) = setindex!(op, c, (k,b))
     Base.setindex!(opc::DualOp, c, label::(Tuple,Tuple)) = setindex!(opc.op, c', reverse(label))
     Base.setindex!(opc::DualOp, c, k::Tuple, b::Tuple) = setindex!(opc.op, c', (b,k))
-    Base.setindex!(op::AbstractOperator, c, k, b) = setindex!(op, c, tuple(k), tuple(b))
+    Base.setindex!(op::GenericOperator, c, k, b) = setindex!(op, c, tuple(k), tuple(b))
 
     Base.keys(op::DiracOp) = keys(coeffs(op))
     Base.values(op::DiracOp) = values(coeffs(op))
@@ -114,6 +116,11 @@
 ##########################
 # Mathematical Functions #
 ##########################
+    eager_ctran(op::DiracOp) = map((k,v)->(reverse(k),v'), op)
+    
+    Base.ctranspose(op::DiracOp) = DualOp(op)
+    Base.ctranspose(opc::DualOp) = opc.op
+
     function inner{A,B}(bra::Bra{A}, op::DiracOp{B})
         result = Bra{typejoin(A,B)}()
         for ((ok,ob),oc) in op            
@@ -187,31 +194,31 @@
         return result
     end
 
-    Base.(:*)(bra::Bra, op::AbstractOperator) = inner(bra,op)
-    Base.(:*)(op::AbstractOperator, ket::Ket) = inner(op,ket)
-    Base.(:*)(ket::Ket, op::AbstractOperator) = tensor(ket,op)
-    Base.(:*)(op::AbstractOperator, bra::Bra) = tensor(op,bra)
-    Base.(:*)(a::AbstractOperator, b::AbstractOperator) = inner(a,b)
+    Base.(:*)(bra::Bra, op::GenericOperator) = inner(bra,op)
+    Base.(:*)(op::GenericOperator, ket::Ket) = inner(op,ket)
+    Base.(:*)(ket::Ket, op::GenericOperator) = tensor(ket,op)
+    Base.(:*)(op::GenericOperator, bra::Bra) = tensor(op,bra)
+    Base.(:*)(a::GenericOperator, b::GenericOperator) = inner(a,b)
     Base.(:*)(ket::Ket, bra::Bra) = tensor(ket,bra)
 
-    Base.scale!(c::Number, op::AbstractOperator) = (castvals!(*, c, coeffs(op)); return op)
-    Base.scale!(op::AbstractOperator, c::Number) = (castvals!(*, coeffs(op), c); return op)
+    Base.scale!(c::Number, op::GenericOperator) = (castvals!(*, c, coeffs(op)); return op)
+    Base.scale!(op::GenericOperator, c::Number) = (castvals!(*, coeffs(op), c); return op)
 
-    Base.scale(c::Number, op::AbstractOperator) = typeof(op)(castvals(*, c, coeffs(op)))
-    Base.scale(op::AbstractOperator, c::Number) = typeof(op)(castvals(*, coeffs(op), c))
+    Base.scale(c::Number, op::GenericOperator) = typeof(op)(castvals(*, c, coeffs(op)))
+    Base.scale(op::GenericOperator, c::Number) = typeof(op)(castvals(*, coeffs(op), c))
 
-    Base.(:*)(c::Number, op::AbstractOperator) = scale(c, op)
-    Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
-    Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
+    Base.(:*)(c::Number, op::GenericOperator) = scale(c, op)
+    Base.(:*)(op::GenericOperator, c::Number) = scale(op, c)
+    Base.(:/)(op::GenericOperator, c::Number) = scale(op, 1/c)
 
     Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = mergelabels(+, a, b)
-    Base.(:-){S}(a::DiracOp{S}, b::DiracOp{S}) = a + (-b)
-    Base.(:-){S}(o::DiracOp{S}) = mapcoeffs(-, o)
+    Base.(:+){S}(a::DualOp{S}, b::DiracOp{S}) = eager_ctran(a.op) + b
+    Base.(:+){S}(a::DiracOp{S}, b::DualOp{S}) = a + eager_ctran(b.op)
+    Base.(:+){S}(a::DualOp{S}, b::DualOp{S}) = DualOp(a.op + b.op)
 
-    eager_ctran(op::DiracOp) = map((k,v)->(reverse(k),v'), op)
-    
-    Base.ctranspose(op::DiracOp) = DualOp(op)
-    Base.ctranspose(opc::DualOp) = opc.op
+    Base.(:-){S}(a::GenericOperator{S}, b::GenericOperator{S}) = a + (-b)
+    Base.(:-)(op::DiracOp) = mapcoeffs(-, op)
+    Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
     Base.norm(o::DiracOp) = sqrt(sum(v->v^2, values(o)))
     QuBase.normalize(o::DiracOp) = (1/norm(o))*o
@@ -236,10 +243,10 @@
     QuBase.tensor(op::DiracOp, opc::DualOp) = tensor(op, eager_ctran(opc.op))
     QuBase.tensor(opc::DualOp, op::DiracOp) = tensor(eager_ctran(opc.op), op)
 
-    xsubspace(op::AbstractOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
+    xsubspace(op::GenericOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
 
-    filternz!(op::AbstractOperator) = filter!((k, v) -> v != 0, op)
-    filternz(op::AbstractOperator) = filter((k, v) -> v != 0, op)
+    filternz!(op::GenericOperator) = filter!((k, v) -> v != 0, op)
+    filternz(op::GenericOperator) = filter((k, v) -> v != 0, op)
 
 #################
 # Partial trace #
@@ -278,7 +285,7 @@
     opstr(::DiracOp, k, v, pad) = "$pad$v $(statestr(k[1],Ket))$(statestr(k[2],Bra))"
     opstr(::DualOp, k, v, pad) = "$pad$(v') $(statestr(k[2],Ket))$(statestr(k[1],Bra))"
 
-    function Base.show(io::IO, op::AbstractOperator)
+    function Base.show(io::IO, op::GenericOperator)
         print(io, "$(summary(op)) with $(length(op)) operator(s):")
         pad = "  "
         maxlen = 30
