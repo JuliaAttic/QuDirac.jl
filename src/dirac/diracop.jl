@@ -227,19 +227,19 @@
 
     Base.trace(o::DiracOp) = sum(k->o[k], filter(k->k[1]==k[2], keys(o)))
 
-    QuBase.tensor{S}(ket::Ket{S}, bra::Bra{S}) = DiracOp(ket, bra)
-    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
-    QuBase.tensor{S}(ops::AbstractOperator{S}...) = tensor(promote(ops...)...)
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), ops))
     QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), ket, op))
     QuBase.tensor{S}(op::DiracOp{S}, ket::Ket{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, OpCoeffs(), op, ket))
     QuBase.tensor{S}(op::DiracOp{S}, bra::Bra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, OpCoeffs(), op, mapvals(ctranspose, coeffs(bra))))
     QuBase.tensor{S}(bra::Bra{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, OpCoeffs(), mapvals(ctranspose, coeffs(bra)), op))
+    QuBase.tensor(ops::AbstractOperator...) = tensor(promote(ops...)...)
     QuBase.tensor(ket::Ket, opc::DualOp) = tensor(ket', opc.op)'
     QuBase.tensor(opc::DualOp, ket::Ket) = tensor(opc.op, ket')'
     QuBase.tensor(opc::DualOp, bra::Bra) = tensor(opc.op, bra')'
     QuBase.tensor(bra::Bra, opc::DualOp) = tensor(bra', opc.op)'
     QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.op, b.op)'
+    QuBase.tensor(ket::Ket, bra::Bra) = DiracOp(ket, bra)
+    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
 
     xsubspace(op::GenericOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
 

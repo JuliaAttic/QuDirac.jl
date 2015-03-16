@@ -3,14 +3,13 @@ using Base.Test
 
 k = Ket([(i,)=>i+(i*im) for i=0:3])
 b = Ket([(i,)=>i+(i*3*im) for i=0:3])'
-op = k*b
+op = k*b + Ket(3)*Bra(0)
 @assert b*k == 56 - 28im
 @assert b'*b'*b' == (b^3)'
 @assert (op'*op') == (op*op)'
-@assert (op'*op) == (op*op')
-@assert mapcoeffs(ctranspose, op') == op
+@assert maplabels(reverse, mapcoeffs(ctranspose, op)) == op'
 @assert op[2,1] == op[(2,),(1,)] == 8-4im
-@assert k*op*b == tensor(op,op)
+@assert k*k*b*b == tensor(k*b,k*b)
 @assert b*op*k == 2352 - 3136im
 @assert op+op == 2 * op
 @assert op-op == 0 * op
