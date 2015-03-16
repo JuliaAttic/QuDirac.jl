@@ -20,6 +20,9 @@
     DualOp{S}(op::DiracOp{S}) = DualOp{S}(op)
     DualOp(items...) = DualOp(DiracOp(items...))
 
+    Base.convert{S}(::Type{DiracOp{S}}, opc::DualOp{S}) = eager_ctran(opc.op)
+    Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{DualOp{S}}) = DiracOp{S}
+
 ################
 # Constructors #
 ################
@@ -59,9 +62,8 @@
 # Dict-Like Functions #
 #######################
     Base.(:(==)){S}(a::DiracOp{S}, b::DiracOp{S}) = coeffs(a) == coeffs(b)
-    Base.(:(==)){S}(opc::DualOp{S}, op::DiracOp{S}) = eager_ctran(opc.op) == op
-    Base.(:(==)){S}(op::DiracOp{S}, opc::DualOp{S}) = op == eager_ctran(opc.op)
     Base.(:(==)){S}(a::DualOp{S}, b::DualOp{S}) = a.op == b.op
+    Base.(:(==)){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = ==(promote(a,b)...)
 
     Base.hash(op::GenericOperator) = hash(coeffs(op), hash(typeof(op)))
 
@@ -212,11 +214,10 @@
     Base.(:/)(op::GenericOperator, c::Number) = scale(op, 1/c)
 
     Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = mergelabels(+, a, b)
-    Base.(:+){S}(a::DualOp{S}, b::DiracOp{S}) = eager_ctran(a.op) + b
-    Base.(:+){S}(a::DiracOp{S}, b::DualOp{S}) = a + eager_ctran(b.op)
     Base.(:+){S}(a::DualOp{S}, b::DualOp{S}) = DualOp(a.op + b.op)
+    Base.(:+){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = +(promote(a,b)...)
 
-    Base.(:-){S}(a::GenericOperator{S}, b::GenericOperator{S}) = a + (-b)
+    Base.(:-){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = a + (-b)
     Base.(:-)(op::DiracOp) = mapcoeffs(-, op)
     Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
@@ -228,20 +229,17 @@
 
     QuBase.tensor{S}(ket::Ket{S}, bra::Bra{S}) = DiracOp(ket, bra)
     QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
+    QuBase.tensor{S}(ops::AbstractOperator{S}...) = tensor(promote(ops...)...)
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), ops))
     QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), ket, op))
     QuBase.tensor{S}(op::DiracOp{S}, ket::Ket{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, OpCoeffs(), op, ket))
     QuBase.tensor{S}(op::DiracOp{S}, bra::Bra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, OpCoeffs(), op, mapvals(ctranspose, coeffs(bra))))
     QuBase.tensor{S}(bra::Bra{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, OpCoeffs(), mapvals(ctranspose, coeffs(bra)), op))
-    
     QuBase.tensor(ket::Ket, opc::DualOp) = tensor(ket', opc.op)'
     QuBase.tensor(opc::DualOp, ket::Ket) = tensor(opc.op, ket')'
     QuBase.tensor(opc::DualOp, bra::Bra) = tensor(opc.op, bra')'
     QuBase.tensor(bra::Bra, opc::DualOp) = tensor(bra', opc.op)'
-
     QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.op, b.op)'
-    QuBase.tensor(op::DiracOp, opc::DualOp) = tensor(op, eager_ctran(opc.op))
-    QuBase.tensor(opc::DualOp, op::DiracOp) = tensor(eager_ctran(opc.op), op)
 
     xsubspace(op::GenericOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
 
