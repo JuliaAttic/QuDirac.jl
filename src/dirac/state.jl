@@ -14,13 +14,12 @@
 
     type Bra{S} <: AbstractState{S}
         ket::Ket{S}
-        Bra() = new(Ket())
-        Bra(ket::Ket{S}) = new(ket)
         Bra(items...) = new(Ket{S}(items...))
+        Bra(ket::Ket{S}) = new(ket)
     end
 
     Bra{S}(ket::Ket{S}) = Bra{S}(ket)
-    Bra(items...) = Bra{Orthonormal}(items...)
+    Bra(items...) = Bra(Ket(items...))
 
     coeffs(k::Ket) = k.coeffs
     coeffs(b::Bra) = coeffs(b.ket)
@@ -35,17 +34,17 @@
 # Dict-Like Functions #
 #######################
     Base.(:(==)){S}(a::Ket{S}, b::Ket{S}) = coeffs(a) == coeffs(b)
-    Base.(:(==)){S}(a::Bra{S}, b::Bra{S}) = coeffs(a) == coeffs(b)
+    Base.(:(==)){S}(a::Bra{S}, b::Bra{S}) = a.ket == b.ket
     Base.hash(s::AbstractState) = hash(coeffs(s), hash(typeof(s)))
 
     Base.length(s::AbstractState) = length(coeffs(s))
 
     Base.getindex(k::Ket, label::Tuple) = coeffs(k)[label]
-    Base.getindex(b::Bra, label::Tuple) = coeffs(b)[label]'
+    Base.getindex(b::Bra, label::Tuple) = b.ket[label]'
     Base.getindex(s::AbstractState, i...) = s[i]
 
     Base.setindex!(k::Ket, c, label::Tuple) = setindex!(coeffs(k), c, label)
-    Base.setindex!(b::Bra, c, label::Tuple) = setindex!(coeffs(b), c', label)
+    Base.setindex!(b::Bra, c, label::Tuple) = setindex!(b.ket, c', label)
     Base.setindex!(s::AbstractState, c, i...) = setindex!(s, c, i)
 
     Base.keys(k::Ket) = keys(coeffs(k))
@@ -55,25 +54,25 @@
     Base.next(k::Ket, state) = next(coeffs(k), state)
     Base.done(k::Ket, state) = done(coeffs(k), state)
     
-    Base.haskey(s::AbstractState, label) = haskey(coeffs(s), label)
-    Base.get(s::AbstractState, label, default) = haskey(s, label) ? s[label] : default
+    Base.haskey(s::AbstractState, label::Tuple) = haskey(coeffs(s), label)
+    Base.get(s::AbstractState, label::Tuple, default) = haskey(s, label) ? s[label] : default
 
-    Base.delete!(s::AbstractState, label) = (delete!(coeffs(s), label); return s)
+    Base.delete!(s::AbstractState, label::Tuple) = (delete!(coeffs(s), label); return s)
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
     Base.filter!(f::Function, ket::Ket) = (filter!(f, coeffs(ket)); return ket)
-    Base.filter{S}(f::Function, ket::Ket{S}) = Ket{S}(filter(f, coeffs(ket)))
-
     Base.filter!(f::Function, bra::Bra) = (filter!((k,v)->f(k,v'), bra.ket); return bra)
+
+    Base.filter{S}(f::Function, ket::Ket{S}) = Ket{S}(filter(f, coeffs(ket)))
     Base.filter(f::Function, bra::Bra) = Bra(filter((k,v)->f(k,v'), bra.ket))
 
     Base.map{S}(f::Function, ket::Ket{S}) = Ket{S}(mapkv(f, coeffs(ket)))
     Base.map(f::Function, bra::Bra) = mapkv!((k,v)->f(k,v'), similar(bra), bra.ket)
 
     mapcoeffs{S}(f::Function, ket::Ket{S}) = Ket{S}(mapvals(f, coeffs(ket)))
-    mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket))
+    mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket)
     maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, coeffs(s)))
 
 ##########################
