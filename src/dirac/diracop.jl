@@ -196,11 +196,11 @@
         return result
     end
 
-    Base.(:*)(bra::Bra, op::GenericOperator) = inner(bra,op)
-    Base.(:*)(op::GenericOperator, ket::Ket) = inner(op,ket)
-    Base.(:*)(ket::Ket, op::GenericOperator) = tensor(ket,op)
-    Base.(:*)(op::GenericOperator, bra::Bra) = tensor(op,bra)
-    Base.(:*)(a::GenericOperator, b::GenericOperator) = inner(a,b)
+    Base.(:*)(bra::Bra, op::AbstractOperator) = inner(bra,op)
+    Base.(:*)(op::AbstractOperator, ket::Ket) = inner(op,ket)
+    Base.(:*)(ket::Ket, op::AbstractOperator) = tensor(ket,op)
+    Base.(:*)(op::AbstractOperator, bra::Bra) = tensor(op,bra)
+    Base.(:*)(a::AbstractOperator, b::AbstractOperator) = inner(a,b)
     Base.(:*)(ket::Ket, bra::Bra) = tensor(ket,bra)
 
     Base.scale!(c::Number, op::GenericOperator) = (castvals!(*, c, coeffs(op)); return op)
@@ -209,9 +209,9 @@
     Base.scale(c::Number, op::GenericOperator) = typeof(op)(castvals(*, c, coeffs(op)))
     Base.scale(op::GenericOperator, c::Number) = typeof(op)(castvals(*, coeffs(op), c))
 
-    Base.(:*)(c::Number, op::GenericOperator) = scale(c, op)
-    Base.(:*)(op::GenericOperator, c::Number) = scale(op, c)
-    Base.(:/)(op::GenericOperator, c::Number) = scale(op, 1/c)
+    Base.(:*)(c::Number, op::AbstractOperator) = scale(c, op)
+    Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
+    Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
 
     Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = mergelabels(+, a, b)
     Base.(:+){S}(a::DualOp{S}, b::DualOp{S}) = DualOp(a.op + b.op)
