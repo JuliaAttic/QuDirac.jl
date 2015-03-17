@@ -95,7 +95,7 @@
     Base.get(opc::DualOp, label::(Tuple,Tuple), default) = haskey(opc, label) ? opc[label] : default
 
     Base.delete!(op::DiracOp, label::(Tuple,Tuple)) = (delete!(coeffs(op), label); return op)
-    Base.delete!(opc::DualOp, label::(Tuple,Tuple)) = delete!(opc, reverse(label))
+    Base.delete!(opc::DualOp, label::(Tuple,Tuple)) = delete!(opc.op, reverse(label))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
