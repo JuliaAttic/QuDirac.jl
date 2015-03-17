@@ -9,7 +9,7 @@
         
     Base.copy{S}(op::Projector{S}) = Projector{S}(copy(op.scalar), copy(op.ket), copy(op.bra))
 
-    Base.convert{S}(::Type{DiracOp{S}}, op::Projector{S}) = op.scalar * DiracOp(op.ket, op.bra)
+    Base.convert{S}(::Type{DiracOp{S}}, op::Projector{S}) = scale!(op.scalar, DiracOp(op.ket, op.bra))
     Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{Projector{S}}) = DiracOp{S}
 
 #######################
