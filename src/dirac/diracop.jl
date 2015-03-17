@@ -221,11 +221,14 @@
     Base.(:-)(op::DiracOp) = mapcoeffs(-, op)
     Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
-    Base.norm(o::DiracOp) = sqrt(sum(v->v^2, values(o)))
-    QuBase.normalize(o::DiracOp) = (1/norm(o))*o
-    QuBase.normalize!(o::DiracOp) = scale!(1/norm(o), o)
+    Base.norm(op::DiracOp) = sqrt(sum(v->v^2, values(op)))
+    Base.norm(opc::DualOp) = norm(opc.op)
+    
+    QuBase.normalize(op::AbstractOperator) = (1/norm(op))*op
+    QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
 
-    Base.trace(o::DiracOp) = sum(k->o[k], filter(k->k[1]==k[2], keys(o)))
+    Base.trace(op::DiracOp) = sum(k->op[k], filter(k->k[1]==k[2], keys(op)))
+    Base.trace(opc::DualOp) = trace(opc.op)'
 
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), ops))
     QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), ket, op))
@@ -238,8 +241,6 @@
     QuBase.tensor(opc::DualOp, bra::Bra) = tensor(opc.op, bra')'
     QuBase.tensor(bra::Bra, opc::DualOp) = tensor(bra', opc.op)'
     QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.op, b.op)'
-    QuBase.tensor(ket::Ket, bra::Bra) = DiracOp(ket, bra)
-    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
 
     xsubspace(op::GenericOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
 
