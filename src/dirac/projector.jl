@@ -17,7 +17,7 @@
 #######################
     Base.(:(==)){S}(a::Projector{S}, b::Projector{S}) = a.scalar == b.scalar && a.ket == b.ket && a.bra == b.bra
 
-    Base.hash{S}(op::Projector{S}) = hash(S, hash(op.scalar, hash(op.ket, hash(op.bra)))
+    Base.hash{S}(op::Projector{S}) = hash(S, hash(op.scalar, hash(op.ket, hash(op.bra))))
 
     Base.length(op::Projector) = length(op.ket)*length(op.bra)
 
@@ -26,6 +26,7 @@
     Base.getindex{S}(op::Projector{S}, ::Colon, ::Colon) = convert(DiracOp{S}, op)
     Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.ket[k]) * op.bra
     Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.bra[b]) * op.ket
+    Base.getindex(op::Projector, k, b) = op[tuple(k), tuple(b)]
 
     Base.haskey(op::Projector, label::(Tuple,Tuple)) = hasket(op, label[1]) && hasbra(op, label[2])
     hasket(op::Projector, label::Tuple) = haskey(op.ket, label)
@@ -59,6 +60,40 @@
     Base.scale(op::Projector, c::Number) = scale!(copy(op),c)
 
     Base.(:-)(op::Projector) = (op.scalar = -op.scalar)
+
+    # Base.norm(op::Projector)
+    # Base.trace(op::Projector)
+
+    # inner(bra::Bra, op::Projector)
+    # inner(op::Projector, ket::Ket)
+    # inner(a::Projector, b::Projector)
+    
+    # xsubspace(op::Projector,x)
+    # filternz!(op::Projector)
+    # filternz(op::Projector)
+    
+######################
+# Printing Functions #
+######################
+    function Base.show(io::IO, op::Projector)
+        print(io, "$(summary(op)) with $(length(op)) operator(s):")
+        pad = "  "
+        maxlen = 30
+        i = 1
+        for k in keys(coeffs(op.ket))
+            for b in keys(coeffs(op.bra))
+                if i <= maxlen
+                    println(io)
+                    print(io, "$pad$(op[k,b]) $(statestr(k,Ket))$(statestr(b,Bra))")
+                    i = i + 1
+                else  
+                    println(io)
+                    print(io, "$pad$vdots")
+                    break
+                end
+            end
+        end
+    end
 
 export hasket,
     hasbra,
