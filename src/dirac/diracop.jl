@@ -166,10 +166,6 @@
         return result
     end
 
-    inner(bra::Bra, opc::DualOp) = inner(opc.op, bra')'
-    inner(opc::DualOp, ket::Ket) = inner(ket', opc.op)'
-    inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
-    
     function inner{A,B}(a::DiracOp{A}, b::DualOp{B})
         result = DiracOp{typejoin(A,B)}()
         for ((ak,ab),ac) in a
@@ -195,6 +191,10 @@
         end
         return result
     end
+
+    inner(bra::Bra, opc::DualOp) = inner(opc.op, bra')'
+    inner(opc::DualOp, ket::Ket) = inner(ket', opc.op)'
+    inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
 
     Base.(:*)(bra::Bra, op::AbstractOperator) = inner(bra,op)
     Base.(:*)(op::AbstractOperator, ket::Ket) = inner(op,ket)
@@ -224,7 +224,7 @@
     Base.norm(op::DiracOp) = sqrt(sum(v->v^2, values(op)))
     Base.norm(opc::DualOp) = norm(opc.op)
     
-    QuBase.normalize(op::AbstractOperator) = (1/norm(op))*op
+    QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
     QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
 
     Base.trace(op::DiracOp) = sum(k->op[k], filter(k->k[1]==k[2], keys(op)))
