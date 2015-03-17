@@ -7,7 +7,7 @@
         bra::Bra{S}
     end
         
-    Base.copy{S}(op::Projector{S}) = Projector{S}(copy(coeffs(op)))
+    Base.copy{S}(op::Projector{S}) = Projector{S}(copy(op.scalar), copy(op.ket), copy(op.bra))
 
     Base.convert{S}(::Type{DiracOp{S}}, op::Projector{S}) = DiracOp(op.ket, op.bra)
     Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{Projector{S}}) = DiracOp{S}
@@ -37,9 +37,7 @@
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
-    Base.filter!{S}(f::Function, op::Projector{S}) = filter!(f, convert(DiracOp{S}, op))
-    Base.filter{S}(f::Function, op::Projector{S}) = filter(f, convert(DiracOp{S}, op))
-    
+    Base.filter{S}(f::Function, op::Projector{S}) = filter(f, convert(DiracOp{S}, op))    
     Base.map{S}(f::Function, op::Projector{S}) = map(f, convert(DiracOp{S}, op))
 
     mapcoeffs{S}(f::Function, op::Projector{S}) = mapcoeffs(f, convert(DiracOp{S}, op))
@@ -50,28 +48,54 @@
 ##########################
     Base.ctranspose{S}(op::Projector{S}) = Projector{S}(op.scalar', op.bra', op.ket')
 
-    QuBase.tensor(ket::Ket, bra::Bra) = Projector(1, ket, bra)
-    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
-
-    Base.scale!(c::Number, op::Projector) = (op.scalar = c*op.scalar)
-    Base.scale!(op::Projector, c::Number) = (op.scalar = op.scalar*c)
+    Base.scale!(c::Number, op::Projector) = (op.scalar = c*op.scalar; return op)
+    Base.scale!(op::Projector, c::Number) = (op.scalar = op.scalar*c; return op)
 
     Base.scale(c::Number, op::Projector) = scale!(c,copy(op))
     Base.scale(op::Projector, c::Number) = scale!(copy(op),c)
 
     Base.(:-)(op::Projector) = (op.scalar = -op.scalar)
+    Base.(:+){S}(a::Projector{S}, b::Projector{S}) = convert(DiracOp{S}, a) + convert(DiracOp{S}, b)
 
-    # Base.norm(op::Projector)
-    # Base.trace(op::Projector)
+    function Base.norm(op::Projector)
+        result = 0
+        for k in keys(coeffs(op.ket))
+            for b in keys(coeffs(op.bra))
+                result += op[k,b]^2
+            end
+        end
+        return sqrt(result)
+    end
 
-    # inner(bra::Bra, op::Projector)
-    # inner(op::Projector, ket::Ket)
-    # inner(a::Projector, b::Projector)
-    
-    # xsubspace(op::Projector,x)
-    # filternz!(op::Projector)
-    # filternz(op::Projector)
-    
+    function Base.trace(op::Projector)
+        result = 0
+        for k in keys(coeffs(op.ket))
+            for b in keys(coeffs(op.bra))
+                if b==k
+                    result += op[k,b]
+                end
+            end
+        end
+        return result
+    end
+
+    inner(bra::Bra, op::Projector) = op.scalar * inner(bra, op.ket) * op.bra
+    inner(op::Projector, ket::Ket) = op.scalar * op.ket * inner(op.bra, ket)
+    inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.bra,b.ket), a.ket, b.bra)
+    inner(a::Projector, b::GenericOperator) = a.scalar * a.ket * inner(a.bra, b)
+    inner(a::GenericOperator, b::Projector) = inner(a, b.ket) * b.bra * b.scalar
+
+    QuBase.tensor(ket::Ket, bra::Bra) = Projector(1, ket, bra)
+    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
+    QuBase.tensor(a::Projector, b::Projector) = Projector(a.scalar * b.scalar, tensor(a.ket,b.ket), tensor(a.bra, b.bra))
+    QuBase.tensor(op::Projector, bra::Bra) = Projector(op.scalar, op.ket, tensor(op.bra, bra))
+    QuBase.tensor(bra::Bra, op::Projector) = Projector(op.scalar, op.ket, tensor(bra, op.bra))
+    QuBase.tensor(op::Projector, ket::Ket) = Projector(op.scalar, tensor(op.ket, ket), op.bra)
+    QuBase.tensor(ket::Ket, op::Projector) = Projector(op.scalar, tensor(ket, op.ket), op.bra)
+
+    xsubspace(op::Projector,x) = xsubspace(convert(DiracOp{S}, op), x)
+    filternz(op::Projector) = filternz(convert(DiracOp{S}, op))
+
 ######################
 # Printing Functions #
 ######################
