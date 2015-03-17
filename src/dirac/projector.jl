@@ -96,6 +96,23 @@
     xsubspace(op::Projector,x) = xsubspace(convert(DiracOp{S}, op), x)
     filternz(op::Projector) = filternz(convert(DiracOp{S}, op))
 
+    ptrace{S}(op::Projector{S}, over...) = ptrace(ptrace(op, over[1]), over[2:end]...)
+
+    function ptrace{S<:Orthonormal}(op::Projector{S}, over::Integer)
+        result = OpCoeffs()
+        for (k, v) in coeffs(op.ket), (b, c) in coeffs(op.bra)
+            if k[over] == b[over]
+                new_label = (except(k, over), except(b, over))
+                if haskey(result, new_label)
+                    result[new_label] += v*c'*op.scalar
+                else
+                    result[new_label] = v*c'*op.scalar
+                end
+            end
+        end
+        return DiracOp{S}(result)
+    end
+
 ######################
 # Printing Functions #
 ######################

@@ -262,21 +262,18 @@
 
     function ptrace_coeffs(coeffs, over::Integer)
         result = OpCoeffs()
-        for tr_label in factor_labels(coeffs, over) # labels to be traced over
-            for key in filter_at_labels(coeffs, tr_label, over)
+        for (k, v) in coeffs
+            if k[1][over]==k[2][over]
                 new_label = (except(key[1], over), except(key[2], over))
                 if haskey(result, new_label)
-                    result[new_label] += coeffs[key]
+                    result[new_label] += v
                 else
-                    result[new_label] = coeffs[key]
+                    result[new_label] = v
                 end
             end
-        end  
+        end
         return result
     end
-
-    filter_at_labels(coeffs, tr_label, i) = filter(k -> tr_label==k[1][i] && tr_label==k[2][i], keys(coeffs))
-    factor_labels(coeffs, factor) = distinct(imap(i->i[1][factor], keys(coeffs)))
 
 ######################
 # Printing Functions #
