@@ -88,23 +88,26 @@
         return result
     end
 
-    function inner{A<:Orthogonal,B<:Orthogonal}(bra::Bra{A}, ket::Ket{B})
-        result = 0
-        if length(bra) < length(ket)
-            for (label, c) in bra.ket
-                if haskey(ket, label)
-                    result += c'*ket[label]*inner_eval(A,B,label,label)
-                end
-            end
-        else
-            for (label, v) in ket
-                if haskey(bra, label)
-                    result += v*bra[label]*inner_eval(A,B,label,label)
-                end
-            end
-        end
-        return result
-    end
+    # This method is more optimized than the general inner for 
+    # orthonormal states, but unfortunately sidesteps the error
+    # condition for states of differing factor length...
+    # function inner{A<:Orthogonal,B<:Orthogonal}(bra::Bra{A}, ket::Ket{B})
+    #     result = 0
+    #     if length(bra) < length(ket)
+    #         for (label, c) in bra.ket
+    #             if haskey(ket, label)
+    #                 result += c'*ket[label]*inner_eval(A,B,label,label)
+    #             end
+    #         end
+    #     else
+    #         for (label, v) in ket
+    #             if haskey(bra, label)
+    #                 result += v*bra[label]*inner_eval(A,B,label,label)
+    #             end
+    #         end
+    #     end
+    #     return result
+    # end
 
     Base.scale!(c::Number, s::AbstractState) = (castvals!(*, c, coeffs(s)); return s)
     Base.scale!(s::AbstractState, c::Number) = (castvals!(*, coeffs(s), c); return s)
