@@ -121,17 +121,15 @@
         pad = "  "
         maxlen = 30
         i = 1
-        for k in keys(coeffs(op.ket))
-            for b in keys(coeffs(op.bra))
-                if i <= maxlen
-                    println(io)
-                    print(io, "$pad$(op[k,b]) $(statestr(k,Ket))$(statestr(b,Bra))")
-                    i = i + 1
-                else  
-                    println(io)
-                    print(io, "$pad$vdots")
-                    break
-                end
+        for k in keys(coeffs(op.ket)), b in keys(coeffs(op.bra))
+            if i <= maxlen
+                println(io)
+                print(io, "$pad$(op[k,b]) $(statestr(k,Ket))$(statestr(b,Bra))")
+                i = i + 1
+            else
+                println(io)
+                print(io, "$pad$vdots")
+                break
             end
         end
     end
