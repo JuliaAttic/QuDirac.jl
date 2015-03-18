@@ -68,9 +68,9 @@
 
     function Base.norm(op::Projector)
         result = 0
-        for k in keys(dict(op.ket))
-            for b in keys(dict(op.bra))
-                result += op[k,b]^2
+        for v in values(dict(op.ket))
+            for c in values(dict(op.bra))
+                result += (v*c)^2
             end
         end
         return sqrt(result)
