@@ -23,25 +23,25 @@
 
     Base.length(op::Projector) = length(op.ket)*length(op.bra)
 
-    Base.getindex(op::Projector, k::Tuple, b::Tuple) = op.scalar * op.ket[k] * op.bra[b]
-    Base.getindex(op::Projector, label::(Tuple,Tuple)) = op[label[1], label[2]]
-    Base.getindex(op::Projector, ::Colon, ::Colon) = to_diracop(op)
-    Base.getindex(op::Projector, k, b) = op[tuple(k), tuple(b)]
+    Base.getindex(op::Projector, k::Array, b::Array) = op.scalar * op.ket[k] * op.bra[b]
+    Base.getindex(op::Projector, label::Array) = op[label[1], label[2]]
+    Base.getindex(op::Projector, k, b) = op[[k],[b]]
 
     # would be great if the below worked with normal indexing
     # notation (e.g. op[k,:]) but slice notation is apparently
     # special and doesn't dispatch directly to getindex...
     # Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.ket[k]) * op.bra
     # Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.bra[b]) * op.ket
+    # Base.getindex(op::Projector, ::Colon, ::Colon) = to_diracop(op)
 
-    getbra(op::Projector, k::Tuple) = (op.scalar * op.ket[k]) * op.bra
-    getket(op::Projector, b::Tuple) = (op.scalar * op.bra[b]) * op.ket
+    getbra(op::Projector, k::Array) = (op.scalar * op.ket[k]) * op.bra
+    getket(op::Projector, b::Array) = (op.scalar * op.bra[b]) * op.ket
 
-    Base.haskey(op::Projector, label::(Tuple,Tuple)) = hasket(op, label[1]) && hasbra(op, label[2])
-    hasket(op::Projector, label::Tuple) = haskey(op.ket, label)
-    hasbra(op::Projector, label::Tuple) = haskey(op.bra, label)
+    Base.haskey(op::Projector, label::Array) = hasket(op, label[1]) && hasbra(op, label[2])
+    hasket(op::Projector, label::Array) = haskey(op.ket, label)
+    hasbra(op::Projector, label::Array) = haskey(op.bra, label)
 
-    Base.get(op::Projector, label::(Tuple,Tuple), default) = haskey(op, label) ? op[label] : default
+    Base.get(op::Projector, label::Array, default) = haskey(op, label) ? op[label] : default
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
@@ -113,7 +113,7 @@
         for k in keys(dict(op.ket)), b in keys(dict(op.bra))
             if k[over] == b[over]
                 add_to_dict!(result,
-                             (except(k, over), except(b, over)),
+                             veclabel(except(k, over), except(b, over)),
                              op[k,b])
             end
         end
