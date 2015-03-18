@@ -70,6 +70,10 @@
     mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket)
     maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, dict(s)))
 
+    function wavefunc(f::Function, ket::Ket)
+        return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(ket))
+    end
+
 ##########################
 # Mathematical Functions #
 ##########################
@@ -140,7 +144,7 @@
     filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
     filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
 
-    purity(ket::Ket) = trace((ket*ket')^2)
+    purity(ket::Ket) = purity(ket*ket')
     purity(bra::Bra) = purity(bra')
 
 ######################
@@ -187,4 +191,5 @@ export Ket,
     permute,
     filternz!,
     filternz,
-    purity
+    purity,
+    wavefunc

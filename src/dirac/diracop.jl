@@ -265,6 +265,7 @@
 
     filternz!(op::GenericOperator) = filter!((k, v) -> v != 0, op)
     filternz(op::GenericOperator) = filter((k, v) -> v != 0, op)
+    purity(op::GenericOperator) = trace(op^2)
 
 #################
 # Partial trace #
@@ -345,4 +346,5 @@ export ptrace,
     mapcoeffs,
     maplabels,
     filternz,
-    filternz!
+    filternz!,
+    purity

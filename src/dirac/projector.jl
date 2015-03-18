@@ -106,6 +106,7 @@
 
     xsubspace(op::Projector,x) = xsubspace(to_diracop(op), x)
     filternz(op::Projector) = filternz(to_diracop(op))
+    purity(op::Projector) = trace(op^2)
 
     function ptrace{O<:Orthonormal}(op::Projector{O}, over::Integer)
         return DiracOp{O}(ptrace_proj!(OpDict(), op, over))
@@ -149,4 +150,5 @@ export getbra,
     hasbra,
     mapcoeffs,
     maplabels,
-    ptrace
+    ptrace,
+    purity
