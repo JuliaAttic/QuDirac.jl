@@ -1,4 +1,12 @@
-single_dict(dict, label, c) = (dict[label] = c; return dict)
+function single_dict(dict, label, c)
+    dict[label] = c
+    return dict
+end
+
+function add_to_dict!(dict, label, c)
+    dict[label] = get(dict, label, 0)+c
+    return dict
+end
 
 function mergecart!(f::Function, result, d::Tuple)
     for pairs in product(d...)

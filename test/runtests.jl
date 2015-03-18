@@ -23,7 +23,7 @@ bitdens = qubits*qubits'
 @test_approx_eq norm(qubits) 1
 @test_approx_eq norm(ptrace(bitdens, 2)) 1
 @test_approx_eq trace(ptrace(bitdens, 2)) 1
-@assert ptrace(bitdens, 2, 1) == ptrace(bitdens, 1, 2)
+@assert ptrace(ptrace(bitdens, 2), 1) == ptrace(ptrace(bitdens, 1), 2)
 
 bell = 1/sqrt(2) * (Ket(1,1) + Ket(0,0))
 belldens = bell * bell'

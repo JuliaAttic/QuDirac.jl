@@ -105,21 +105,19 @@
     xsubspace(op::Projector,x) = xsubspace(to_diracop(op), x)
     filternz(op::Projector) = filternz(to_diracop(op))
 
-    ptrace(op::Projector, over...) = ptrace(ptrace(op, over[1]), over[2:end]...)
-
     function ptrace{S<:Orthonormal}(op::Projector{S}, over::Integer)
-        result = OpDict()
-        for (k, v) in dict(op.ket), (b, c) in dict(op.bra)
+        return DiracOp{S}(ptrace_proj!(OpDict(), op, over))
+    end
+
+    function ptrace_proj!(result::OpDict, op::Projector, over)
+        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
             if k[over] == b[over]
-                new_label = (except(k, over), except(b, over))
-                if haskey(result, new_label)
-                    result[new_label] += v*c'*op.scalar
-                else
-                    result[new_label] = v*c'*op.scalar
-                end
+                add_to_dict!(result,
+                             (except(k, over), except(b, over)),
+                             op[k,b])
             end
         end
-        return DiracOp{S}(result)
+        return result
     end
 
 ######################

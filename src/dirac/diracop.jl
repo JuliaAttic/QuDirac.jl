@@ -243,30 +243,23 @@
 #################
 # Partial trace #
 #################
-    ptrace(opc::DualOp, over::Integer...) = DualOp(ptrace(opc.op, over...))
+    ptrace(opc::DualOp, over::Integer) = DualOp(ptrace(opc.op, over))
 
-    function ptrace{S<:Orthonormal}(op::DiracOp{S}, over::Integer...)
-        result = dict(op)
-        for i in over
-            result = ptrace_dict(result, i)
-        end
-        return DiracOp{S}(result)
+    function ptrace{S<:Orthonormal}(op::DiracOp{S}, over::Integer)
+        return DiracOp{S}(ptrace_op!(OpDict(), op, over))
     end
 
-    function ptrace_dict(d, over::Integer)
-        result = OpDict()
-        for (k, v) in d
-            if k[1][over]==k[2][over]
-                new_label = (except(k[1], over), except(k[2], over))
-                if haskey(result, new_label)
-                    result[new_label] += v
-                else
-                    result[new_label] = v
-                end
+    function ptrace_op!(result::OpDict, op::DiracOp, over)
+        for k in keys(dict(op))
+            if k[1][over] == k[2][over]
+                add_to_dict!(result,
+                             (except(k[1], over), except(k[2], over)),
+                             op[k])
             end
         end
         return result
     end
+
 
 ######################
 # Printing Functions #
