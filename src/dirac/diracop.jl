@@ -264,7 +264,7 @@
         result = OpCoeffs()
         for (k, v) in coeffs
             if k[1][over]==k[2][over]
-                new_label = (except(key[1], over), except(key[2], over))
+                new_label = (except(k[1], over), except(k[2], over))
                 if haskey(result, new_label)
                     result[new_label] += v
                 else
