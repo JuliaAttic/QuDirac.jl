@@ -1,9 +1,24 @@
+###########
+# OpLabel #
+###########
+    type OpLabel
+        ketlabel::Vector
+        bralabel::Vector
+    end
+    
+    ketlabel(label::OpLabel) = label.ketlabel
+    bralabel(label::OpLabel) = label.bralabel
+
+    Base.reverse(label::OpLabel) = OpLabel(bralabel(label), ketlabel(label))
+    Base.(:(==))(a::OpLabel, b::OpLabel) = ketlabel(a)==ketlabel(b) && bralabel(a)==bralabel(b)
+    Base.hash(label::OpLabel) = hash(ketlabel(label), hash(bralabel(label)))
+
 ##################
 # DiracOp/DualOp #
 ##################
     abstract GenericOperator{S} <: AbstractOperator{S}
 
-    typealias OpDict Dict{Vector{Vector},Number}
+    typealias OpDict Dict{OpLabel,Number}
 
     type DiracOp{S} <: GenericOperator{S}
         dict::OpDict
@@ -23,7 +38,7 @@
     Base.convert{S}(::Type{DiracOp{S}}, opc::DualOp{S}) = eager_ctran(opc.op)
     Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{DualOp{S}}) = DiracOp{S}
 
-    veclabel(k::Vector, b::Vector) = Vector[k,b]
+    OpLabel(k::Vector, b::Vector) = Vector[k,b]
 
 ################
 # Constructors #
@@ -38,7 +53,7 @@
         for i in labels
             for j in labels 
                 (c, new_j) = f(j)
-                result[veclabel(i,j)] = c * inner_rule(S, i, new_j)
+                result[OpLabel(i,j)] = c * inner_rule(S, i, new_j)
             end
         end
         return DiracOp{S}(result)
@@ -48,7 +63,7 @@
         result = OpDict()
         for (k,kc) in dict(ket)
             for (b,bc) in dict(bra)
-                result[veclabel(k,b)] = kc * bc'
+                result[OpLabel(k,b)] = kc * bc'
             end
         end
         return DiracOp{typejoin(A,B)}(result)
@@ -67,30 +82,33 @@
     Base.(:(==)){S}(a::DualOp{S}, b::DualOp{S}) = a.op == b.op
     Base.(:(==)){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = ==(promote(a,b)...)
 
-    Base.hash(op::GenericOperator) = hash(dict(op), hash(typeof(op)))
+    Base.hash(op::GenericOperator) = hash(dict(op))
 
     Base.length(op::GenericOperator) = length(dict(op))
 
-    Base.getindex(op::DiracOp, label::Array) = dict(op)[label]
-    Base.getindex(op::DiracOp, k::Array, b::Array) = op[veclabel(k,b)]
-    Base.getindex(opc::DualOp, label::Array) = opc.op[reverse(label)]'
-    Base.getindex(opc::DualOp, k::Array, b::Array) = opc.op[veclabel(b,k)]'
+    Base.getindex(op::DiracOp, label::OpLabel) = dict(op)[label]
+    Base.getindex(op::DiracOp, k::Array, b::Array) = op[OpLabel(k,b)]
+    Base.getindex(opc::DualOp, label::OpLabel) = opc.op[reverse(label)]'
+    Base.getindex(opc::DualOp, k::Array, b::Array) = opc.op[OpLabel(b,k)]'
     Base.getindex(op::GenericOperator, k, b) = op[[k],[b]]
 
-    Base.setindex!(op::DiracOp, c, label::Array) = setindex!(dict(op), c, label)
-    Base.setindex!(op::DiracOp, c, k::Array, b::Array) = setindex!(op, c, veclabel(k,b))
-    Base.setindex!(opc::DualOp, c, label::Array) = setindex!(opc.op, c', reverse(label))
-    Base.setindex!(opc::DualOp, c, k::Array, b::Array) = setindex!(opc.op, c', veclabel(b,k))
+    Base.setindex!(op::DiracOp, c, label::OpLabel) = setindex!(dict(op), c, label)
+    Base.setindex!(op::DiracOp, c, k::Array, b::Array) = setindex!(op, c, OpLabel(k,b))
+    Base.setindex!(opc::DualOp, c, label::OpLabel) = setindex!(opc.op, c', reverse(label))
+    Base.setindex!(opc::DualOp, c, k::Array, b::Array) = setindex!(opc.op, c', OpLabel(b,k))
     Base.setindex!(op::GenericOperator, c, k, b) = setindex!(op, c, [k], [b])
 
-    Base.haskey(op::DiracOp, label::Array) = haskey(dict(op), label)
-    Base.haskey(opc::DualOp, label::Array) = haskey(opc.op, reverse(label))
+    Base.haskey(op::DiracOp, label::OpLabel) = haskey(dict(op), label)
+    Base.haskey(opc::DualOp, label::OpLabel) = haskey(opc.op, reverse(label))
+    Base.haskey(op::GenericOperator, k::Array, b::Array) = haskey(op, OpLabel(k,b))
 
-    Base.get(op::DiracOp, label::Array, default) = get(dict(op), label, default)
-    Base.get(opc::DualOp, label::Array, default) = haskey(opc, label) ? opc[label] : default
+    Base.get(op::DiracOp, label::OpLabel, default) = get(dict(op), label, default)
+    Base.get(opc::DualOp, label::OpLabel, default) = haskey(opc, label) ? opc[label] : default
+    Base.get(op::GenericOperator, k::Array, b::Array, default) = get(op, OpLabel(k,b))
 
-    Base.delete!(op::DiracOp, label::Array) = (delete!(dict(op), label); return op)
-    Base.delete!(opc::DualOp, label::Array) = delete!(opc.op, reverse(label))
+    Base.delete!(op::DiracOp, label::OpLabel) = (delete!(dict(op), label); return op)
+    Base.delete!(opc::DualOp, label::OpLabel) = delete!(opc.op, reverse(label))
+    Base.delete!(op::GenericOperator, k::Array, b::Array) = delete!(op, OpLabel(k,b))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
@@ -121,14 +139,14 @@
     function inner{A,B}(bra::Bra{A}, op::DiracOp{B})
         result = Bra{typejoin(A,B)}()
         for (label,v) in dict(op)
-            if !haskey(result, label[2])
-                result[label[2]] = 0
+            if !haskey(result, bralabel(label))
+                result[bralabel(label)] = 0
             end
             coeff = 0
             for (b,c) in dict(bra)
-                coeff += c'*v*inner_eval(A,B,label[1],b) 
+                coeff += c'*v*inner_eval(A,B,ketlabel(label),b) 
             end
-            result[label[2]] += coeff
+            result[bralabel(label)] += coeff
         end
         return result
     end
@@ -136,26 +154,26 @@
     function inner{A,B}(op::DiracOp{A}, ket::Ket{B})
         result = Ket{typejoin(A,B)}()
         for (label,c) in dict(op)
-            if !haskey(result, label[1])
-                result[label[1]] = 0
+            if !haskey(result, ketlabel(label))
+                result[ketlabel(label)] = 0
             end
             coeff = 0
             for (k,v) in dict(ket)
-                coeff += c*v*inner_eval(A,B,label[2],k) 
+                coeff += c*v*inner_eval(A,B,bralabel(label),k) 
             end
-            result[label[1]] += coeff
+            result[ketlabel(label)] += coeff
         end
         return result
     end
 
     function inner{A,B}(a::DiracOp{A}, b::DiracOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for (alabel,v) in dict(a)
-            for (blabel,c) in dict(b)
-                if !haskey(result, veclabel(alabel[1],blabel[2]))
-                    result[alabel[1],blabel[2]] = 0
+        for (label1,v) in dict(a)
+            for (label2,c) in dict(b)
+                if !haskey(result, OpLabel(ketlabel(label1),bralabel(label2)))
+                    result[ketlabel(label1),bralabel(label2)] = 0
                 end
-                result[alabel[1],blabel[2]] += v*c*inner_eval(A,B,alabel[2],blabel[1]) 
+                result[ketlabel(label1),bralabel(label2)] += v*c*inner_eval(A,B,bralabel(label1),ketlabel(label2)) 
             end
         end
         return result
@@ -163,12 +181,12 @@
 
     function inner{A,B}(a::DiracOp{A}, b::DualOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for (alabel,v) in dict(a)
-            for (blabel,c) in dict(b)
-                if !haskey(result, veclabel(alabel[1],blabel[1]))
-                    result[alabel[1],blabel[1]] = 0
+        for (label1,v) in dict(a)
+            for (label2,c) in dict(b)
+                if !haskey(result, OpLabel(ketlabel(label1),ketlabel(label2)))
+                    result[ketlabel(label1),ketlabel(label2)] = 0
                 end
-                result[alabel[1],blabel[1]] += v*c'*inner_eval(A,B,alabel[2],blabel[2]) 
+                result[ketlabel(label1),ketlabel(label2)] += v*c'*inner_eval(A,B,bralabel(label1),bralabel(label2)) 
             end
         end
         return result
@@ -176,12 +194,12 @@
 
     function inner{A,B}(a::DualOp{A}, b::DiracOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for (alabel,v) in dict(a)
-            for (blabel,c) in dict(b)
-                if !haskey(result, veclabel(alabel[2],blabel[2]))
-                    result[alabel[2],blabel[2]] = 0
+        for (label1,v) in dict(a)
+            for (label2,c) in dict(b)
+                if !haskey(result, OpLabel(bralabel(label1),bralabel(label2)))
+                    result[bralabel(label1),bralabel(label2)] = 0
                 end
-                result[alabel[2],blabel[2]] += v'*c*inner_eval(A,B,alabel[1],blabel[1]) 
+                result[bralabel(label1),bralabel(label2)] += v'*c*inner_eval(A,B,ketlabel(label1),ketlabel(label2)) 
             end
         end
         return result
@@ -222,7 +240,15 @@
     QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
     QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
 
-    Base.trace(op::DiracOp) = sum(k->op[k], filter(k->k[1]==k[2], keys(dict(op))))
+    function Base.trace(op::DiracOp)
+        result = 0
+        for label in keys(dict(op))
+            if ketlabel(label)==bralabel(label)
+                result += op[label]
+            end
+        end
+        return result
+    end
     Base.trace(opc::DualOp) = trace(opc.op)'
 
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpDict(), map(dict, ops)))
@@ -237,7 +263,7 @@
     QuBase.tensor(bra::Bra, opc::DualOp) = tensor(bra', opc.op)'
     QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.op, b.op)'
 
-    xsubspace(op::GenericOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
+    xsubspace(op::GenericOperator, x) = filter((k,v)->sum(ketlabel(k))==x && sum(bralabel(k))==x, op)
 
     filternz!(op::GenericOperator) = filter!((k, v) -> v != 0, op)
     filternz(op::GenericOperator) = filter((k, v) -> v != 0, op)
@@ -252,11 +278,11 @@
     end
 
     function ptrace_op!(result::OpDict, op::DiracOp, over)
-        for k in keys(dict(op))
-            if k[1][over] == k[2][over]
+        for label in keys(dict(op))
+            if ketlabel(label)[over] == bralabel(label)[over]
                 add_to_dict!(result,
-                             veclabel(except(k[1], over), except(k[2], over)),
-                             op[k])
+                             OpLabel(except(ketlabel(label), over), except(bralabel(label), over)),
+                             op[label])
             end
         end
         return result
@@ -266,18 +292,18 @@
 ######################
 # Printing Functions #
 ######################
-    opstr(::DiracOp, k, v, pad) = "$pad$v $(statestr(k[1],Ket))$(statestr(k[2],Bra))"
-    opstr(::DualOp, k, v, pad) = "$pad$(v') $(statestr(k[2],Ket))$(statestr(k[1],Bra))"
+    opstr(::DiracOp, label, v, pad) = "$pad$v $(statestr(ketlabel(label),Ket))$(statestr(bralabel(label),Bra))"
+    opstr(::DualOp, label, v, pad) = "$pad$(v') $(statestr(bralabel(label),Ket))$(statestr(ketlabel(label),Bra))"
 
     function Base.show(io::IO, op::GenericOperator)
         print(io, "$(summary(op)) with $(length(op)) operator(s):")
         pad = "  "
         maxlen = 30
         i = 1
-        for (k,v) in dict(op)
+        for (label,v) in dict(op)
             if i <= maxlen
                 println(io)
-                print(io, opstr(op, k, v, pad))
+                print(io, opstr(op, label, v, pad))
                 i = i + 1
             else  
                 println(io)
@@ -293,27 +319,27 @@
     function tensor_op(pairs)
         #pairs structure is: (((op1ketlabel, op1bralabel), op1value), ((op2ketlabel, op2bralabel), op2value)...,)
         k = map(first, pairs)
-        return (veclabel(vcat(map(first, k)...), vcat(map(second, k)...)), prod(second, pairs))
+        return (OpLabel(vcat(map(first, k)...), vcat(map(second, k)...)), prod(second, pairs))
     end
 
     function tensor_ket_to_op(pairs)
         #pairs structure is: ((ketlabel, ketvalue), ((opketlabel, opbralabel), opvalue))
-        return (veclabel(vcat(pairs[1][1], pairs[2][1][1]), pairs[2][1][2]), prod(second, pairs))
+        return (OpLabel(vcat(pairs[1][1], ketlabel(pairs[2][1])), bralabel(pairs[2][1])), prod(second, pairs))
     end
 
     function tensor_op_to_ket(pairs)
         #pairs structure is: (((opketlabel, opbralabel), (ketlabel, ketvalue), opvalue))
-        return (veclabel(vcat(pairs[1][1][1], pairs[2][1]), pairs[1][1][2]), prod(second, pairs))
+        return (OpLabel(vcat(ketlabel(pairs[1][1]), pairs[2][1]), bralabel(pairs[1][1])), prod(second, pairs))
     end
 
     function tensor_bra_to_op(pairs)
         #pairs structure is: (((opketlabel, opbralabel), opvalue), (bralabel, bravalue))
-        return (veclabel(pairs[1][1][1], vcat(pairs[1][1][2], pairs[2][1])), prod(second, pairs))
+        return (OpLabel(ketlabel(pairs[1][1]), vcat(bralabel(pairs[1][1]), pairs[2][1])), prod(second, pairs))
     end
 
     function tensor_op_to_bra(pairs)
         #pairs structure is: ((bralabel, bravalue), ((opketlabel, opbralabel), opvalue))
-        return (veclabel(pairs[2][1][1], vcat(pairs[1][1], pairs[2][1][2])), prod(second, pairs))
+        return (OpLabel(ketlabel(pairs[2][1]), vcat(pairs[1][1], bralabel(pairs[2][1]))), prod(second, pairs))
     end
 
 export ptrace,

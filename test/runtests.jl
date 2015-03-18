@@ -9,7 +9,7 @@ op = k*b + Ket(3)*Bra(0)
 @assert b'*b'*b' == (b^3)'
 @assert (op'*op') == (op*op)'
 @assert maplabels(reverse, mapcoeffs(ctranspose, op)) == op'
-@assert op[2,1] == op[Vector[[2],[1]]] == 8-4im
+@assert op[2,1] == 8-4im
 @assert k*k*b*b == tensor(k*b,k*b)
 @assert b*op*k == 2352 - 3136im
 @assert op+op == 2 * op
