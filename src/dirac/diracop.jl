@@ -38,8 +38,6 @@
     Base.convert{S}(::Type{DiracOp{S}}, opc::DualOp{S}) = eager_ctran(opc.op)
     Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{DualOp{S}}) = DiracOp{S}
 
-    OpLabel(k::Vector, b::Vector) = Vector[k,b]
-
 ################
 # Constructors #
 ################
@@ -318,8 +316,8 @@
 ####################
     function tensor_op(pairs)
         #pairs structure is: (((op1ketlabel, op1bralabel), op1value), ((op2ketlabel, op2bralabel), op2value)...,)
-        k = map(first, pairs)
-        return (OpLabel(vcat(map(first, k)...), vcat(map(second, k)...)), prod(second, pairs))
+        labels = map(first, pairs)
+        return (OpLabel(vcat(map(ketlabel, labels)...), vcat(map(bralabel, labels)...)), prod(second, pairs))
     end
 
     function tensor_ket_to_op(pairs)
