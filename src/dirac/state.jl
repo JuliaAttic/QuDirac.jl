@@ -151,29 +151,17 @@
 ######################
 # Printing Functions #
 ######################
-    labelstr(label) = strip(repr(tuple(label...))[2:end-1], ',')
+    labelstr(label) = join(map(repr, label), ',')
     ketstr(label) = "| $(labelstr(label)) $rang"
     brastr(label) = "$lang $(labelstr(label)) |"
-    statestr{K<:Ket}(label, ::Type{K}) = ketstr(label)
-    statestr{B<:Bra}(label, ::Type{B}) = brastr(label)
 
-    function Base.show(io::IO, s::AbstractState)
-        print(io, "$(typeof(s)) with $(length(s)) state(s):")
-        pad = "  "
-        maxlen = 30
-        i = 1
-        for label in keys(dict(s))
-            if i <= maxlen
-                println(io)
-                print(io, "$pad$(s[label]) $(statestr(label, typeof(s)))")
-                i = i + 1
-            else  
-                println(io)
-                print(io, "$pad$vdots")
-                break
-            end
-        end
-    end
+    labelrepr(ket::Ket, label, pad) = "$pad$(ket[label]) $(ketstr(label))"
+    labelrepr(bra::Bra, label, pad) = "$pad$(bra[label]) $(brastr(label))"
+
+    Base.summary(s::AbstractState) = "$(typeof(s)) with $(length(s)) state(s)"
+    Base.show(io::IO, s::AbstractState) = dirac_show(io, s)
+    Base.showcompact(io::IO, s::AbstractState) = dirac_showcompact(io, s)
+    Base.repr(s::AbstractState) = dirac_repr(s)
 
 ####################
 # Helper Functions #

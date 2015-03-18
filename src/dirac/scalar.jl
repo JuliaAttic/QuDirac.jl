@@ -23,7 +23,7 @@
     ######################
     # Printing Functions #
     ######################
-    Base.repr(i::InnerProduct) = statestr(bralabel(i), Bra)*statestr(ketlabel(i), Ket)[2:end]
+    Base.repr(i::InnerProduct) = brastr(bralabel(i))*ketstr(ketlabel(i))[2:end]
     Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 
     ###########################

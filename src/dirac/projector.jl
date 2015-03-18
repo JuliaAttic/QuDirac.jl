@@ -126,21 +126,20 @@
 ######################
 # Printing Functions #
 ######################
+    labelrepr(op::Projector, k, b, pad) = "$pad$(op[k,b]) $(ketstr(k))$(brastr(b))"
+
     function Base.show(io::IO, op::Projector)
-        print(io, "$(summary(op)) with $(length(op)) operator(s):")
+        print(io, summary(op)*":")
         pad = "  "
-        maxlen = 30
-        i = 1
-        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
-            if i <= maxlen
-                println(io)
-                print(io, "$pad$(op[k,b]) $(statestr(k,Ket))$(statestr(b,Bra))")
-                i = i + 1
-            else
-                println(io)
-                print(io, "$pad$vdots")
-                break
-            end
+        maxlen = 4
+        for k in take(keys(dict(op.ket)), maxlen),
+            b in take(keys(dict(op.bra)), maxlen)
+            println(io)
+            print(io, labelrepr(op, k, b, pad))
+        end
+        if length(op) > maxlen^2
+            println(io)
+            print(io, "$pad$vdots")
         end
     end
 

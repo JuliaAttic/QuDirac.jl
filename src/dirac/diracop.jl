@@ -291,26 +291,13 @@
 ######################
 # Printing Functions #
 ######################
-    opstr(::DiracOp, label, v, pad) = "$pad$v $(statestr(ketlabel(label),Ket))$(statestr(bralabel(label),Bra))"
-    opstr(::DualOp, label, v, pad) = "$pad$(v') $(statestr(bralabel(label),Ket))$(statestr(ketlabel(label),Bra))"
+    labelrepr(op::DiracOp, label, pad) = "$pad$(op[label]) $(ketstr(ketlabel(label)))$(brastr(bralabel(label)))"
+    labelrepr(opc::DualOp, label, pad) = "$pad$(opc[label]) $(ketstr(bralabel(label)))$(brastr(ketlabel(label)))"
 
-    function Base.show(io::IO, op::GenericOperator)
-        print(io, "$(summary(op)) with $(length(op)) operator(s):")
-        pad = "  "
-        maxlen = 30
-        i = 1
-        for (label,v) in dict(op)
-            if i <= maxlen
-                println(io)
-                print(io, opstr(op, label, v, pad))
-                i = i + 1
-            else  
-                println(io)
-                print(io, "$pad$vdots")
-                break
-            end
-        end
-    end
+    Base.summary(op::AbstractOperator) = "$(typeof(op)) with $(length(op)) operator(s)"
+    Base.show(io::IO, op::GenericOperator) = dirac_show(io, op)
+    Base.showcompact(io::IO, op::GenericOperator) = dirac_showcompact(io, op)
+    Base.repr(op::GenericOperator) = dirac_repr(op)
 
 ####################
 # Helper Functions #
