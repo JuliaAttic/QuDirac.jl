@@ -2,10 +2,10 @@
 # OpLabel #
 ###########
     type OpLabel
-        ketlabel::Vector
-        bralabel::Vector
+        ketlabel::Vector{Any}
+        bralabel::Vector{Any}
     end
-    
+
     ketlabel(label::OpLabel) = label.ketlabel
     bralabel(label::OpLabel) = label.bralabel
 

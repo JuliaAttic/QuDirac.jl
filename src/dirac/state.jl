@@ -3,13 +3,14 @@
 ###########
     DEFAULT_INNER() = Orthonormal
 
-    typealias StateDict Dict{Vector,Number}
+    typealias StateDict Dict{Vector{Any},Number}
 
     type Ket{P<:AbstractInner} <: AbstractState{P}
         dict::StateDict
         Ket() = new(StateDict())
         Ket(dict::Dict) = new(dict)
-        Ket(label...) = new(single_dict(StateDict(), collect(label), 1))
+        Ket(label::Vector) = new(single_dict(StateDict(), label, 1))
+        Ket(items...) = Ket{P}(collect(items))
     end
 
     Ket(items...) = Ket{DEFAULT_INNER()}(items...)
