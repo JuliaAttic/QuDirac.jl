@@ -24,9 +24,16 @@
     Base.getindex(op::Projector, k::Tuple, b::Tuple) = op.scalar * op.ket[k] * op.bra[b]
     Base.getindex(op::Projector, label::(Tuple,Tuple)) = op[label[1], label[2]]
     Base.getindex{S}(op::Projector{S}, ::Colon, ::Colon) = convert(DiracOp{S}, op)
-    Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.ket[k]) * op.bra
-    Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.bra[b]) * op.ket
     Base.getindex(op::Projector, k, b) = op[tuple(k), tuple(b)]
+
+    # would be great if the below worked with normal indexing
+    # notation (e.g. op[k,:]) but slice notation is apparently
+    # special and doesn't dispatch directly to getindex...
+    # Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.ket[k]) * op.bra
+    # Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.bra[b]) * op.ket
+
+    getbra(op::Projector, k::Tuple) = (op.scalar * op.ket[k]) * op.bra
+    getket(op::Projector, b::Tuple) = (op.scalar * op.bra[b]) * op.ket
 
     Base.haskey(op::Projector, label::(Tuple,Tuple)) = hasket(op, label[1]) && hasbra(op, label[2])
     hasket(op::Projector, label::Tuple) = haskey(op.ket, label)
@@ -134,7 +141,10 @@
         end
     end
 
-export hasket,
+export getbra,
+    getket,
+    hasket,
     hasbra,
     mapcoeffs,
-    maplabels
+    maplabels,
+    ptrace
