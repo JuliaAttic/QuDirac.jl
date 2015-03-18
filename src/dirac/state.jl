@@ -132,8 +132,8 @@
     QuBase.normalize!(s::AbstractState) = scale!(1/norm(s), s)
 
     xsubspace(s::AbstractState, x) = filter((k,v)->sum(k)==x, s)
-    # switch(s::AbstractState, i, j) = maplabels(label->switch(label,i,j), s)
-    # permute(s::AbstractState, p::Array{Int}) = maplabels(label->permute(label,p), s)
+    switch(s::AbstractState, i, j) = maplabels(label->switch(label,i,j), s)
+    permute(s::AbstractState, perm) = maplabels(label->permute(label,perm), s)
 
     filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
     filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
