@@ -88,7 +88,7 @@
         return result
     end
 
-    # This method is more optimized than the general inner for 
+    # This method is more optimized than the general inner() for
     # orthonormal states, but unfortunately sidesteps the error
     # condition for states of differing factor length...
     # function inner{A<:Orthogonal,B<:Orthogonal}(bra::Bra{A}, ket::Ket{B})
@@ -148,6 +148,9 @@
     filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
     filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
 
+    purity(ket::Ket) = trace((ket*ket')^2)
+    purity(bra::Bra) = purity(bra')
+
 ######################
 # Printing Functions #
 ######################
@@ -191,4 +194,5 @@ export Ket,
     switch,
     permute,
     filternz!,
-    filternz
+    filternz,
+    purity
