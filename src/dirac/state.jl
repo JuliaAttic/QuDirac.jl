@@ -150,7 +150,7 @@
 ######################
 # Printing Functions #
 ######################
-    labelstr(label) = strip(repr(label)[2:end-1], ',')
+    labelstr(label) = strip(repr(tuple(label...))[2:end-1], ',')
     ketstr(label) = "| $(labelstr(label)) $rang"
     brastr(label) = "$lang $(labelstr(label)) |"
     statestr{K<:Ket}(label, ::Type{K}) = ketstr(label)
