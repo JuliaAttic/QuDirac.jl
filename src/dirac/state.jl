@@ -1,13 +1,13 @@
 ###########
 # Ket/Bra #
 ###########
-    typealias StateCoeffs Dict{Tuple,Number}
+    typealias StateDict Dict{Tuple,Number}
 
     type Ket{S} <: AbstractState{S}
-        coeffs::StateCoeffs
-        Ket() = new(StateCoeffs())
-        Ket(coeffs::Dict) = new(coeffs)
-        Ket(label...) = new(single_dict(StateCoeffs(), label, 1))
+        dict::StateDict
+        Ket() = new(StateDict())
+        Ket(dict::Dict) = new(dict)
+        Ket(label...) = new(single_dict(StateDict(), label, 1))
     end
 
     Ket(items...) = Ket{Orthonormal}(items...)
@@ -21,60 +21,60 @@
     Bra{S}(ket::Ket{S}) = Bra{S}(ket)
     Bra(items...) = Bra(Ket(items...))
 
-    coeffs(k::Ket) = k.coeffs
-    coeffs(b::Bra) = coeffs(b.ket)
+    dict(k::Ket) = k.dict
+    dict(b::Bra) = dict(b.ket)
 
 ################
 # Constructors #
 ################
-    Base.copy(s::AbstractState) = typeof(s)(copy(coeffs(s)))
-    Base.similar(s::AbstractState) = typeof(s)(similar(coeffs(s)))
+    Base.copy(s::AbstractState) = typeof(s)(copy(dict(s)))
+    Base.similar(s::AbstractState) = typeof(s)(similar(dict(s)))
 
 #######################
 # Dict-Like Functions #
 #######################
-    Base.(:(==)){S}(a::Ket{S}, b::Ket{S}) = coeffs(a) == coeffs(b)
+    Base.(:(==)){S}(a::Ket{S}, b::Ket{S}) = dict(a) == dict(b)
     Base.(:(==)){S}(a::Bra{S}, b::Bra{S}) = a.ket == b.ket
-    Base.hash(s::AbstractState) = hash(coeffs(s), hash(typeof(s)))
+    Base.hash(s::AbstractState) = hash(dict(s), hash(typeof(s)))
 
-    Base.length(s::AbstractState) = length(coeffs(s))
+    Base.length(s::AbstractState) = length(dict(s))
 
-    Base.getindex(k::Ket, label::Tuple) = coeffs(k)[label]
+    Base.getindex(k::Ket, label::Tuple) = dict(k)[label]
     Base.getindex(b::Bra, label::Tuple) = b.ket[label]'
     Base.getindex(s::AbstractState, i...) = s[i]
 
-    Base.setindex!(k::Ket, c, label::Tuple) = setindex!(coeffs(k), c, label)
+    Base.setindex!(k::Ket, c, label::Tuple) = setindex!(dict(k), c, label)
     Base.setindex!(b::Bra, c, label::Tuple) = setindex!(b.ket, c', label)
     Base.setindex!(s::AbstractState, c, i...) = setindex!(s, c, i)
 
-    Base.haskey(s::AbstractState, label::Tuple) = haskey(coeffs(s), label)
+    Base.haskey(s::AbstractState, label::Tuple) = haskey(dict(s), label)
     Base.get(s::AbstractState, label::Tuple, default) = haskey(s, label) ? s[label] : default
 
-    Base.delete!(s::AbstractState, label::Tuple) = (delete!(coeffs(s), label); return s)
+    Base.delete!(s::AbstractState, label::Tuple) = (delete!(dict(s), label); return s)
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
-    Base.filter!(f::Function, ket::Ket) = (filter!(f, coeffs(ket)); return ket)
+    Base.filter!(f::Function, ket::Ket) = (filter!(f, dict(ket)); return ket)
     Base.filter!(f::Function, bra::Bra) = (filter!((k,v)->f(k,v'), bra.ket); return bra)
 
-    Base.filter{S}(f::Function, ket::Ket{S}) = Ket{S}(filter(f, coeffs(ket)))
+    Base.filter{S}(f::Function, ket::Ket{S}) = Ket{S}(filter(f, dict(ket)))
     Base.filter(f::Function, bra::Bra) = Bra(filter((k,v)->f(k,v'), bra.ket))
 
-    Base.map{S}(f::Function, ket::Ket{S}) = Ket{S}(mapkv(f, coeffs(ket)))
+    Base.map{S}(f::Function, ket::Ket{S}) = Ket{S}(mapkv(f, dict(ket)))
     Base.map(f::Function, bra::Bra) = mapkv!((k,v)->f(k,v'), similar(bra), bra.ket)
 
-    mapcoeffs{S}(f::Function, ket::Ket{S}) = Ket{S}(mapvals(f, coeffs(ket)))
+    mapcoeffs{S}(f::Function, ket::Ket{S}) = Ket{S}(mapvals(f, dict(ket)))
     mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket)
-    maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, coeffs(s)))
+    maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, dict(s)))
 
 ##########################
 # Mathematical Functions #
 ##########################
     function inner{A,B}(bra::Bra{A}, ket::Ket{B})
         result = 0
-        for (b,c) in coeffs(bra)
-            for (k,v) in coeffs(ket)
+        for (b,c) in dict(bra)
+            for (k,v) in dict(ket)
                 result += c'*v*inner_eval(A,B,b,k) 
             end
         end
@@ -102,13 +102,13 @@
     #     return result
     # end
 
-    Base.scale!(c::Number, s::AbstractState) = (castvals!(*, c, coeffs(s)); return s)
-    Base.scale!(s::AbstractState, c::Number) = (castvals!(*, coeffs(s), c); return s)
+    Base.scale!(c::Number, s::AbstractState) = (castvals!(*, c, dict(s)); return s)
+    Base.scale!(s::AbstractState, c::Number) = (castvals!(*, dict(s), c); return s)
 
-    Base.scale(c::Number, s::AbstractState) = typeof(s)(castvals(*, c, coeffs(s)))
-    Base.scale(s::AbstractState, c::Number) = typeof(s)(castvals(*, coeffs(s), c))
+    Base.scale(c::Number, s::AbstractState) = typeof(s)(castvals(*, c, dict(s)))
+    Base.scale(s::AbstractState, c::Number) = typeof(s)(castvals(*, dict(s), c))
 
-    Base.(:+){S}(a::Ket{S}, b::Ket{S}) = Ket{S}(mergef(+, coeffs(a), coeffs(b)))
+    Base.(:+){S}(a::Ket{S}, b::Ket{S}) = Ket{S}(mergef(+, dict(a), dict(b)))
     Base.(:-){S}(a::Ket{S}, b::Ket{S}) = a + (-b)
     Base.(:-){S}(ket::Ket{S}) = mapcoeffs(-, ket)
 
@@ -126,9 +126,9 @@
 
     Base.ctranspose(k::Ket) = Bra(k)
     Base.ctranspose(b::Bra) = b.ket
-    Base.norm(s::AbstractState) = sqrt(sum(v->v^2, values(coeffs(s))))
+    Base.norm(s::AbstractState) = sqrt(sum(v->v^2, values(dict(s))))
 
-    QuBase.tensor{S}(kets::Ket{S}...) = Ket{S}(mergecart!(tensor_state, StateCoeffs(), map(coeffs, kets)))
+    QuBase.tensor{S}(kets::Ket{S}...) = Ket{S}(mergecart!(tensor_state, StateDict(), map(dict, kets)))
     QuBase.tensor{S}(bras::Bra{S}...) = Bra(tensor(map(ctranspose, bras)...))
 
     QuBase.normalize(s::AbstractState) = (1/norm(s))*s
@@ -158,7 +158,7 @@
         pad = "  "
         maxlen = 30
         i = 1
-        for label in keys(coeffs(s))
+        for label in keys(dict(s))
             if i <= maxlen
                 println(io)
                 print(io, "$pad$(s[label]) $(statestr(label, typeof(s)))")

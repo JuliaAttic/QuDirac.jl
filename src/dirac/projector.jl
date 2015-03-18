@@ -66,8 +66,8 @@
 
     function Base.norm(op::Projector)
         result = 0
-        for k in keys(coeffs(op.ket))
-            for b in keys(coeffs(op.bra))
+        for k in keys(dict(op.ket))
+            for b in keys(dict(op.bra))
                 result += op[k,b]^2
             end
         end
@@ -76,8 +76,8 @@
 
     function Base.trace(op::Projector)
         result = 0
-        for k in keys(coeffs(op.ket))
-            for b in keys(coeffs(op.bra))
+        for k in keys(dict(op.ket))
+            for b in keys(dict(op.bra))
                 if b==k
                     result += op[k,b]
                 end
@@ -106,8 +106,8 @@
     ptrace{S}(op::Projector{S}, over...) = ptrace(ptrace(op, over[1]), over[2:end]...)
 
     function ptrace{S<:Orthonormal}(op::Projector{S}, over::Integer)
-        result = OpCoeffs()
-        for (k, v) in coeffs(op.ket), (b, c) in coeffs(op.bra)
+        result = OpDict()
+        for (k, v) in dict(op.ket), (b, c) in dict(op.bra)
             if k[over] == b[over]
                 new_label = (except(k, over), except(b, over))
                 if haskey(result, new_label)
@@ -128,7 +128,7 @@
         pad = "  "
         maxlen = 30
         i = 1
-        for k in keys(coeffs(op.ket)), b in keys(coeffs(op.bra))
+        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
             if i <= maxlen
                 println(io)
                 print(io, "$pad$(op[k,b]) $(statestr(k,Ket))$(statestr(b,Bra))")
