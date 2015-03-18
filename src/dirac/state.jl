@@ -47,13 +47,6 @@
     Base.setindex!(b::Bra, c, label::Tuple) = setindex!(b.ket, c', label)
     Base.setindex!(s::AbstractState, c, i...) = setindex!(s, c, i)
 
-    Base.keys(k::Ket) = keys(coeffs(k))
-    Base.values(k::Ket) = values(coeffs(k))
-
-    Base.start(k::Ket) = start(coeffs(k))
-    Base.next(k::Ket, state) = next(coeffs(k), state)
-    Base.done(k::Ket, state) = done(coeffs(k), state)
-    
     Base.haskey(s::AbstractState, label::Tuple) = haskey(coeffs(s), label)
     Base.get(s::AbstractState, label::Tuple, default) = haskey(s, label) ? s[label] : default
 
@@ -80,8 +73,8 @@
 ##########################
     function inner{A,B}(bra::Bra{A}, ket::Ket{B})
         result = 0
-        for (b,c) in bra.ket
-            for (k,v) in ket
+        for (b,c) in coeffs(bra)
+            for (k,v) in coeffs(ket)
                 result += c'*v*inner_eval(A,B,b,k) 
             end
         end
@@ -135,7 +128,7 @@
     Base.ctranspose(b::Bra) = b.ket
     Base.norm(s::AbstractState) = sqrt(sum(v->v^2, values(coeffs(s))))
 
-    QuBase.tensor{S}(kets::Ket{S}...) = Ket{S}(mergecart!(tensor_state, StateCoeffs(), kets))
+    QuBase.tensor{S}(kets::Ket{S}...) = Ket{S}(mergecart!(tensor_state, StateCoeffs(), map(coeffs, kets)))
     QuBase.tensor{S}(bras::Bra{S}...) = Bra(tensor(map(ctranspose, bras)...))
 
     QuBase.normalize(s::AbstractState) = (1/norm(s))*s

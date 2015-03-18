@@ -27,29 +27,29 @@
 # Constructors #
 ################
     function DiracOp{S}(f::Function, ket::Ket{S})
-        return DiracOp(f, S, keys(ket))
+        return DiracOp(f, S, keys(coeffs((ket))))
     end
 
     # f(label) -> (newval, newlabel)
     function DiracOp{S}(f::Function, ::Type{S}, labels)
-        coeffs = OpCoeffs()
+        result = OpCoeffs()
         for i in labels
             for j in labels 
                 (c, new_j) = f(j)
-                coeffs[i,j] = c * inner_rule(S, i, new_j)
+                result[i,j] = c * inner_rule(S, i, new_j)
             end
         end
-        return DiracOp{S}(coeffs)
+        return DiracOp{S}(result)
     end
 
     function DiracOp{A,B}(ket::Ket{A}, bra::Bra{B})
-        coeffs = OpCoeffs()
-        for (k,kc) in ket
-            for (b,bc) in bra.ket
-                coeffs[k,b] = kc * bc'
+        result = OpCoeffs()
+        for (k,kc) in coeffs(ket)
+            for (b,bc) in coeffs(bra)
+                result[k,b] = kc * bc'
             end
         end
-        return DiracOp{typejoin(A,B)}(coeffs)
+        return DiracOp{typejoin(A,B)}(result)
     end
 
     coeffs(op::DiracOp) = op.coeffs
@@ -81,13 +81,6 @@
     Base.setindex!(opc::DualOp, c, k::Tuple, b::Tuple) = setindex!(opc.op, c', (b,k))
     Base.setindex!(op::GenericOperator, c, k, b) = setindex!(op, c, tuple(k), tuple(b))
 
-    Base.keys(op::DiracOp) = keys(coeffs(op))
-    Base.values(op::DiracOp) = values(coeffs(op))
-
-    Base.start(op::DiracOp) = start(coeffs(op))
-    Base.done(op::DiracOp, state) = done(coeffs(op), state)
-    Base.next(op::DiracOp, state) = next(coeffs(op), state)
-
     Base.haskey(op::DiracOp, label::(Tuple,Tuple)) = haskey(coeffs(op), label)
     Base.haskey(opc::DualOp, label::(Tuple,Tuple)) = haskey(opc.op, reverse(label))
 
@@ -106,7 +99,7 @@
     Base.filter{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(filter(f, coeffs(op)))
     Base.filter(f::Function, opc::DualOp) = DualOp(filter((k,v)->f(reverse(k),v'), opc.op))
 
-    Base.map{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(mapkv(f,coeffs(op)))
+    Base.map{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(mapkv(f, coeffs(op)))
     Base.map(f::Function, opc::DualOp) = mapkv!((k,v)->f(reverse(k),v'), similar(opc), opc.op)
     
     mapcoeffs{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(mapvals(f, coeffs(op)))
@@ -125,12 +118,12 @@
 
     function inner{A,B}(bra::Bra{A}, op::DiracOp{B})
         result = Bra{typejoin(A,B)}()
-        for ((ok,ob),oc) in op            
+        for ((ok,ob),oc) in coeffs(op)
             if !haskey(result, ob)
                 result[ob] = 0
             end
             coeff = 0
-            for (label,c) in bra.ket
+            for (label,c) in coeffs(bra)
                 coeff += c'*oc*inner_eval(A,B,label,ok) 
             end
             result[ob] += coeff
@@ -140,12 +133,12 @@
 
     function inner{A,B}(op::DiracOp{A}, ket::Ket{B})
         result = Ket{typejoin(A,B)}()
-        for ((ok,ob),oc) in op            
+        for ((ok,ob),oc) in coeffs(op)
             if !haskey(result, ok)
                 result[ok] = 0
             end
             coeff = 0
-            for (label,v) in ket
+            for (label,v) in coeffs(ket)
                 coeff += oc*v*inner_eval(A,B,ob,label) 
             end
             result[ok] += coeff
@@ -155,8 +148,8 @@
 
     function inner{A,B}(a::DiracOp{A}, b::DiracOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for ((ak,ab),ac) in a
-            for ((bk,bb),bc) in b
+        for ((ak,ab),ac) in coeffs(a)
+            for ((bk,bb),bc) in coeffs(b)
                 if !haskey(result, (ak,bb))
                     result[ak,bb] = 0
                 end
@@ -168,8 +161,8 @@
 
     function inner{A,B}(a::DiracOp{A}, b::DualOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for ((ak,ab),ac) in a
-            for ((bb,bk),bc) in b.op
+        for ((ak,ab),ac) in coeffs(a)
+            for ((bb,bk),bc) in coeffs(b)
                 if !haskey(result, (ak,bb))
                     result[ak,bb] = 0
                 end
@@ -181,8 +174,8 @@
 
     function inner{A,B}(a::DualOp{A}, b::DiracOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for ((ab,ak),ac) in a.op
-            for ((bk,bb),bc) in b
+        for ((ab,ak),ac) in coeffs(a)
+            for ((bk,bb),bc) in coeffs(b)
                 if !haskey(result, (ak,bb))
                     result[ak,bb] = 0
                 end
@@ -213,7 +206,7 @@
     Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
     Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
 
-    Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = mergelabels(+, a, b)
+    Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = DiracOp{S}(mergef(+, coeffs(a), coeffs(b)))
     Base.(:+){S}(a::DualOp{S}, b::DualOp{S}) = DualOp(a.op + b.op)
     Base.(:+){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = +(promote(a,b)...)
 
@@ -221,20 +214,20 @@
     Base.(:-)(op::DiracOp) = mapcoeffs(-, op)
     Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
-    Base.norm(op::DiracOp) = sqrt(sum(v->v^2, values(op)))
+    Base.norm(op::DiracOp) = sqrt(sum(v->v^2, values(coeffs(op))))
     Base.norm(opc::DualOp) = norm(opc.op)
     
     QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
     QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
 
-    Base.trace(op::DiracOp) = sum(k->op[k], filter(k->k[1]==k[2], keys(op)))
+    Base.trace(op::DiracOp) = sum(k->op[k], filter(k->k[1]==k[2], keys(coeffs(op))))
     Base.trace(opc::DualOp) = trace(opc.op)'
 
-    QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), ops))
-    QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), ket, op))
-    QuBase.tensor{S}(op::DiracOp{S}, ket::Ket{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, OpCoeffs(), op, ket))
-    QuBase.tensor{S}(op::DiracOp{S}, bra::Bra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, OpCoeffs(), op, mapvals(ctranspose, coeffs(bra))))
-    QuBase.tensor{S}(bra::Bra{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, OpCoeffs(), mapvals(ctranspose, coeffs(bra)), op))
+    QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), map(coeffs, ops)))
+    QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), coeffs(ket), coeffs(op)))
+    QuBase.tensor{S}(op::DiracOp{S}, ket::Ket{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, OpCoeffs(), coeffs(op), coeffs(ket)))
+    QuBase.tensor{S}(op::DiracOp{S}, bra::Bra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, OpCoeffs(), coeffs(op), mapvals(ctranspose, coeffs(bra))))
+    QuBase.tensor{S}(bra::Bra{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, OpCoeffs(), mapvals(ctranspose, coeffs(bra)), coeffs(op)))
     QuBase.tensor(ops::AbstractOperator...) = tensor(promote(ops...)...)
     QuBase.tensor(ket::Ket, opc::DualOp) = tensor(ket', opc.op)'
     QuBase.tensor(opc::DualOp, ket::Ket) = tensor(opc.op, ket')'
@@ -326,10 +319,6 @@
     function tensor_op_to_bra(pairs)
         #pairs structure is: ((bralabel, bravalue), ((opketlabel, opbralabel), opvalue))
         return ((pairs[2][1][1], join_tup(pairs[1][1], pairs[2][1][2])), prod(second, pairs))
-    end
-
-    function mergelabels{S}(f::Function, a::DiracOp{S}, b::DiracOp{S})
-        return DiracOp{S}(mergef(f, a.coeffs, b.coeffs))
     end
 
 export ptrace,
