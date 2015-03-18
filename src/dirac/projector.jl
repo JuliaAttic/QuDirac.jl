@@ -12,6 +12,8 @@
     Base.convert{S}(::Type{DiracOp{S}}, op::Projector{S}) = scale!(op.scalar, DiracOp(op.ket, op.bra))
     Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{Projector{S}}) = DiracOp{S}
 
+    to_diracop{S}(op::Projector{S}) = convert(DiracOp{S}, op)
+
 #######################
 # Dict-Like Functions #
 #######################
@@ -23,7 +25,7 @@
 
     Base.getindex(op::Projector, k::Tuple, b::Tuple) = op.scalar * op.ket[k] * op.bra[b]
     Base.getindex(op::Projector, label::(Tuple,Tuple)) = op[label[1], label[2]]
-    Base.getindex{S}(op::Projector{S}, ::Colon, ::Colon) = convert(DiracOp{S}, op)
+    Base.getindex(op::Projector, ::Colon, ::Colon) = to_diracop(op)
     Base.getindex(op::Projector, k, b) = op[tuple(k), tuple(b)]
 
     # would be great if the below worked with normal indexing
@@ -44,11 +46,11 @@
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
-    Base.filter{S}(f::Function, op::Projector{S}) = filter(f, convert(DiracOp{S}, op))    
-    Base.map{S}(f::Function, op::Projector{S}) = map(f, convert(DiracOp{S}, op))
+    Base.filter(f::Function, op::Projector) = filter(f, to_diracop(op))
+    Base.map(f::Function, op::Projector) = map(f, to_diracop(op))
 
-    mapcoeffs{S}(f::Function, op::Projector{S}) = mapcoeffs(f, convert(DiracOp{S}, op))
-    maplabels{S}(f::Function, op::Projector{S}) = maplabels(f, convert(DiracOp{S}, op))
+    mapcoeffs(f::Function, op::Projector) = mapcoeffs(f, to_diracop(op))
+    maplabels(f::Function, op::Projector) = maplabels(f, to_diracop(op))
 
 ##########################
 # Mathematical Functions #
@@ -62,7 +64,7 @@
     Base.scale(op::Projector, c::Number) = scale!(copy(op),c)
 
     Base.(:-)(op::Projector) = (op.scalar = -op.scalar)
-    Base.(:+){S}(a::Projector{S}, b::Projector{S}) = convert(DiracOp{S}, a) + convert(DiracOp{S}, b)
+    Base.(:+)(a::Projector, b::Projector) = to_diracop(a) + to_diracop(b)
 
     function Base.norm(op::Projector)
         result = 0
@@ -100,10 +102,10 @@
     QuBase.tensor(op::Projector, ket::Ket) = Projector(op.scalar, tensor(op.ket, ket), op.bra)
     QuBase.tensor(ket::Ket, op::Projector) = Projector(op.scalar, tensor(ket, op.ket), op.bra)
 
-    xsubspace(op::Projector,x) = xsubspace(convert(DiracOp{S}, op), x)
-    filternz(op::Projector) = filternz(convert(DiracOp{S}, op))
+    xsubspace(op::Projector,x) = xsubspace(to_diracop(op), x)
+    filternz(op::Projector) = filternz(to_diracop(op))
 
-    ptrace{S}(op::Projector{S}, over...) = ptrace(ptrace(op, over[1]), over[2:end]...)
+    ptrace(op::Projector, over...) = ptrace(ptrace(op, over[1]), over[2:end]...)
 
     function ptrace{S<:Orthonormal}(op::Projector{S}, over::Integer)
         result = OpDict()
