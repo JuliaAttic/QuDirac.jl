@@ -166,10 +166,6 @@
         return result
     end
 
-    inner(bra::Bra, opc::DualOp) = inner(opc.op, bra')'
-    inner(opc::DualOp, ket::Ket) = inner(ket', opc.op)'
-    inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
-    
     function inner{A,B}(a::DiracOp{A}, b::DualOp{B})
         result = DiracOp{typejoin(A,B)}()
         for ((ak,ab),ac) in a
@@ -196,11 +192,15 @@
         return result
     end
 
-    Base.(:*)(bra::Bra, op::GenericOperator) = inner(bra,op)
-    Base.(:*)(op::GenericOperator, ket::Ket) = inner(op,ket)
-    Base.(:*)(ket::Ket, op::GenericOperator) = tensor(ket,op)
-    Base.(:*)(op::GenericOperator, bra::Bra) = tensor(op,bra)
-    Base.(:*)(a::GenericOperator, b::GenericOperator) = inner(a,b)
+    inner(bra::Bra, opc::DualOp) = inner(opc.op, bra')'
+    inner(opc::DualOp, ket::Ket) = inner(ket', opc.op)'
+    inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
+
+    Base.(:*)(bra::Bra, op::AbstractOperator) = inner(bra,op)
+    Base.(:*)(op::AbstractOperator, ket::Ket) = inner(op,ket)
+    Base.(:*)(ket::Ket, op::AbstractOperator) = tensor(ket,op)
+    Base.(:*)(op::AbstractOperator, bra::Bra) = tensor(op,bra)
+    Base.(:*)(a::AbstractOperator, b::AbstractOperator) = inner(a,b)
     Base.(:*)(ket::Ket, bra::Bra) = tensor(ket,bra)
 
     Base.scale!(c::Number, op::GenericOperator) = (castvals!(*, c, coeffs(op)); return op)
@@ -209,9 +209,9 @@
     Base.scale(c::Number, op::GenericOperator) = typeof(op)(castvals(*, c, coeffs(op)))
     Base.scale(op::GenericOperator, c::Number) = typeof(op)(castvals(*, coeffs(op), c))
 
-    Base.(:*)(c::Number, op::GenericOperator) = scale(c, op)
-    Base.(:*)(op::GenericOperator, c::Number) = scale(op, c)
-    Base.(:/)(op::GenericOperator, c::Number) = scale(op, 1/c)
+    Base.(:*)(c::Number, op::AbstractOperator) = scale(c, op)
+    Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
+    Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
 
     Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = mergelabels(+, a, b)
     Base.(:+){S}(a::DualOp{S}, b::DualOp{S}) = DualOp(a.op + b.op)
@@ -221,11 +221,14 @@
     Base.(:-)(op::DiracOp) = mapcoeffs(-, op)
     Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
-    Base.norm(o::DiracOp) = sqrt(sum(v->v^2, values(o)))
-    QuBase.normalize(o::DiracOp) = (1/norm(o))*o
-    QuBase.normalize!(o::DiracOp) = scale!(1/norm(o), o)
+    Base.norm(op::DiracOp) = sqrt(sum(v->v^2, values(op)))
+    Base.norm(opc::DualOp) = norm(opc.op)
+    
+    QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
+    QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
 
-    Base.trace(o::DiracOp) = sum(k->o[k], filter(k->k[1]==k[2], keys(o)))
+    Base.trace(op::DiracOp) = sum(k->op[k], filter(k->k[1]==k[2], keys(op)))
+    Base.trace(opc::DualOp) = trace(opc.op)'
 
     QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpCoeffs(), ops))
     QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpCoeffs(), ket, op))
@@ -238,8 +241,6 @@
     QuBase.tensor(opc::DualOp, bra::Bra) = tensor(opc.op, bra')'
     QuBase.tensor(bra::Bra, opc::DualOp) = tensor(bra', opc.op)'
     QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.op, b.op)'
-    QuBase.tensor(ket::Ket, bra::Bra) = DiracOp(ket, bra)
-    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
 
     xsubspace(op::GenericOperator, x) = filter((k,v)->sum(k[1])==x && sum(k[2])==x, op)
 
@@ -261,21 +262,18 @@
 
     function ptrace_coeffs(coeffs, over::Integer)
         result = OpCoeffs()
-        for tr_label in factor_labels(coeffs, over) # labels to be traced over
-            for key in filter_at_labels(coeffs, tr_label, over)
-                new_label = (except(key[1], over), except(key[2], over))
+        for (k, v) in coeffs
+            if k[1][over]==k[2][over]
+                new_label = (except(k[1], over), except(k[2], over))
                 if haskey(result, new_label)
-                    result[new_label] += coeffs[key]
+                    result[new_label] += v
                 else
-                    result[new_label] = coeffs[key]
+                    result[new_label] = v
                 end
             end
-        end  
+        end
         return result
     end
-
-    filter_at_labels(coeffs, tr_label, i) = filter(k -> tr_label==k[1][i] && tr_label==k[2][i], keys(coeffs))
-    factor_labels(coeffs, factor) = distinct(imap(i->i[1][factor], keys(coeffs)))
 
 ######################
 # Printing Functions #

@@ -12,7 +12,8 @@
 
     inner_eval{A<:AbstractStructure, B<:AbstractStructure}(::Type{A}, ::Type{B}, ketlabel, bralabel) = inner_rule(typejoin(A,B), ketlabel, bralabel)
     inner_rule{S<:AbstractStructure}(::Type{S}, ketlabel, bralabel) = InnerProduct{S}(ketlabel, bralabel)
-    inner_rule{O<:Orthonormal}(::Type{O}, ketlabel, bralabel) = ketlabel === bralabel ? 1 : 0
+    inner_rule{O<:Orthonormal,N}(::Type{O}, ketlabel::NTuple{N}, bralabel::NTuple{N}) = ketlabel === bralabel ? 1 : 0
+    inner_rule{O<:Orthonormal}(::Type{O}, ketlabel, bralabel) = error("Orthonormal inner products are currently only defined on labels of the same factor length")
 
     ######################
     # Accessor Functions #
