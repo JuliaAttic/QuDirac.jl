@@ -14,8 +14,11 @@ module QuDirac
     ##################
     # Abstract Types #
     ##################
-        abstract AbstractOperator{S<:AbstractStructure}
-        abstract AbstractState{S<:AbstractStructure}
+        abstract AbstractInner
+        abstract Orthonormal <: AbstractInner
+        
+        abstract AbstractOperator{P<:AbstractInner}
+        abstract AbstractState{P<:AbstractInner}
 
         abstract DiracScalar <: Number
 
@@ -35,9 +38,8 @@ module QuDirac
         include("dirac/diracop.jl")
         include("dirac/projector.jl")
 
-    export Ket,
-        Bra,
-        dualtype
+    export AbstractInner,
+        Orthonormal
 end 
 
 using QuBase

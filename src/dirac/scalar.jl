@@ -5,13 +5,13 @@
     # An InnerProduct is a type that
     # represents an abstract scalar formulated in
     # Dirac notation - a bra-ket product.
-    immutable InnerProduct{S} <: DiracScalar
+    immutable InnerProduct{P<:AbstractInner} <: DiracScalar
         bralabel::Vector
         ketlabel::Vector
     end
 
-    inner_eval{A<:AbstractStructure, B<:AbstractStructure}(::Type{A}, ::Type{B}, ketlabel, bralabel) = inner_rule(typejoin(A,B), ketlabel, bralabel)
-    inner_rule{S<:AbstractStructure}(::Type{S}, ketlabel, bralabel) = InnerProduct{S}(ketlabel, bralabel)
+    inner_eval{A<:AbstractInner, B<:AbstractInner}(::Type{A}, ::Type{B}, ketlabel, bralabel) = inner_rule(typejoin(A,B), ketlabel, bralabel)
+    inner_rule{P<:AbstractInner}(::Type{P}, ketlabel, bralabel) = InnerProduct{P}(ketlabel, bralabel)
     inner_rule{O<:Orthonormal}(::Type{O}, ketlabel, bralabel) = ketlabel == bralabel ? 1 : 0
 
     ######################
@@ -29,7 +29,7 @@
     ###########################
     # Mathematical Operations #
     ###########################
-    Base.conj{S}(i::InnerProduct{S}) = InnerProduct{S}(getketlabel(i), getbralabel(i))
+    Base.conj{P}(i::InnerProduct{P}) = InnerProduct{P}(getketlabel(i), getbralabel(i))
 
 ##############
 # ScalarExpr #

@@ -1,24 +1,26 @@
 ###########
 # Ket/Bra #
 ###########
+    DEFAULT_INNER() = Orthonormal
+
     typealias StateDict Dict{Vector,Number}
 
-    type Ket{S} <: AbstractState{S}
+    type Ket{P<:AbstractInner} <: AbstractState{P}
         dict::StateDict
         Ket() = new(StateDict())
         Ket(dict::Dict) = new(dict)
         Ket(label...) = new(single_dict(StateDict(), collect(label), 1))
     end
 
-    Ket(items...) = Ket{Orthonormal}(items...)
+    Ket(items...) = Ket{DEFAULT_INNER()}(items...)
 
-    type Bra{S} <: AbstractState{S}
-        ket::Ket{S}
-        Bra(items...) = new(Ket{S}(items...))
-        Bra(ket::Ket{S}) = new(ket)
+    type Bra{P} <: AbstractState{P}
+        ket::Ket{P}
+        Bra(items...) = new(Ket{P}(items...))
+        Bra(ket::Ket{P}) = new(ket)
     end
 
-    Bra{S}(ket::Ket{S}) = Bra{S}(ket)
+    Bra{P}(ket::Ket{P}) = Bra{P}(ket)
     Bra(items...) = Bra(Ket(items...))
 
     dict(k::Ket) = k.dict
@@ -33,8 +35,8 @@
 #######################
 # Dict-Like Functions #
 #######################
-    Base.(:(==)){S}(a::Ket{S}, b::Ket{S}) = dict(a) == dict(b)
-    Base.(:(==)){S}(a::Bra{S}, b::Bra{S}) = a.ket == b.ket
+    Base.(:(==)){P}(a::Ket{P}, b::Ket{P}) = dict(a) == dict(b)
+    Base.(:(==)){P}(a::Bra{P}, b::Bra{P}) = a.ket == b.ket
     Base.hash(s::AbstractState) = hash(dict(s), hash(typeof(s)))
 
     Base.length(s::AbstractState) = length(dict(s))
@@ -58,13 +60,13 @@
     Base.filter!(f::Function, ket::Ket) = (filter!(f, dict(ket)); return ket)
     Base.filter!(f::Function, bra::Bra) = (filter!((k,v)->f(k,v'), bra.ket); return bra)
 
-    Base.filter{S}(f::Function, ket::Ket{S}) = Ket{S}(filter(f, dict(ket)))
+    Base.filter{P}(f::Function, ket::Ket{P}) = Ket{P}(filter(f, dict(ket)))
     Base.filter(f::Function, bra::Bra) = Bra(filter((k,v)->f(k,v'), bra.ket))
 
-    Base.map{S}(f::Function, ket::Ket{S}) = Ket{S}(mapkv(f, dict(ket)))
+    Base.map{P}(f::Function, ket::Ket{P}) = Ket{P}(mapkv(f, dict(ket)))
     Base.map(f::Function, bra::Bra) = mapkv!((k,v)->f(k,v'), similar(bra), bra.ket)
 
-    mapcoeffs{S}(f::Function, ket::Ket{S}) = Ket{S}(mapvals(f, dict(ket)))
+    mapcoeffs{P}(f::Function, ket::Ket{P}) = Ket{P}(mapvals(f, dict(ket)))
     mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket)
     maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, dict(s)))
 
@@ -81,7 +83,7 @@
         return result
     end
 
-    function inner{A<:Orthogonal,B<:Orthogonal}(bra::Bra{A}, ket::Ket{B})
+    function inner{A<:Orthonormal,B<:Orthonormal}(bra::Bra{A}, ket::Ket{B})
         result = 0
         if length(bra) < length(ket)
             for label in keys(dict(bra))
@@ -105,9 +107,9 @@
     Base.scale(c::Number, s::AbstractState) = typeof(s)(castvals(*, c, dict(s)))
     Base.scale(s::AbstractState, c::Number) = typeof(s)(castvals(*, dict(s), c))
 
-    Base.(:+){S}(a::Ket{S}, b::Ket{S}) = Ket{S}(mergef(+, dict(a), dict(b)))
-    Base.(:-){S}(a::Ket{S}, b::Ket{S}) = a + (-b)
-    Base.(:-){S}(ket::Ket{S}) = mapcoeffs(-, ket)
+    Base.(:+){P}(a::Ket{P}, b::Ket{P}) = Ket{P}(mergef(+, dict(a), dict(b)))
+    Base.(:-){P}(a::Ket{P}, b::Ket{P}) = a + (-b)
+    Base.(:-){P}(ket::Ket{P}) = mapcoeffs(-, ket)
 
     Base.(:+)(a::Bra, b::Bra) = Bra(a.ket+b.ket)
     Base.(:-)(a::Bra, b::Bra) = Bra(a.ket-b.ket)
@@ -125,8 +127,8 @@
     Base.ctranspose(b::Bra) = b.ket
     Base.norm(s::AbstractState) = sqrt(sum(v->v^2, values(dict(s))))
 
-    QuBase.tensor{S}(kets::Ket{S}...) = Ket{S}(mergecart!(tensor_state, StateDict(), map(dict, kets)))
-    QuBase.tensor{S}(bras::Bra{S}...) = Bra(tensor(map(ctranspose, bras)...))
+    QuBase.tensor{P}(kets::Ket{P}...) = Ket{P}(mergecart!(tensor_state, StateDict(), map(dict, kets)))
+    QuBase.tensor{P}(bras::Bra{P}...) = Bra(tensor(map(ctranspose, bras)...))
 
     QuBase.normalize(s::AbstractState) = (1/norm(s))*s
     QuBase.normalize!(s::AbstractState) = scale!(1/norm(s), s)

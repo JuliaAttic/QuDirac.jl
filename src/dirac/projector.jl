@@ -1,25 +1,25 @@
 #############
 # Projector #
 #############
-    type Projector{S} <: AbstractOperator{S}
+    type Projector{P} <: AbstractOperator{P}
         scalar::Number
-        ket::Ket{S}
-        bra::Bra{S}
+        ket::Ket{P}
+        bra::Bra{P}
     end
         
-    Base.copy{S}(op::Projector{S}) = Projector{S}(copy(op.scalar), copy(op.ket), copy(op.bra))
+    Base.copy{P}(op::Projector{P}) = Projector{P}(copy(op.scalar), copy(op.ket), copy(op.bra))
 
-    Base.convert{S}(::Type{DiracOp{S}}, op::Projector{S}) = scale!(op.scalar, DiracOp(op.ket, op.bra))
-    Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{Projector{S}}) = DiracOp{S}
+    Base.convert{P}(::Type{DiracOp{P}}, op::Projector{P}) = scale!(op.scalar, DiracOp(op.ket, op.bra))
+    Base.promote_rule{P}(::Type{DiracOp{P}}, ::Type{Projector{P}}) = DiracOp{P}
 
-    to_diracop{S}(op::Projector{S}) = convert(DiracOp{S}, op)
+    to_diracop{P}(op::Projector{P}) = convert(DiracOp{P}, op)
 
 #######################
 # Dict-Like Functions #
 #######################
-    Base.(:(==)){S}(a::Projector{S}, b::Projector{S}) = a.scalar == b.scalar && a.ket == b.ket && a.bra == b.bra
+    Base.(:(==)){P}(a::Projector{P}, b::Projector{P}) = a.scalar == b.scalar && a.ket == b.ket && a.bra == b.bra
 
-    Base.hash{S}(op::Projector{S}) = hash(S, hash(op.scalar, hash(op.ket, hash(op.bra))))
+    Base.hash{P}(op::Projector{P}) = hash(S, hash(op.scalar, hash(op.ket, hash(op.bra))))
 
     Base.length(op::Projector) = length(op.ket)*length(op.bra)
 
@@ -57,7 +57,7 @@
 ##########################
 # Mathematical Functions #
 ##########################
-    Base.ctranspose{S}(op::Projector{S}) = Projector{S}(op.scalar', op.bra', op.ket')
+    Base.ctranspose{P}(op::Projector{P}) = Projector{P}(op.scalar', op.bra', op.ket')
 
     Base.scale!(c::Number, op::Projector) = (op.scalar = c*op.scalar; return op)
     Base.scale!(op::Projector, c::Number) = (op.scalar = op.scalar*c; return op)
@@ -78,7 +78,7 @@
         return sqrt(result)
     end
 
-    function Base.trace(op::Projector)
+    function Base.trace{O<:Orthonormal}(op::Projector{O})
         result = 0
         for k in keys(dict(op.ket))
             for b in keys(dict(op.bra))
@@ -107,8 +107,8 @@
     xsubspace(op::Projector,x) = xsubspace(to_diracop(op), x)
     filternz(op::Projector) = filternz(to_diracop(op))
 
-    function ptrace{S<:Orthonormal}(op::Projector{S}, over::Integer)
-        return DiracOp{S}(ptrace_proj!(OpDict(), op, over))
+    function ptrace{O<:Orthonormal}(op::Projector{O}, over::Integer)
+        return DiracOp{O}(ptrace_proj!(OpDict(), op, over))
     end
 
     function ptrace_proj!(result::OpDict, op::Projector, over)

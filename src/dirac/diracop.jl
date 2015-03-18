@@ -16,37 +16,37 @@
 ##################
 # DiracOp/DualOp #
 ##################
-    abstract GenericOperator{S} <: AbstractOperator{S}
+    abstract GenericOperator{P} <: AbstractOperator{P}
 
     typealias OpDict Dict{OpLabel,Number}
 
-    type DiracOp{S} <: GenericOperator{S}
+    type DiracOp{P<:AbstractInner} <: GenericOperator{P}
         dict::OpDict
         DiracOp() = new(OpDict())
         DiracOp(dict) = new(dict)
     end
 
-    type DualOp{S} <: GenericOperator{S}
-        op::DiracOp{S}
-        DualOp(items...) = new(DiracOp{S}(items...))
-        DualOp(op::DiracOp{S}) = new(op)
+    type DualOp{P} <: GenericOperator{P}
+        op::DiracOp{P}
+        DualOp(items...) = new(DiracOp{P}(items...))
+        DualOp(op::DiracOp{P}) = new(op)
     end
 
-    DualOp{S}(op::DiracOp{S}) = DualOp{S}(op)
+    DualOp{P}(op::DiracOp{P}) = DualOp{P}(op)
     DualOp(items...) = DualOp(DiracOp(items...))
 
-    Base.convert{S}(::Type{DiracOp{S}}, opc::DualOp{S}) = eager_ctran(opc.op)
-    Base.promote_rule{S}(::Type{DiracOp{S}}, ::Type{DualOp{S}}) = DiracOp{S}
+    Base.convert{P}(::Type{DiracOp{P}}, opc::DualOp{P}) = eager_ctran(opc.op)
+    Base.promote_rule{P}(::Type{DiracOp{P}}, ::Type{DualOp{P}}) = DiracOp{P}
 
 ################
 # Constructors #
 ################
-    function DiracOp{S}(f::Function, ket::Ket{S})
+    function DiracOp{P}(f::Function, ket::Ket{P})
         return DiracOp(f, S, keys(dict((ket))))
     end
 
     # f(label) -> (newval, newlabel)
-    function DiracOp{S}(f::Function, ::Type{S}, labels)
+    function DiracOp{P}(f::Function, ::Type{P}, labels)
         result = OpDict()
         for i in labels
             for j in labels 
@@ -54,7 +54,7 @@
                 result[OpLabel(i,j)] = c * inner_rule(S, i, new_j)
             end
         end
-        return DiracOp{S}(result)
+        return DiracOp{P}(result)
     end
 
     function DiracOp{A,B}(ket::Ket{A}, bra::Bra{B})
@@ -76,9 +76,9 @@
 #######################
 # Dict-Like Functions #
 #######################
-    Base.(:(==)){S}(a::DiracOp{S}, b::DiracOp{S}) = dict(a) == dict(b)
-    Base.(:(==)){S}(a::DualOp{S}, b::DualOp{S}) = a.op == b.op
-    Base.(:(==)){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = ==(promote(a,b)...)
+    Base.(:(==)){P}(a::DiracOp{P}, b::DiracOp{P}) = dict(a) == dict(b)
+    Base.(:(==)){P}(a::DualOp{P}, b::DualOp{P}) = a.op == b.op
+    Base.(:(==)){P}(a::AbstractOperator{P}, b::AbstractOperator{P}) = ==(promote(a,b)...)
 
     Base.hash(op::GenericOperator) = hash(dict(op))
 
@@ -114,16 +114,16 @@
     Base.filter!(f::Function, op::DiracOp) = (filter!(f, dict(op)); return op)
     Base.filter!(f::Function, opc::DualOp) = (filter!((k,v)->f(reverse(k),v'), opc.op); return opc)
 
-    Base.filter{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(filter(f, dict(op)))
+    Base.filter{P}(f::Function, op::DiracOp{P}) = DiracOp{P}(filter(f, dict(op)))
     Base.filter(f::Function, opc::DualOp) = DualOp(filter((k,v)->f(reverse(k),v'), opc.op))
 
-    Base.map{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(mapkv(f, dict(op)))
+    Base.map{P}(f::Function, op::DiracOp{P}) = DiracOp{P}(mapkv(f, dict(op)))
     Base.map(f::Function, opc::DualOp) = mapkv!((k,v)->f(reverse(k),v'), similar(opc), opc.op)
     
-    mapcoeffs{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(mapvals(f, dict(op)))
+    mapcoeffs{P}(f::Function, op::DiracOp{P}) = DiracOp{P}(mapvals(f, dict(op)))
     mapcoeffs(f::Function, opc::DualOp) = mapvals!(v->f(v'), similar(opc), opc.op)
 
-    maplabels{S}(f::Function, op::DiracOp{S}) = DiracOp{S}(mapkeys(f, dict(op)))
+    maplabels{P}(f::Function, op::DiracOp{P}) = DiracOp{P}(mapkeys(f, dict(op)))
     maplabels(f::Function, opc::DualOp) = mapkeys!(k->f(reverse(k)), similar(opc), opc.op)
 
 ##########################
@@ -224,11 +224,11 @@
     Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
     Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
 
-    Base.(:+){S}(a::DiracOp{S}, b::DiracOp{S}) = DiracOp{S}(mergef(+, dict(a), dict(b)))
-    Base.(:+){S}(a::DualOp{S}, b::DualOp{S}) = DualOp(a.op + b.op)
-    Base.(:+){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = +(promote(a,b)...)
+    Base.(:+){P}(a::DiracOp{P}, b::DiracOp{P}) = DiracOp{P}(mergef(+, dict(a), dict(b)))
+    Base.(:+){P}(a::DualOp{P}, b::DualOp{P}) = DualOp(a.op + b.op)
+    Base.(:+){P}(a::AbstractOperator{P}, b::AbstractOperator{P}) = +(promote(a,b)...)
 
-    Base.(:-){S}(a::AbstractOperator{S}, b::AbstractOperator{S}) = a + (-b)
+    Base.(:-){P}(a::AbstractOperator{P}, b::AbstractOperator{P}) = a + (-b)
     Base.(:-)(op::DiracOp) = mapcoeffs(-, op)
     Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
@@ -238,7 +238,7 @@
     QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
     QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
 
-    function Base.trace(op::DiracOp)
+    function Base.trace{O<:Orthonormal}(op::DiracOp{O})
         result = 0
         for label in keys(dict(op))
             if ketlabel(label)==bralabel(label)
@@ -249,11 +249,11 @@
     end
     Base.trace(opc::DualOp) = trace(opc.op)'
 
-    QuBase.tensor{S}(ops::DiracOp{S}...) = DiracOp{S}(mergecart!(tensor_op, OpDict(), map(dict, ops)))
-    QuBase.tensor{S}(ket::Ket{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_ket_to_op, OpDict(), dict(ket), dict(op)))
-    QuBase.tensor{S}(op::DiracOp{S}, ket::Ket{S}) = DiracOp{S}(mergecart!(tensor_op_to_ket, OpDict(), dict(op), dict(ket)))
-    QuBase.tensor{S}(op::DiracOp{S}, bra::Bra{S}) = DiracOp{S}(mergecart!(tensor_bra_to_op, OpDict(), dict(op), mapvals(ctranspose, dict(bra))))
-    QuBase.tensor{S}(bra::Bra{S}, op::DiracOp{S}) = DiracOp{S}(mergecart!(tensor_op_to_bra, OpDict(), mapvals(ctranspose, dict(bra)), dict(op)))
+    QuBase.tensor{P}(ops::DiracOp{P}...) = DiracOp{P}(mergecart!(tensor_op, OpDict(), map(dict, ops)))
+    QuBase.tensor{P}(ket::Ket{P}, op::DiracOp{P}) = DiracOp{P}(mergecart!(tensor_ket_to_op, OpDict(), dict(ket), dict(op)))
+    QuBase.tensor{P}(op::DiracOp{P}, ket::Ket{P}) = DiracOp{P}(mergecart!(tensor_op_to_ket, OpDict(), dict(op), dict(ket)))
+    QuBase.tensor{P}(op::DiracOp{P}, bra::Bra{P}) = DiracOp{P}(mergecart!(tensor_bra_to_op, OpDict(), dict(op), mapvals(ctranspose, dict(bra))))
+    QuBase.tensor{P}(bra::Bra{P}, op::DiracOp{P}) = DiracOp{P}(mergecart!(tensor_op_to_bra, OpDict(), mapvals(ctranspose, dict(bra)), dict(op)))
     QuBase.tensor(ops::AbstractOperator...) = tensor(promote(ops...)...)
     QuBase.tensor(ket::Ket, opc::DualOp) = tensor(ket', opc.op)'
     QuBase.tensor(opc::DualOp, ket::Ket) = tensor(opc.op, ket')'
@@ -271,8 +271,8 @@
 #################
     ptrace(opc::DualOp, over::Integer) = DualOp(ptrace(opc.op, over))
 
-    function ptrace{S<:Orthonormal}(op::DiracOp{S}, over::Integer)
-        return DiracOp{S}(ptrace_op!(OpDict(), op, over))
+    function ptrace{O<:Orthonormal}(op::DiracOp{O}, over::Integer)
+        return DiracOp{O}(ptrace_op!(OpDict(), op, over))
     end
 
     function ptrace_op!(result::OpDict, op::DiracOp, over)
