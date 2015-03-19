@@ -46,7 +46,7 @@
     Base.get(op::Projector, k::Array, b::Array, default) = haskey(op, k, b) ? op[k,b] : default
 
     labels(op::Projector) = imap(pair->OpLabel(pair[1],pair[2]), product(labels(op.ket), labels(op.bra)))
-    coeffs(op::Projector) = imap(v->op.scalar*[1]*v[2], product(coeffs(op.ket), coeffs(op.bra)))
+    coeffs(op::Projector) = imap(v->op.scalar*v[1]*v[2], product(coeffs(op.ket), coeffs(op.bra)))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
