@@ -171,39 +171,33 @@
 
     function inner{A,B}(a::DiracOp{A}, b::DiracOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for (label1,v) in dict(a)
-            for (label2,c) in dict(b)
-                if !haskey(result, OpLabel(ketlabel(label1),bralabel(label2)))
-                    result[ketlabel(label1),bralabel(label2)] = 0
-                end
-                result[ketlabel(label1),bralabel(label2)] += v*c*inner_eval(A,B,bralabel(label1),ketlabel(label2)) 
+        for (label1,v) in dict(a), (label2,c) in dict(b)
+            if !haskey(result, OpLabel(ketlabel(label1),bralabel(label2)))
+                result[ketlabel(label1),bralabel(label2)] = 0
             end
+            result[ketlabel(label1),bralabel(label2)] += v*c*inner_eval(A,B,bralabel(label1),ketlabel(label2)) 
         end
         return result
     end
 
     function inner{A,B}(a::DiracOp{A}, b::DualOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for (label1,v) in dict(a)
-            for (label2,c) in dict(b)
-                if !haskey(result, OpLabel(ketlabel(label1),ketlabel(label2)))
-                    result[ketlabel(label1),ketlabel(label2)] = 0
-                end
-                result[ketlabel(label1),ketlabel(label2)] += v*c'*inner_eval(A,B,bralabel(label1),bralabel(label2)) 
+        for (label1,v) in dict(a), (label2,c) in dict(b)
+            if !haskey(result, OpLabel(ketlabel(label1),ketlabel(label2)))
+                result[ketlabel(label1),ketlabel(label2)] = 0
             end
+            result[ketlabel(label1),ketlabel(label2)] += v*c'*inner_eval(A,B,bralabel(label1),bralabel(label2)) 
         end
         return result
     end
 
     function inner{A,B}(a::DualOp{A}, b::DiracOp{B})
         result = DiracOp{typejoin(A,B)}()
-        for (label1,v) in dict(a)
-            for (label2,c) in dict(b)
-                if !haskey(result, OpLabel(bralabel(label1),bralabel(label2)))
-                    result[bralabel(label1),bralabel(label2)] = 0
-                end
-                result[bralabel(label1),bralabel(label2)] += v'*c*inner_eval(A,B,ketlabel(label1),ketlabel(label2)) 
+        for (label1,v) in dict(a), (label2,c) in dict(b)
+            if !haskey(result, OpLabel(bralabel(label1),bralabel(label2)))
+                result[bralabel(label1),bralabel(label2)] = 0
             end
+            result[bralabel(label1),bralabel(label2)] += v'*c*inner_eval(A,B,ketlabel(label1),ketlabel(label2)) 
         end
         return result
     end
