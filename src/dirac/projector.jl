@@ -45,6 +45,9 @@
     Base.get(op::Projector, label::OpLabel, default) = get(op, ketlabel(label), bralabel(label), default)
     Base.get(op::Projector, k::Array, b::Array, default) = haskey(op, k, b) ? op[k,b] : default
 
+    labels(op::Projector) = imap(pair->OpLabel(pair[1],pair[2]), product(labels(op.ket), labels(op.bra)))
+    coeffs(op::Projector) = imap(v->op.scalar*[1]*v[2], product(coeffs(op.ket), coeffs(op.bra)))
+
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
@@ -150,4 +153,6 @@ export getbra,
     mapcoeffs,
     maplabels,
     ptrace,
-    purity
+    purity,
+    labels,
+    coeffs

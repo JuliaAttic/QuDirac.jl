@@ -55,6 +55,10 @@
 
     Base.delete!(s::AbstractState, label::Array) = (delete!(dict(s), label); return s)
 
+    labels(s::AbstractState) = keys(dict(s))
+    coeffs(ket::Ket) = values(dict(ket))
+    coeffs(bra::Bra) = imap(conj, coeffs(bra.ket))
+
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
@@ -181,4 +185,6 @@ export Ket,
     filternz!,
     filternz,
     purity,
-    wavefunc
+    wavefunc,
+    labels,
+    coeffs

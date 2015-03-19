@@ -108,6 +108,11 @@
     Base.delete!(opc::DualOp, label::OpLabel) = delete!(opc.op, reverse(label))
     Base.delete!(op::GenericOperator, k::Array, b::Array) = delete!(op, OpLabel(k,b))
 
+    labels(op::DiracOp) = keys(dict(op))
+    labels(opc::DualOp) = imap(reverse, labels(opc.op))
+    coeffs(op::DiracOp) = values(dict(ket))
+    coeffs(opc::DualOp) = imap(conj, coeffs(bra.ket))
+
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
@@ -334,4 +339,6 @@ export ptrace,
     maplabels,
     filternz,
     filternz!,
-    purity
+    purity,
+    labels,
+    coeffs
