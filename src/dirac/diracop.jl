@@ -110,8 +110,8 @@
 
     labels(op::DiracOp) = keys(dict(op))
     labels(opc::DualOp) = imap(reverse, labels(opc.op))
-    coeffs(op::DiracOp) = values(dict(ket))
-    coeffs(opc::DualOp) = imap(conj, coeffs(bra.ket))
+    coeffs(op::DiracOp) = values(dict(op))
+    coeffs(opc::DualOp) = imap(conj, coeffs(opc.op))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
@@ -291,7 +291,6 @@
         end
         return result
     end
-
 
 ######################
 # Printing Functions #
