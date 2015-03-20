@@ -49,13 +49,13 @@ function mapkv!(f::Function, result, d)
     return result
 end
 
-function mapkv!(f::Function, result, d)
+function mapkv!(f::Function, d)
     for (k,v) in d
         delete!(d,k)
         (k0,v0) = f(k,v)
-        result[k0] = v0
+        d[k0] = v0
     end
-    return result
+    return d
 end
 
 
@@ -81,9 +81,9 @@ end
 function mapkeys!(f::Function, d)
     for (k,v) in d
         delete!(d,k)
-        result[f(k)] = v
+        d[f(k)] = v
     end
-    return result
+    return d
 end
 
 mapkeys(f::Function, d) = mapkeys!(f, similar(d), d)
