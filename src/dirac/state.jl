@@ -90,30 +90,37 @@
 ##########################
 # Mathematical Functions #
 ##########################
-    function inner{A,B}(bra::Bra{A}, ket::Ket{B})
+    function inner{A,B}(bra::Bra{A}, ket::Ket{B}, i...)
         result = 0
         for (b,c) in dict(bra), (k,v) in dict(ket)
-            result += c'*v*inner_eval(A,B,b,k) 
+            result += c'*v*inner_eval(A,B,b,k,i...) 
+        end
+        return result  
+    end
+
+    # function inner(bra::Bra, ket::Ket, i)
+    #     for (b,c) in dict(bra), (k,v) in dict(ket)
+    #         result += c'*v*inner_eval(A,B,b,k,i...) 
+    #     end
+    #     return result
+    # end 
+
+    function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::AbstractState{A}, b::AbstractState{B})
+        result = 0
+        for label in keys(dict(b))
+            if haskey(a, label)
+                result += a[label]*b[label]*inner_eval(A,B,label,label)
+            end
         end
         return result
     end
 
     function inner{A<:Orthonormal,B<:Orthonormal}(bra::Bra{A}, ket::Ket{B})
-        result = 0
         if length(bra) < length(ket)
-            for label in keys(dict(bra))
-                if haskey(ket, label)
-                    result += bra[label]*ket[label]*inner_eval(A,B,label,label)
-                end
-            end
+            return ortho_inner(ket, bra)
         else
-            for label in keys(dict(ket))
-                if haskey(bra, label)
-                    result += ket[label]*bra[label]*inner_eval(A,B,label,label)
-                end
-            end
+            return ortho_inner(bra, ket)
         end
-        return result
     end
 
     Base.scale!(c::Number, s::AbstractState) = (castvals!(*, c, dict(s)); return s)

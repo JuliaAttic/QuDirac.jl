@@ -10,9 +10,11 @@
         ketlabel::Vector
     end
 
-    inner_eval{A<:AbstractInner, B<:AbstractInner}(::Type{A}, ::Type{B}, ketlabel, bralabel) = inner_rule(typejoin(A,B), ketlabel, bralabel)
-    inner_rule{P<:AbstractInner}(::Type{P}, ketlabel, bralabel) = InnerProduct{P}(ketlabel, bralabel)
-    inner_rule{O<:Orthonormal}(::Type{O}, ketlabel, bralabel) = ketlabel == bralabel ? 1 : 0
+    inner_eval{A,B}(::Type{A}, ::Type{B}, k, b) = inner_rule(typejoin(A, B), k, b)
+    inner_eval{A,B}(::Type{A}, ::Type{B}, k, b, i, j) = inner_rule(A, B, k[i], b[j])
+
+    inner_rule{P<:AbstractInner}(::Type{P}, k, b) = InnerProduct{P}(k, b)
+    inner_rule{O<:Orthonormal}(::Type{O}, k, b) = k == b ? 1 : 0
 
     ######################
     # Accessor Functions #
