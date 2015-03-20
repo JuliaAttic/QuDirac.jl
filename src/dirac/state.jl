@@ -90,6 +90,9 @@
 ##########################
 # Mathematical Functions #
 ##########################
+    nfactor_guess(s::AbstractState) = length(first(labels(s)))
+    is_single(s::AbstractState) = nfactor_guess(s) == 1
+
     function inner{A,B}(bra::Bra{A}, ket::Ket{B}, i...)
         result = 0
         for (b,c) in dict(bra), (k,v) in dict(ket)
@@ -98,12 +101,17 @@
         return result  
     end
 
-    # function inner(bra::Bra, ket::Ket, i)
-    #     for (b,c) in dict(bra), (k,v) in dict(ket)
-    #         result += c'*v*inner_eval(A,B,b,k,i...) 
-    #     end
-    #     return result
-    # end 
+    function inner{A,B}(bra::Bra{A}, ket::Ket{B}, i)
+        if is_single(ket)
+            return inner(bra, ket)
+        else
+            result = StateCoeffs()
+            for (b,c) in dict(bra), (k,v) in dict(ket)
+                result[except(k,i)] = c'*v*inner_eval(A,B,b,k,i,i) 
+            end
+            return Ket{B}(result)
+        end
+    end 
 
     function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::AbstractState{A}, b::AbstractState{B})
         result = 0

@@ -60,6 +60,9 @@
 ##########################
 # Mathematical Functions #
 ##########################
+    nfactor_guess(op::Projector) = (nfactor_guess(op.ket), nfactor_guess(op.bra))
+    is_single(op::Projector) =  nfactor_guess(op.ket)==nfactor_guess(op.bra)==1
+
     Base.ctranspose{P}(op::Projector{P}) = Projector{P}(op.scalar', op.bra', op.ket')
 
     Base.scale!(c::Number, op::Projector) = (op.scalar = c*op.scalar; return op)
@@ -89,6 +92,14 @@
         return result
     end
 
+    function Base.trace{P}(op::Projector{P})
+        result = 0
+        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
+            result += op[k,b] * inner_rule(P, b, k)
+        end
+        return result
+    end
+
     inner(bra::Bra, op::Projector) = op.scalar * inner(bra, op.ket) * op.bra
     inner(op::Projector, ket::Ket) = op.scalar * op.ket * inner(op.bra, ket)
     inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.bra,b.ket), a.ket, b.bra)
@@ -107,11 +118,20 @@
     filternz(op::Projector) = filternz(to_diracop(op))
     purity(op::Projector) = trace(op^2)
 
-    function ptrace{O<:Orthonormal}(op::Projector{O}, over::Integer)
-        return DiracOp{O}(ptrace_proj!(OpDict(), op, over))
+    function ptrace(op::Projector, over::Integer)
+        if is_single(op)
+            if over == 1
+                return trace(op)
+            else
+                throw(BoundsError())
+            end
+        else 
+            return ptrace_proj!(op, over)
+        end
     end
 
-    function ptrace_proj!(result::OpDict, op::Projector, over)
+    function ptrace_proj!{O<:Orthonormal}(op::Projector{O}, over)
+        result = OpDict()
         for k in keys(dict(op.ket)), b in keys(dict(op.bra))
             if k[over] == b[over]
                 add_to_dict!(result,
@@ -119,7 +139,17 @@
                              op[k,b])
             end
         end
-        return result
+        return DiracOp{O}(result)
+    end
+
+    function ptrace_proj!{P}(op::Projector{P}, over)
+        result = OpDict()
+        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
+            add_to_dict!(result,
+                         OpLabel(except(k, over), except(b, over)),
+                         op[k,b]*inner_rule(P, k[over], b[over]))
+        end
+        return DiracOp{P}(result)
     end
 
 ######################

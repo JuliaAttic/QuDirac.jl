@@ -8,6 +8,8 @@
     immutable InnerProduct{P<:AbstractInner} <: DiracScalar
         bralabel::Vector
         ketlabel::Vector
+        InnerProduct(b::Vector, k::Vector) = new(b,k)
+        InnerProduct(b, k) = InnerProduct{P}([b],[k])
     end
 
     inner_eval{A,B}(::Type{A}, ::Type{B}, k, b) = inner_rule(typejoin(A, B), k, b)

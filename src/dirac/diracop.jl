@@ -134,6 +134,16 @@
 ##########################
 # Mathematical Functions #
 ##########################
+    function nfactor_guess(op::GenericOperator)
+        label = first(labels(op))
+        return length(ketlabel(label)),length(bralabel(label))
+    end
+
+    function is_single(op::GenericOperator)
+        guess = nfactor_guess(op)
+        return guess[1] == guess[2] == 1
+    end 
+
     eager_ctran(op::DiracOp) = map((k,v)->(reverse(k),v'), op)
     
     Base.ctranspose(op::DiracOp) = DualOp(op)
@@ -246,6 +256,15 @@
         end
         return result
     end
+
+    function Base.trace{P}(op::DiracOp{P})
+        result = 0
+        for (label,v) in dict(op))
+            result += v * inner_rule(P, bralabel(label), ketlabel(label))
+        end
+        return result
+    end
+
     Base.trace(opc::DualOp) = trace(opc.op)'
 
     QuBase.tensor{P}(ops::DiracOp{P}...) = DiracOp{P}(mergecart!(tensor_op, OpDict(), map(dict, ops)))
@@ -271,11 +290,20 @@
 #################
     ptrace(opc::DualOp, over::Integer) = DualOp(ptrace(opc.op, over))
 
-    function ptrace{O<:Orthonormal}(op::DiracOp{O}, over::Integer)
-        return DiracOp{O}(ptrace_op!(OpDict(), op, over))
+    function ptrace(op::DiracOp, over::Integer)
+        if is_single(op)
+            if over == 1
+                return trace(op)
+            else
+                throw(BoundsError())
+            end
+        else 
+            return ptrace_op!(op, over)
+        end
     end
 
-    function ptrace_op!(result::OpDict, op::DiracOp, over)
+    function ptrace_op!{O<:Orthonormal}(op::DiracOp{O}, over)
+        result = OpDict()
         for label in keys(dict(op))
             if ketlabel(label)[over] == bralabel(label)[over]
                 add_to_dict!(result,
@@ -283,7 +311,17 @@
                              op[label])
             end
         end
-        return result
+        return DiracOp{O}(result)
+    end
+
+    function ptrace_op!({P}(op::DiracOp{P}, over)
+        result = OpDict()
+        for (label,v) in dict(op)
+            add_to_dict!(result,
+                         OpLabel(except(ketlabel(label), over), except(bralabel(label), over)),
+                         v*inner_rule(P, ketlabel(label)[over], bralabel(label)[over]))
+        end
+        return DiracOp{P}(result)
     end
 
 ######################
