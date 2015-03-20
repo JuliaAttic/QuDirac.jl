@@ -52,7 +52,7 @@
 
     Base.haskey(s::AbstractState, label::Array) = haskey(dict(s), label)
     Base.get(k::Ket, label::Array, default) = get(dict(k), label, default)
-    Base.get(b::Bra label::Array, default) = haskey(b, label) ? b[label] : default
+    Base.get(b::Bra, label::Array, default) = haskey(b, label) ? b[label] : default
 
     Base.delete!(s::AbstractState, label::Array) = (delete!(dict(s), label); return s)
 
@@ -152,7 +152,7 @@
     switch(s::AbstractState, i, j) = maplabels(label->switch(label,i,j), s)
     permute(s::AbstractState, perm) = maplabels(label->permute(label,perm), s)
     switch!(s::AbstractState, i, j) = maplabels!(label->switch!(label,i,j), s)
-    Base.permute!(s::AbstractState, perm) = maplabels!(label->permute!(label,perm), s)
+    Base.permute!(s::AbstractState, perm::AbstractVector) = maplabels!(label->permute!(label,perm), s)
 
     filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
     filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
