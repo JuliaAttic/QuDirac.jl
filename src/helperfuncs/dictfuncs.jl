@@ -49,6 +49,16 @@ function mapkv!(f::Function, result, d)
     return result
 end
 
+function mapkv!(f::Function, result, d)
+    for (k,v) in d
+        delete!(d,k)
+        (k0,v0) = f(k,v)
+        result[k0] = v0
+    end
+    return result
+end
+
+
 mapkv(f::Function, d) = mapkv!(f, similar(d), d)
 
 function mapvals!(f::Function, result, d)
@@ -63,6 +73,14 @@ mapvals(f::Function, d) = mapvals!(f, similar(d), d)
 
 function mapkeys!(f::Function, result, d)
     for (k,v) in d
+        result[f(k)] = v
+    end
+    return result
+end
+
+function mapkeys!(f::Function, d)
+    for (k,v) in d
+        delete!(d,k)
         result[f(k)] = v
     end
     return result

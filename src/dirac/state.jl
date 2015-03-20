@@ -51,13 +51,14 @@
     Base.setindex!(s::AbstractState, c, i...) = setindex!(s, c, collect(i))
 
     Base.haskey(s::AbstractState, label::Array) = haskey(dict(s), label)
-    Base.get(s::AbstractState, label::Array, default) = haskey(s, label) ? s[label] : default
+    Base.get(k::Ket, label::Array, default) = get(dict(k), label, default)
+    Base.get(b::Bra label::Array, default) = haskey(b, label) ? b[label] : default
 
     Base.delete!(s::AbstractState, label::Array) = (delete!(dict(s), label); return s)
 
     labels(s::AbstractState) = keys(dict(s))
     coeffs(ket::Ket) = values(dict(ket))
-    coeffs(bra::Bra) = imap(conj, coeffs(bra.ket))
+    coeffs(bra::Bra) = imap(ctranspose, coeffs(bra.ket))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
@@ -69,14 +70,25 @@
     Base.filter(f::Function, bra::Bra) = Bra(filter((k,v)->f(k,v'), bra.ket))
 
     Base.map{P}(f::Function, ket::Ket{P}) = Ket{P}(mapkv(f, dict(ket)))
+
+    # By mutating an existing Bra instance, coefficients are
+    # properly conjugated when they're both accessed *and* set
     Base.map(f::Function, bra::Bra) = mapkv!((k,v)->f(k,v'), similar(bra), bra.ket)
 
+    mapcoeffs!(f::Function, k::Ket) = (mapvals!(f, dict(k)); return k)
+    mapcoeffs!(f::Function, b::Bra) = (mapvals!(f, b, dict(b)); return b)
     mapcoeffs{P}(f::Function, ket::Ket{P}) = Ket{P}(mapvals(f, dict(ket)))
     mapcoeffs(f::Function, bra::Bra) = mapvals!(v->f(v'), similar(bra), bra.ket)
+
+    maplabels!(f::Function, s::AbstractState) = (mapkeys!(f, dict(s)); return s)
     maplabels(f::Function, s::AbstractState) = typeof(s)(mapkeys(f, dict(s)))
 
     function wavefunc(f::Function, ket::Ket)
         return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(ket))
+    end
+
+    function wavefunc(f::Function, bra::Bra)
+        return (args...) -> wavefunc(f, bra.ket)(args...)'
     end
 
 ##########################
@@ -143,12 +155,14 @@
     xsubspace(s::AbstractState, x) = filter((k,v)->sum(k)==x, s)
     switch(s::AbstractState, i, j) = maplabels(label->switch(label,i,j), s)
     permute(s::AbstractState, perm) = maplabels(label->permute(label,perm), s)
+    switch!(s::AbstractState, i, j) = maplabels!(label->switch!(label,i,j), s)
+    Base.permute!(s::AbstractState, perm) = maplabels!(label->permute!(label,perm), s)
 
     filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
     filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
 
     purity(ket::Ket) = purity(ket*ket')
-    purity(bra::Bra) = purity(bra')
+    purity(bra::Bra) = purity(bra.ket)
 
 ######################
 # Printing Functions #
@@ -175,11 +189,15 @@
 
 export Ket,
     Bra,
+    maplabels!,
+    mapcoeffs!,
     maplabels,
     mapcoeffs,
     xsubspace,
     switch,
     permute,
+    switch!,
+    permute!,
     filternz!,
     filternz,
     purity,
