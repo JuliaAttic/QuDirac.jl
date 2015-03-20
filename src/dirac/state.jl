@@ -107,7 +107,9 @@
         else
             result = StateCoeffs()
             for (b,c) in dict(bra), (k,v) in dict(ket)
-                result[except(k,i)] = c'*v*inner_eval(A,B,b,k,i,i) 
+                add_to_dict!(result, 
+                             except(k,i), 
+                             c'*v*inner_eval(A,B,b,k,i,i))
             end
             return Ket{B}(result)
         end
