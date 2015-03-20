@@ -259,7 +259,7 @@
 
     function Base.trace{P}(op::DiracOp{P})
         result = 0
-        for (label,v) in dict(op))
+        for (label,v) in dict(op)
             result += v * inner_rule(P, bralabel(label), ketlabel(label))
         end
         return result
@@ -314,7 +314,7 @@
         return DiracOp{O}(result)
     end
 
-    function ptrace_op!({P}(op::DiracOp{P}, over)
+    function ptrace_op!{P}(op::DiracOp{P}, over)
         result = OpDict()
         for (label,v) in dict(op)
             add_to_dict!(result,
