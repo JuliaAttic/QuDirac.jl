@@ -87,10 +87,6 @@
         return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(ket))
     end
 
-    function wavefunc(f::Function, bra::Bra)
-        return (args...) -> wavefunc(f, bra.ket)(args...)'
-    end
-
 ##########################
 # Mathematical Functions #
 ##########################
