@@ -178,6 +178,8 @@
     filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
     filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
 
+    # should always be pure, of course,
+    # but makes a good sanity check function
     purity(ket::Ket) = purity(ket*ket')
     purity(bra::Bra) = purity(bra.ket)
 
