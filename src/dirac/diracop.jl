@@ -97,11 +97,23 @@
     Base.getindex(opc::DualOp, k::Array, b::Array) = opc.op[OpLabel(b,k)]'
     Base.getindex(op::GenericOperator, k, b) = op[[k],[b]]
 
-    _setindex!(op::DiracOp, c, label::OpLabel) = setindex!(dict(op), c, label)
-    _setindex!(op::DiracOp, c, k::Array, b::Array) = setindex!(op, c, OpLabel(k,b))
-    _setindex!(opc::DualOp, c, label::OpLabel) = setindex!(opc.op, c', reverse(label))
-    _setindex!(opc::DualOp, c, k::Array, b::Array) = setindex!(opc.op, c', OpLabel(b,k))
-    _setindex!(op::GenericOperator, c, k, b) = setindex!(op, c, [k], [b])
+    function Base.setindex!{P,N}(s::GenericOperator{P,N}, c, label::OpLabel)
+        if length(ktlabel(label)) == N && length(brlabel(label)) == N
+            return _setindex!(s, c, label)
+        else
+            throw(BoundsError())
+        end
+    end
+
+    function Base.setindex!{P,N}(s::GenericOperator{P,N}, c, k::Array, b::Array)
+        if length(k) == N && length(b) == N
+            return _setindex!(s, c, k, b)
+        else
+            throw(BoundsError())
+        end
+    end
+
+    Base.setindex!(op::GenericOperator, c, k, b) = setindex!(op, c, [k], [b])
 
     Base.haskey(op::DiracOp, label::OpLabel) = haskey(dict(op), label)
     Base.haskey(opc::DualOp, label::OpLabel) = haskey(opc.op, reverse(label))

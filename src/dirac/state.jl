@@ -57,7 +57,7 @@
 
     function Base.setindex!{P,N}(s::AbstractState{P,N}, c, label::Array)
         if length(label) == N
-            return setindex!(s, c, label)
+            return _setindex!(s, c, label)
         else
             throw(BoundsError())
         end
