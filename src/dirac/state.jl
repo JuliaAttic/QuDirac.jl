@@ -1,10 +1,3 @@
-# could use Val{N} in julia v0.4,
-# but we're targeting v0.3...
-immutable Factors{N} end
-
-Base.copy{N}(::Factors{N}) = Factors{N}()
-Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
-
 ###########
 # Ket/Bra #
 ###########
@@ -16,7 +9,7 @@ Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
         dict::StateDict
         fact::Factors{N}
         Ket(dict,fact) = new(dict,fact)
-        Ket(dict,fact::Factors{0}) = error("Cannot have a 0-factor state; did you mean to construct a scalar?")
+        Ket(dict,::Factors{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
     end
 
     Ket{P,N}(::Type{P}, dict::StateDict, fact::Factors{N}) = Ket{P,N}(dict,fact)
@@ -41,8 +34,8 @@ Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
 ################
 # Constructors #
 ################
-    Base.copy(s::AbstractState) = typeof(s)(copy(dict(s)), copy(fact(s)))
-    Base.similar(s::AbstractState, d::StateDict=similar(dict(s))) = typeof(s)(d, copy(fact(s)))
+    Base.copy(s::AbstractState) = typeof(s)(copy(dict(s)), fact(s))
+    Base.similar(s::AbstractState, d::StateDict=similar(dict(s))) = typeof(s)(d, fact(s))
 
 #######################
 # Dict-Like Functions #
@@ -55,7 +48,7 @@ Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
 
     Base.getindex(k::Ket, label::Array) = dict(k)[label]
     Base.getindex(b::Bra, label::Array) = b.kt[label]'
-    Base.getindex(::AbstractState, ::Tuple) =  throw(BoundsError())
+    Base.getindex{P,N}(::AbstractState{P,N}, ::Tuple) =  throw(BoundsError())
     Base.getindex{P,N}(s::AbstractState{P,N}, label::NTuple{N}) =  getindex(s, collect(label))
     Base.getindex{P,N}(s::AbstractState{P,N}, i...) = s[i]
 
@@ -70,7 +63,7 @@ Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
         end
     end
 
-    Base.setindex!(::AbstractState, c, ::Tuple) =  throw(BoundsError())
+    Base.setindex!{P,N}(::AbstractState{P,N}, c, ::Tuple) =  throw(BoundsError())
     Base.setindex!{P,N}(s::AbstractState{P,N}, label::NTuple{N}) =  _setindex!(s, c, collect(label))
     Base.setindex!{P,N}(s::AbstractState{P,N}, c, i...) = setindex!(s,c,i)
 

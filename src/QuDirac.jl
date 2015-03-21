@@ -17,7 +17,7 @@ module QuDirac
         abstract AbstractInner
         abstract Orthonormal <: AbstractInner
         
-        abstract AbstractOperator{P<:AbstractInner,N,M}
+        abstract AbstractOperator{P<:AbstractInner,N}
         abstract AbstractState{P<:AbstractInner,N}
 
         abstract DiracScalar <: Number
@@ -26,6 +26,16 @@ module QuDirac
     # Functions #
     #############
         QuBase.tensor() = error("Cannot call tensor function without arguments")
+
+    ###########
+    # Factors #
+    ###########
+        # could use Val{N} in julia v0.4,
+        # but we're targeting v0.3...
+        immutable Factors{N} end
+
+        Base.copy{N}(::Factors{N}) = Factors{N}()
+        Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
 
     ######################
     # Include Statements #

@@ -1,52 +1,58 @@
 #############
 # Projector #
 #############
-    type Projector{P} <: AbstractOperator{P}
+    type Projector{P,N} <: AbstractOperator{P,N}
         scalar::Number
-        ket::Ket{P}
-        bra::Bra{P}
+        kt::Ket{P,N}
+        br::Bra{P,N}
     end
-        
-    Base.copy{P}(op::Projector{P}) = Projector{P}(copy(op.scalar), copy(op.ket), copy(op.bra))
+    
+    Projector{P,N}(::Type{P}, scalar, kt::Ket{P,N}, br::Bra{P,N}) = Projector{P,N}(scalar, kt, br)
 
-    Base.convert{P}(::Type{DiracOp{P}}, op::Projector{P}) = scale!(op.scalar, DiracOp(op.ket, op.bra))
+    Base.copy{P}(op::Projector{P}) = Projector(P, copy(op.scalar), copy(op.kt), copy(op.br))
+
+    Base.convert(::Type{DiracOp}, op::Projector) = scale!(op.scalar, DiracOp(op.kt, op.br))
+    Base.convert{P}(::Type{DiracOp{P}}, op::Projector{P}) = convert(DiracOp, op)
+    Base.convert{P,N}(::Type{DiracOp{P,N}}, op::Projector{P,N}) = convert(DiracOp, op)
+
+    Base.promote_rule(::Type{DiracOp}, ::Type{Projector}) = DiracOp
     Base.promote_rule{P}(::Type{DiracOp{P}}, ::Type{Projector{P}}) = DiracOp{P}
+    Base.promote_rule{P,N}(::Type{DiracOp{P,N}}, ::Type{Projector{P,N}}) = DiracOp{P,N}
 
-    to_diracop{P}(op::Projector{P}) = convert(DiracOp{P}, op)
+    to_diracop(op::Projector) = convert(DiracOp, op)
 
 #######################
 # Dict-Like Functions #
 #######################
-    Base.(:(==)){P}(a::Projector{P}, b::Projector{P}) = a.scalar == b.scalar && a.ket == b.ket && a.bra == b.bra
+    Base.(:(==)){P}(a::Projector{P}, b::Projector{P}) = a.scalar == b.scalar && a.kt == b.kt && a.br == b.br
 
-    Base.hash{P}(op::Projector{P}) = hash(S, hash(op.scalar, hash(op.ket, hash(op.bra))))
+    Base.hash(op::Projector) = hash(op.scalar, hash(op.kt, hash(op.br)))
+    Base.length(op::Projector) = length(op.kt)*length(op.br)
 
-    Base.length(op::Projector) = length(op.ket)*length(op.bra)
-
-    Base.getindex(op::Projector, k::Array, b::Array) = op.scalar * op.ket[k] * op.bra[b]
-    Base.getindex(op::Projector, label::OpLabel) = op[ketlabel(label), bralabel(label)]
+    Base.getindex(op::Projector, k::Array, b::Array) = op.scalar * op.kt[k] * op.br[b]
+    Base.getindex(op::Projector, label::OpLabel) = op[ktlabel(label), brlabel(label)]
     Base.getindex(op::Projector, k, b) = op[[k],[b]]
 
     # would be great if the below worked with normal indexing
     # notation (e.g. op[k,:]) but slice notation is apparently
     # special and doesn't dispatch directly to getindex...
-    # Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.ket[k]) * op.bra
-    # Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.bra[b]) * op.ket
+    # Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.kt[k]) * op.br
+    # Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.br[b]) * op.kt
     # Base.getindex(op::Projector, ::Colon, ::Colon) = to_diracop(op)
 
-    getbra(op::Projector, k::Array) = (op.scalar * op.ket[k]) * op.bra
-    getket(op::Projector, b::Array) = (op.scalar * op.bra[b]) * op.ket
+    getbra(op::Projector, k::Array) = (op.scalar * op.kt[k]) * op.br
+    getket(op::Projector, b::Array) = (op.scalar * op.br[b]) * op.kt
 
     Base.haskey(op::Projector, k::Array, b::Array) = hasket(op,k) && hasbra(op, b)
-    Base.haskey(op::Projector, label::OpLabel) = haskey(op, ketlabel(label), bralabel(label))
-    hasket(op::Projector, label::Array) = haskey(op.ket, label)
-    hasbra(op::Projector, label::Array) = haskey(op.bra, label)
+    Base.haskey(op::Projector, label::OpLabel) = haskey(op, ktlabel(label), brlabel(label))
+    hasket(op::Projector, label::Array) = haskey(op.kt, label)
+    hasbra(op::Projector, label::Array) = haskey(op.br, label)
 
-    Base.get(op::Projector, label::OpLabel, default) = get(op, ketlabel(label), bralabel(label), default)
+    Base.get(op::Projector, label::OpLabel, default) = get(op, ktlabel(label), brlabel(label), default)
     Base.get(op::Projector, k::Array, b::Array, default) = haskey(op, k, b) ? op[k,b] : default
 
-    labels(op::Projector) = imap(pair->OpLabel(pair[1],pair[2]), product(labels(op.ket), labels(op.bra)))
-    coeffs(op::Projector) = imap(v->op.scalar*v[1]*v[2], product(coeffs(op.ket), coeffs(op.bra)))
+    labels(op::Projector) = imap(pair->OpLabel(pair[1],pair[2]), product(labels(op.kt), labels(op.br)))
+    coeffs(op::Projector) = imap(v->op.scalar*v[1]*v[2], product(coeffs(op.kt), coeffs(op.br)))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
@@ -60,10 +66,9 @@
 ##########################
 # Mathematical Functions #
 ##########################
-    nfactor_guess(op::Projector) = (nfactor_guess(op.ket), nfactor_guess(op.bra))
-    is_single(op::Projector) =  nfactor_guess(op.ket)==nfactor_guess(op.bra)==1
+    nfactors{P,N}(op::Projector{P,N}) = N
 
-    Base.ctranspose{P}(op::Projector{P}) = Projector{P}(op.scalar', op.bra', op.ket')
+    Base.ctranspose{P}(op::Projector{P}) = Projector(P, op.scalar', op.br', op.kt')
 
     Base.scale!(c::Number, op::Projector) = (op.scalar = c*op.scalar; return op)
     Base.scale!(op::Projector, c::Number) = (op.scalar = op.scalar*c; return op)
@@ -76,7 +81,7 @@
 
     function Base.norm(op::Projector)
         result = 0
-        for v in values(dict(op.ket)), c in values(dict(op.bra))
+        for v in values(dict(op.kt)), c in values(dict(op.br))
             result += (v*c)^2
         end
         return sqrt(result)
@@ -84,7 +89,7 @@
 
     function Base.trace{O<:Orthonormal}(op::Projector{O})
         result = 0
-        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
+        for k in keys(dict(op.kt)), b in keys(dict(op.br))
             if b==k
                 result += op[k,b]
             end
@@ -94,75 +99,62 @@
 
     function Base.trace{P}(op::Projector{P})
         result = 0
-        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
+        for k in keys(dict(op.kt)), b in keys(dict(op.br))
             result += op[k,b] * inner_rule(P, b, k)
         end
         return result
     end
 
-    inner(bra::Bra, op::Projector) = op.scalar * inner(bra, op.ket) * op.bra
-    inner(op::Projector, ket::Ket) = op.scalar * op.ket * inner(op.bra, ket)
-    inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.bra,b.ket), a.ket, b.bra)
-    inner(a::Projector, b::GenericOperator) = a.scalar * a.ket * inner(a.bra, b)
-    inner(a::GenericOperator, b::Projector) = inner(a, b.ket) * b.bra * b.scalar
+    inner(br::Bra, op::Projector) = op.scalar * inner(br, op.kt) * op.br
+    inner(op::Projector, kt::Ket) = op.scalar * op.kt * inner(op.br, kt)
+    inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.br,b.kt), a.kt, b.br)
+    inner(a::Projector, b::GenericOperator) = a.scalar * a.kt * inner(a.br, b)
+    inner(a::GenericOperator, b::Projector) = inner(a, b.kt) * b.br * b.scalar
 
-    QuBase.tensor(ket::Ket, bra::Bra) = Projector(1, ket, bra)
-    QuBase.tensor(bra::Bra, ket::Ket) = tensor(ket, bra)
-    QuBase.tensor(a::Projector, b::Projector) = Projector(a.scalar * b.scalar, tensor(a.ket,b.ket), tensor(a.bra, b.bra))
-    QuBase.tensor(op::Projector, bra::Bra) = Projector(op.scalar, op.ket, tensor(op.bra, bra))
-    QuBase.tensor(bra::Bra, op::Projector) = Projector(op.scalar, op.ket, tensor(bra, op.bra))
-    QuBase.tensor(op::Projector, ket::Ket) = Projector(op.scalar, tensor(op.ket, ket), op.bra)
-    QuBase.tensor(ket::Ket, op::Projector) = Projector(op.scalar, tensor(ket, op.ket), op.bra)
+    QuBase.tensor(kt::Ket, br::Bra) = Projector(1, kt, br)
+    QuBase.tensor(br::Bra, kt::Ket) = tensor(kt, br)
+    QuBase.tensor(a::Projector, b::Projector) = Projector(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
 
     xsubspace(op::Projector,x) = xsubspace(to_diracop(op), x)
     filternz(op::Projector) = filternz(to_diracop(op))
     purity(op::Projector) = trace(op^2)
 
-    function ptrace(op::Projector, over::Integer)
-        if is_single(op)
-            if over == 1
-                return trace(op)
-            else
-                throw(BoundsError())
-            end
-        else 
-            return ptrace_proj!(op, over)
-        end
-    end
+    ptrace{P}(op::Projector{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
+    ptrace(op::Projector, over) = ptrace_proj!(op, over)
 
-    function ptrace_proj!{O<:Orthonormal}(op::Projector{O}, over)
+    function ptrace_proj!{O<:Orthonormal,N}(op::Projector{O,N}, over)
         result = OpDict()
-        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
+        for k in keys(dict(op.kt)), b in keys(dict(op.br))
             if k[over] == b[over]
                 add_to_dict!(result,
                              OpLabel(except(k, over), except(b, over)),
                              op[k,b])
             end
         end
-        return DiracOp{O}(result)
+        return DiracOp(O,result,Factors{N-1}())
     end
 
-    function ptrace_proj!{P}(op::Projector{P}, over)
+    function ptrace_proj!{P,N}(op::Projector{P,N}, over)
         result = OpDict()
-        for k in keys(dict(op.ket)), b in keys(dict(op.bra))
+        for k in keys(dict(op.kt)), b in keys(dict(op.br))
             add_to_dict!(result,
                          OpLabel(except(k, over), except(b, over)),
                          op[k,b]*inner_rule(P, k[over], b[over]))
         end
-        return DiracOp{P}(result)
+        return DiracOp(P,result,Factors{N-1}())
     end
 
 ######################
 # Printing Functions #
 ######################
-    labelrepr(op::Projector, k, b, pad) = "$pad$(op[k,b]) $(ketstr(k))$(brastr(b))"
+    labelrepr(op::Projector, k, b, pad) = "$pad$(op[k,b]) $(ktstr(k))$(brstr(b))"
 
     function Base.show(io::IO, op::Projector)
         print(io, summary(op)*":")
         pad = "  "
         maxlen = 4
-        for k in take(keys(dict(op.ket)), maxlen),
-            b in take(keys(dict(op.bra)), maxlen)
+        for k in take(keys(dict(op.kt)), maxlen),
+            b in take(keys(dict(op.br)), maxlen)
             println(io)
             print(io, labelrepr(op, k, b, pad))
         end
