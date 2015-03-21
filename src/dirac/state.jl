@@ -131,15 +131,18 @@ end
 ##########################
     nfactors{P,N}(::AbstractState{P,N}) = N
 
-    function inner{A,B}(br::Bra{A}, kt::Ket{B}, i...)
+    inner(br, kt) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
+    inner(br, kt, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
+    
+    function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
         result = 0
         for (b,c) in dict(br), (k,v) in dict(kt)
-            result += c'*v*inner_eval(A,B,b,k,i...)
+            result += c'*v*inner_eval(A,B,b,k)
         end
         return result  
     end
 
-    function inner{A,B}(br::Bra{A}, kt::Ket{B,1}, i)
+    function inner{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
         if i==1
             return inner(br, kt)
         else
@@ -147,7 +150,7 @@ end
         end
     end
 
-    function inner{A,B}(br::Bra{A}, kt::Ket{B}, i)
+    function inner{A,B}(br::Bra{A,1}, kt::Ket{B}, i)
         result = StateCoeffs()
         for (b,c) in dict(br), (k,v) in dict(kt)
             add_to_dict!(result, 
@@ -167,7 +170,7 @@ end
         return result
     end
 
-    function inner{A<:Orthonormal,B<:Orthonormal}(br::Bra{A}, kt::Ket{B})
+    function inner{A<:Orthonormal,B<:Orthonormal,N}(br::Bra{A,N}, kt::Ket{B,N})
         if length(br) < length(kt)
             return ortho_inner(kt, br)
         else
@@ -250,6 +253,7 @@ end
 
 export ket,
     bra,
+    nfactors,
     maplabels!,
     mapcoeffs!,
     maplabels,
