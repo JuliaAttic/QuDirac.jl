@@ -150,66 +150,57 @@
     Base.ctranspose(opc::DualOp) = opc.op
 
     function inner{A,B}(bra::Bra{A}, op::DiracOp{B})
-        result = Bra{typejoin(A,B)}()
+        result = StateDict()
         for (label,v) in dict(op)
-            if !haskey(result, bralabel(label))
-                result[bralabel(label)] = 0
-            end
             coeff = 0
             for (b,c) in dict(bra)
                 coeff += c'*v*inner_eval(A,B,ketlabel(label),b) 
             end
-            result[bralabel(label)] += coeff
+            add_to_dict!(result, bralabel(label), coeff')
         end
-        return result
+        return Bra{typejoin(A,B)}(result)
     end
 
     function inner{A,B}(op::DiracOp{A}, ket::Ket{B})
-        result = Ket{typejoin(A,B)}()
+        result = StateDict()
         for (label,c) in dict(op)
-            if !haskey(result, ketlabel(label))
-                result[ketlabel(label)] = 0
-            end
             coeff = 0
             for (k,v) in dict(ket)
                 coeff += c*v*inner_eval(A,B,bralabel(label),k) 
             end
-            result[ketlabel(label)] += coeff
+            add_to_dict!(result, ketlabel(label), coeff)
         end
-        return result
+        return Ket{typejoin(A,B)}(result)
     end
 
     function inner{A,B}(a::DiracOp{A}, b::DiracOp{B})
-        result = DiracOp{typejoin(A,B)}()
+        result = OpDict()
         for (label1,v) in dict(a), (label2,c) in dict(b)
-            if !haskey(result, OpLabel(ketlabel(label1),bralabel(label2)))
-                result[ketlabel(label1),bralabel(label2)] = 0
-            end
-            result[ketlabel(label1),bralabel(label2)] += v*c*inner_eval(A,B,bralabel(label1),ketlabel(label2)) 
+            add_to_dict!(result,
+                         OpLabel(ketlabel(label1),bralabel(label2)),
+                         v*c*inner_eval(A,B,bralabel(label1),ketlabel(label2)))
         end
-        return result
+        return DiracOp{typejoin(A,B)}(result)
     end
 
     function inner{A,B}(a::DiracOp{A}, b::DualOp{B})
-        result = DiracOp{typejoin(A,B)}()
+        result = OpDict()
         for (label1,v) in dict(a), (label2,c) in dict(b)
-            if !haskey(result, OpLabel(ketlabel(label1),ketlabel(label2)))
-                result[ketlabel(label1),ketlabel(label2)] = 0
-            end
-            result[ketlabel(label1),ketlabel(label2)] += v*c'*inner_eval(A,B,bralabel(label1),bralabel(label2)) 
+            add_to_dict!(result,
+                         OpLabel(ketlabel(label1),ketlabel(label2)),
+                         v*c'*inner_eval(A,B,bralabel(label1),bralabel(label2)))
         end
-        return result
+        return DiracOp{typejoin(A,B)}(result)
     end
 
     function inner{A,B}(a::DualOp{A}, b::DiracOp{B})
-        result = DiracOp{typejoin(A,B)}()
+        result = OpDict()
         for (label1,v) in dict(a), (label2,c) in dict(b)
-            if !haskey(result, OpLabel(bralabel(label1),bralabel(label2)))
-                result[bralabel(label1),bralabel(label2)] = 0
-            end
-            result[bralabel(label1),bralabel(label2)] += v'*c*inner_eval(A,B,ketlabel(label1),ketlabel(label2)) 
+            add_to_dict!(result,
+                         OpLabel(bralabel(label1),bralabel(label2)),
+                         v'*c*inner_eval(A,B,ketlabel(label1),ketlabel(label2)))
         end
-        return result
+        return DiracOp{typejoin(A,B)}(result)
     end
 
     inner(bra::Bra, opc::DualOp) = inner(opc.op, bra')'

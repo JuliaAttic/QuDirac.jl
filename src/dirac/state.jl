@@ -96,7 +96,7 @@
     function inner{A,B}(bra::Bra{A}, ket::Ket{B}, i...)
         result = 0
         for (b,c) in dict(bra), (k,v) in dict(ket)
-            result += c'*v*inner_eval(A,B,b,k,i...) 
+            result += c'*v*inner_eval(A,B,b,k,i...)
         end
         return result  
     end
