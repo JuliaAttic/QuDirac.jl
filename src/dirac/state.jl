@@ -3,22 +3,7 @@
 immutable Factors{N} end
 
 Base.copy{N}(::Factors{N}) = Factors{N}()
-
-add{A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
-sub{A,B}(::Factors{A}, ::Factors{B}) = Factors{A-B}()
-
-# hacky, but works...
-# factor addition/subtraction
-# for 1...max is type stable
-max = 30
-for i=1:max,j=1:max
-    n = i + j
-    m = i - j
-    @eval begin
-        add(::Factors{$i}, ::Factors{$j}) = Factors{$n}()
-        sub(::Factors{$i}, ::Factors{$j}) = Factors{$m}()
-    end
-end
+Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
 
 ###########
 # Ket/Bra #
@@ -133,7 +118,7 @@ end
 
     inner(br, kt) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
     inner(br, kt, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
-    
+
     function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
         result = 0
         for (b,c) in dict(br), (k,v) in dict(kt)
@@ -208,7 +193,7 @@ end
     Base.ctranspose(b::Bra) = b.kt
     Base.norm(s::AbstractState) = sqrt(sum(v->v^2, values(dict(s))))
 
-    QuBase.tensor{P}(kts::Ket{P}...) = Ket(P,mergecart!(tensor_state, StateDict(), map(dict, kts)), mapreduce(fact, add, kts))
+    QuBase.tensor{P}(kts::Ket{P}...) = Ket(P,mergecart!(tensor_state, StateDict(), map(dict, kts)), mapreduce(fact, +, kts))
     QuBase.tensor{P}(brs::Bra{P}...) = Bra(tensor(map(ctranspose, brs)...))
 
     QuBase.normalize(s::AbstractState) = (1/norm(s))*s
