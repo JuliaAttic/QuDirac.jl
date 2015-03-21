@@ -17,8 +17,8 @@ module QuDirac
         abstract AbstractInner
         abstract Orthonormal <: AbstractInner
         
-        abstract AbstractOperator{P<:AbstractInner}
-        abstract AbstractState{P<:AbstractInner}
+        abstract AbstractOperator{P<:AbstractInner,N,M}
+        abstract AbstractState{P<:AbstractInner,N}
 
         abstract DiracScalar <: Number
 
