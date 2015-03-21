@@ -133,11 +133,15 @@
         end
     end
 
-    Base.scale!(c::Number, s::AbstractState) = (castvals!(*, c, dict(s)); return s)
-    Base.scale!(s::AbstractState, c::Number) = (castvals!(*, dict(s), c); return s)
+    Base.scale!(c::Number, k::Ket) = (castvals!(*, c, dict(k)); return k)
+    Base.scale!(k::Ket, c::Number) = (castvals!(*, dict(k), c); return k)
+    Base.scale!(c::Number, b::Bra) = Bra(scale!(c', b.ket))
+    Base.scale!(b::Bra, c::Number) = Bra(scale!(b.ket, c'))
 
-    Base.scale(c::Number, s::AbstractState) = typeof(s)(castvals(*, c, dict(s)))
-    Base.scale(s::AbstractState, c::Number) = typeof(s)(castvals(*, dict(s), c))
+    Base.scale(c::Number, k::Ket) = typeof(k)(castvals(*, c, dict(k)))
+    Base.scale(k::Ket, c::Number) = typeof(k)(castvals(*, dict(k), c))
+    Base.scale(c::Number, b::Bra) = Bra(scale(c', b.ket))
+    Base.scale(b::Bra, c::Number) = Bra(scale(b.ket, c'))
 
     Base.(:+){P}(a::Ket{P}, b::Ket{P}) = Ket{P}(mergef(+, dict(a), dict(b)))
     Base.(:-){P}(a::Ket{P}, b::Ket{P}) = a + (-b)
