@@ -1,6 +1,18 @@
 using QuDirac
 using Base.Test
 
+k = (1+3im) * Ket(1)
+proj = k*k'
+op = QuDirac.to_diracop(proj)
+
+@assert proj[1,1] == 10
+@assert (k'*proj)[1] == 10 - 30im
+@assert (proj*k)[1] == 10 + 30im
+@assert k'*proj*k == (k'*k)*(k'*k) == 100
+@assert (3-im) * k' ==  (3-im) * ((1-3im) * Bra(1))
+@assert (3-im) * k' == Bra([[1]=>(3+im)*(1+3im)])
+@assert (-im * op')[1,1] == 0-10im
+
 k = Ket([[i]=>i+(i*im) for i=0:3])
 b = Ket([[i]=>i+(i*3*im) for i=0:3])'
 op = k*b + Ket(3)*Bra(0)
@@ -11,6 +23,7 @@ op = k*b + Ket(3)*Bra(0)
 @assert maplabels(reverse, mapcoeffs(ctranspose, op)) == op'
 @assert op[2,1] == 8-4im
 @assert k*k*b*b == tensor(k*b,k*b)
+@assert b*(k*b)*k == (b*k)*(b*k)
 @assert b*op*k == 2352 - 3136im
 @assert op+op == 2 * op
 @assert op-op == 0 * op
@@ -30,3 +43,4 @@ belldens = bell * bell'
 
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)
 @test_approx_eq trace(ptrace(belldens, 1)^2) .5
+@test_approx_eq purity(bell) 1
