@@ -51,7 +51,7 @@ module QuDirac
         
         include("dirac/scalar.jl")
         include("dirac/state.jl")
-        include("dirac/diracop.jl")
+        include("dirac/genericop.jl")
         include("dirac/projector.jl")
 
     export AbstractInner,
