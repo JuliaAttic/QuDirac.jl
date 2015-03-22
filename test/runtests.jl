@@ -3,7 +3,7 @@ using Base.Test
 
 k = (1+3im) * ket(1)
 proj = k*k'
-op = QuDirac.to_diracop(proj)
+op = convert(QuDirac.DiracOp, proj)
 
 @assert proj[1,1] == 10
 @assert (k'*proj)[1] == 10 - 30im

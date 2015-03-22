@@ -19,8 +19,6 @@
     Base.promote_rule{P}(::Type{DiracOp{P}}, ::Type{Projector{P}}) = DiracOp{P}
     Base.promote_rule{P,N}(::Type{DiracOp{P,N}}, ::Type{Projector{P,N}}) = DiracOp{P,N}
 
-    to_diracop(op::Projector) = convert(DiracOp, op)
-
 #######################
 # Dict-Like Functions #
 #######################
@@ -38,7 +36,7 @@
     # special and doesn't dispatch directly to getindex...
     # Base.getindex(op::Projector, k, ::Colon) = (op.scalar * op.kt[k]) * op.br
     # Base.getindex(op::Projector, ::Colon, b) = (op.scalar * op.br[b]) * op.kt
-    # Base.getindex(op::Projector, ::Colon, ::Colon) = to_diracop(op)
+    # Base.getindex(op::Projector, ::Colon, ::Colon) = convert(DiracOp, op)
 
     getbra(op::Projector, k::Array) = (op.scalar * op.kt[k]) * op.br
     getket(op::Projector, b::Array) = (op.scalar * op.br[b]) * op.kt
@@ -57,11 +55,11 @@
 ##################################################
 # Function-passing functions (filter, map, etc.) #
 ##################################################
-    Base.filter(f::Function, op::Projector) = filter(f, to_diracop(op))
-    Base.map(f::Function, op::Projector) = map(f, to_diracop(op))
+    Base.filter(f::Function, op::Projector) = filter(f, convert(DiracOp, op))
+    Base.map(f::Function, op::Projector) = map(f, convert(DiracOp, op))
 
-    mapcoeffs(f::Function, op::Projector) = mapcoeffs(f, to_diracop(op))
-    maplabels(f::Function, op::Projector) = maplabels(f, to_diracop(op))
+    mapcoeffs(f::Function, op::Projector) = mapcoeffs(f, convert(DiracOp, op))
+    maplabels(f::Function, op::Projector) = maplabels(f, convert(DiracOp, op))
 
 ##########################
 # Mathematical Functions #
@@ -77,7 +75,7 @@
     Base.scale(op::Projector, c::Number) = scale!(copy(op),c)
 
     Base.(:-)(op::Projector) = (op.scalar = -op.scalar)
-    Base.(:+)(a::Projector, b::Projector) = to_diracop(a) + to_diracop(b)
+    Base.(:+)(a::Projector, b::Projector) = convert(DiracOp, a) + convert(DiracOp, b)
 
     function Base.norm(op::Projector)
         result = 0
@@ -115,8 +113,8 @@
     QuBase.tensor(br::Bra, kt::Ket) = tensor(kt, br)
     QuBase.tensor(a::Projector, b::Projector) = Projector(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
 
-    xsubspace(op::Projector,x) = xsubspace(to_diracop(op), x)
-    filternz(op::Projector) = filternz(to_diracop(op))
+    xsubspace(op::Projector,x) = xsubspace(convert(DiracOp, op), x)
+    filternz(op::Projector) = filternz(convert(DiracOp, op))
     purity(op::Projector) = trace(op^2)
 
     ptrace{P}(op::Projector{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
