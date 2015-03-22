@@ -1,12 +1,6 @@
 ###########
 # Ket/Bra #
 ###########
-    global DEFAULT_INNER = Orthonormal
-
-    function set_default_inner{P<:AbstractInner}(::Type{P})
-        global DEFAULT_INNER = P
-    end
-
     typealias StateDict Dict{Vector{Any},Number}
 
     type Ket{P,N} <: AbstractState{P,N}

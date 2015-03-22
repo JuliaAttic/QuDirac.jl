@@ -27,6 +27,12 @@ module QuDirac
     #############
         QuBase.tensor() = error("Cannot call tensor function without arguments")
 
+        global DEFAULT_INNER = Orthonormal
+
+        function set_default_inner{P<:AbstractInner}(::Type{P})
+            global DEFAULT_INNER = P
+        end
+
     ###########
     # Factors #
     ###########
@@ -49,7 +55,8 @@ module QuDirac
         include("dirac/projector.jl")
 
     export AbstractInner,
-        Orthonormal
+        Orthonormal,
+        set_default_inner
 end 
 
 using QuBase
