@@ -4,10 +4,10 @@
 ################
     # An InnerProduct is a type that
     # represents an abstract scalar formulated in
-    # Dirac notation - a bra-ket product.
+    # Dirac notation - a br-kt product.
     immutable InnerProduct{P<:AbstractInner} <: DiracScalar
-        bralabel::Vector
-        ketlabel::Vector
+        brlabel::Vector
+        ktlabel::Vector
         InnerProduct(b::Vector, k::Vector) = new(b,k)
         InnerProduct(b, k) = InnerProduct{P}([b],[k])
     end
@@ -21,19 +21,20 @@
     ######################
     # Accessor Functions #
     ######################
-    bralabel(i::InnerProduct) = i.bralabel
-    ketlabel(i::InnerProduct) = i.ketlabel
+    brlabel(i::InnerProduct) = i.brlabel
+    ktlabel(i::InnerProduct) = i.ktlabel
 
     ######################
     # Printing Functions #
     ######################
-    Base.repr(i::InnerProduct) = brastr(bralabel(i))*ketstr(ketlabel(i))[2:end]
+    Base.repr(i::InnerProduct) = brstr(brlabel(i))*ktstr(ktlabel(i))[2:end]
     Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 
     ###########################
     # Mathematical Operations #
     ###########################
-    Base.conj{P}(i::InnerProduct{P}) = InnerProduct{P}(getketlabel(i), getbralabel(i))
+    Base.(:(==))(a::InnerProduct, b::InnerProduct) = brlabel(a) == brlabel(b) && ktlabel(a) == ktlabel(b) 
+    Base.conj{P}(i::InnerProduct{P}) = InnerProduct{P}(getktlabel(i), getbrlabel(i))
 
 ##############
 # ScalarExpr #
@@ -58,6 +59,8 @@
 
     ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
     ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
+
+    Base.(:(==))(a::ScalarExpr, b::ScalarExpr) = a.ex == b.ex
 
     Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
     Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
@@ -113,6 +116,7 @@
     Base.(:^)(s::DiracScalar, n::Number) = exponentiate(s,n)
 
     Base.exp(s::DiracScalar) = ScalarExpr(:(exp($(s))))
+    Base.sqrt(s::DiracScalar) = ScalarExpr(:(sqrt($(s))))
 
     # The reason we don't actually implement the below comment
     # out method for exp() is that we don't know for sure that 
@@ -277,4 +281,6 @@
     Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
 export ScalarExpr,
+    ktlabel,
+    brlabel,
     queval

@@ -1,7 +1,11 @@
 ###########
 # Ket/Bra #
 ###########
-    DEFAULT_INNER() = Orthonormal
+    global DEFAULT_INNER = Orthonormal
+
+    function set_default_inner{P<:AbstractInner}(::Type{P})
+        global DEFAULT_INNER = P
+    end
 
     typealias StateDict Dict{Vector{Any},Number}
 
@@ -16,7 +20,7 @@
 
     ket{P<:AbstractInner,N}(::Type{P}, label::NTuple{N}) = Ket(P,single_dict(StateDict(), collect(label), 1), Factors{N}())
     ket{P<:AbstractInner}(::Type{P}, items...) = ket(P,items)
-    ket(items...) = ket(DEFAULT_INNER(), items)
+    ket(items...) = ket(DEFAULT_INNER, items)
 
     type Bra{P,N} <: AbstractState{P,N}
         kt::Ket{P,N}
@@ -205,6 +209,8 @@
     # but makes a good sanity check function
     purity(kt::Ket) = purity(kt*kt')
     purity(br::Bra) = purity(br.kt)
+
+    queval(f, s::AbstractState) = mapcoeffs(x->queval(f,x),s)
 
 ######################
 # Printing Functions #
