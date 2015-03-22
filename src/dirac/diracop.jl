@@ -16,11 +16,11 @@
 ##################
 # DiracOp/DualOp #
 ##################
-    abstract GenericOperator{P,N} <: AbstractOperator{P,N}
+    abstract GenericOp{P,N} <: AbstractOperator{P,N}
 
     typealias OpDict Dict{OpLabel,Number}
 
-    type DiracOp{P,N} <: GenericOperator{P}
+    type DiracOp{P,N} <: GenericOp{P,N}
         dict::OpDict
         fact::Factors{N}
         DiracOp(dict,fact) = new(dict,fact)
@@ -29,7 +29,7 @@
 
     DiracOp{P,N}(::Type{P}, dict, fact::Factors{N}) = DiracOp{P,N}(dict, fact)
 
-    type DualOp{P,N} <: GenericOperator{P}
+    type DualOp{P,N} <: GenericOp{P,N}
         op::DiracOp{P,N}
     end
 
@@ -77,8 +77,8 @@
         return DiracOp(typejoin(A,B), result, fact(kt))
     end
 
-    Base.copy(op::GenericOperator) = typeof(op)(copy(dict(op)), fact(op))
-    Base.similar(op::GenericOperator, d=similar(dict(op))) = typeof(op)(d, fact(op))
+    Base.copy(op::GenericOp) = typeof(op)(copy(dict(op)), fact(op))
+    Base.similar(op::GenericOp, d=similar(dict(op))) = typeof(op)(d, fact(op))
 
 #######################
 # Dict-Like Functions #
@@ -87,17 +87,17 @@
     Base.(:(==)){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = a.op == b.op
     Base.(:(==))(a::AbstractOperator, b::AbstractOperator) = ==(promote(a,b)...)
 
-    Base.hash(op::GenericOperator) = hash(dict(op), hash(typeof(op)))
+    Base.hash(op::GenericOp) = hash(dict(op), hash(typeof(op)))
 
-    Base.length(op::GenericOperator) = length(dict(op))
+    Base.length(op::GenericOp) = length(dict(op))
 
     Base.getindex(op::DiracOp, label::OpLabel) = dict(op)[label]
     Base.getindex(op::DiracOp, k::Array, b::Array) = op[OpLabel(k,b)]
     Base.getindex(opc::DualOp, label::OpLabel) = opc.op[reverse(label)]'
     Base.getindex(opc::DualOp, k::Array, b::Array) = opc.op[OpLabel(b,k)]'
-    Base.getindex(op::GenericOperator, k, b) = op[[k],[b]]
+    Base.getindex(op::GenericOp, k, b) = op[[k],[b]]
 
-    function Base.setindex!{P,N}(s::GenericOperator{P,N}, c, label::OpLabel)
+    function Base.setindex!{P,N}(s::GenericOp{P,N}, c, label::OpLabel)
         if length(ktlabel(label)) == N && length(brlabel(label)) == N
             return _setindex!(s, c, label)
         else
@@ -105,7 +105,7 @@
         end
     end
 
-    function Base.setindex!{P,N}(s::GenericOperator{P,N}, c, k::Array, b::Array)
+    function Base.setindex!{P,N}(s::GenericOp{P,N}, c, k::Array, b::Array)
         if length(k) == N && length(b) == N
             return _setindex!(s, c, k, b)
         else
@@ -113,19 +113,19 @@
         end
     end
 
-    Base.setindex!(op::GenericOperator, c, k, b) = setindex!(op, c, [k], [b])
+    Base.setindex!(op::GenericOp, c, k, b) = setindex!(op, c, [k], [b])
 
     Base.haskey(op::DiracOp, label::OpLabel) = haskey(dict(op), label)
     Base.haskey(opc::DualOp, label::OpLabel) = haskey(opc.op, reverse(label))
-    Base.haskey(op::GenericOperator, k::Array, b::Array) = haskey(op, OpLabel(k,b))
+    Base.haskey(op::GenericOp, k::Array, b::Array) = haskey(op, OpLabel(k,b))
 
     Base.get(op::DiracOp, label::OpLabel, default) = get(dict(op), label, default)
     Base.get(opc::DualOp, label::OpLabel, default) = haskey(opc, label) ? opc[label] : default
-    Base.get(op::GenericOperator, k::Array, b::Array, default) = get(op, OpLabel(k,b))
+    Base.get(op::GenericOp, k::Array, b::Array, default) = get(op, OpLabel(k,b))
 
     Base.delete!(op::DiracOp, label::OpLabel) = (delete!(dict(op), label); return op)
     Base.delete!(opc::DualOp, label::OpLabel) = delete!(opc.op, reverse(label))
-    Base.delete!(op::GenericOperator, k::Array, b::Array) = delete!(op, OpLabel(k,b))
+    Base.delete!(op::GenericOp, k::Array, b::Array) = delete!(op, OpLabel(k,b))
 
     labels(op::DiracOp) = keys(dict(op))
     labels(opc::DualOp) = imap(reverse, labels(opc.op))
@@ -153,7 +153,7 @@
 ##########################
 # Mathematical Functions #
 ##########################
-    nfactors{P,N}(::GenericOperator{P,N}) = N
+    nfactors{P,N}(::GenericOp{P,N}) = N
 
     eager_ctran(op::DiracOp) = map((k,v)->(reverse(k),v'), op)
     
@@ -253,7 +253,7 @@
 
     function Base.trace{O<:Orthonormal}(op::DiracOp{O})
         result = 0
-        for label in keys(dict(op))
+        for label in labels(op)
             if ktlabel(label)==brlabel(label)
                 result += op[label]
             end
@@ -263,8 +263,8 @@
 
     function Base.trace{P}(op::DiracOp{P})
         result = 0
-        for (label,v) in dict(op)
-            result += v * inner_rule(P, brlabel(label), ktlabel(label))
+        for i in distinct(map(ktlabel, labels(op))), (label,v) in dict(op)
+            result += v * inner_rule(P, i, ktlabel(label)) * inner_rule(P, brlabel(label), i)
         end
         return result
     end
@@ -275,37 +275,40 @@
     QuBase.tensor(opcs::DualOp...) = tensor(map(opc->opc.op, opcs)...)'
     QuBase.tensor(ops::AbstractOperator...) = tensor(promote(ops...)...)
 
-    xsubspace(op::GenericOperator, x) = filter((k,v)->sum(ktlabel(k))==x && sum(brlabel(k))==x, op)
+    xsubspace(op::GenericOp, x) = filter((k,v)->sum(ktlabel(k))==x && sum(brlabel(k))==x, op)
 
-    filternz!(op::GenericOperator) = filter!((k, v) -> v != 0, op)
-    filternz(op::GenericOperator) = filter((k, v) -> v != 0, op)
-    purity(op::GenericOperator) = trace(op^2)
+    filternz!(op::GenericOp) = filter!((k, v) -> v != 0, op)
+    filternz(op::GenericOp) = filter((k, v) -> v != 0, op)
+    purity(op::GenericOp) = trace(op^2)
+
+    queval(f, op::AbstractOperator) = mapcoeffs(x->queval(f,x),op)
 
 #################
 # Partial trace #
 #################
-    ptrace(opc::DualOp, over::Integer) = ptrace(opc.op, over)'
-    ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-    ptrace(op::DiracOp, over) = ptrace_op!(op, over)
+    ptrace{P}(op::GenericOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
+    ptrace(op::GenericOp, over) = ptrace_op(op, over)
 
-    function ptrace_op!{O<:Orthonormal,N}(op::DiracOp{O,N}, over)
+    traced_label(::DiracOp, label, over) = OpLabel(except(ktlabel(label), over), except(brlabel(label), over))
+    traced_label(::DualOp, label, over) = OpLabel(except(brlabel(label), over), except(ktlabel(label), over))
+
+    traced_coeff(::DiracOp, i, label, v, over) = v * inner_rule(P, i[over], ktlabel(label)[over]) * inner_rule(P, brlabel(label)[over], i[over])
+    traced_coeff(::DualOp, i, label, v, over) = v' * inner_rule(P, i[over], brlabel(label)[over]) * inner_rule(P, ktlabel(label)[over], i[over])
+
+    function ptrace_op{O<:Orthonormal,N}(op::GenericOp{O,N}, over)
         result = OpDict()
-        for label in keys(dict(op))
+        for label in labels(op)
             if ktlabel(label)[over] == brlabel(label)[over]
-                add_to_dict!(result,
-                             OpLabel(except(ktlabel(label), over), except(brlabel(label), over)),
-                             op[label])
+                add_to_dict!(result, traced_label(op,label,over), op[label])
             end
         end
         return DiracOp(O,result,Factors{N-1}())
     end
 
-    function ptrace_op!{P,N}(op::DiracOp{P,N}, over)
+    function ptrace_op{P,N}(op::GenericOp{P,N}, over)
         result = OpDict()
-        for (label,v) in dict(op)
-            add_to_dict!(result,
-                         OpLabel(except(ktlabel(label), over), except(brlabel(label), over)),
-                         v*inner_rule(P, ktlabel(label)[over], brlabel(label)[over]))
+        for i in distinct(map(ktlabel, labels(op))), (label,v) in dict(op)
+            add_to_dict!(result, traced_label(op,label,over), traced_coeff(op,i,label,v,over))
         end
         return DiracOp(P,result,Factors{N-1}())
     end
@@ -317,9 +320,9 @@
     labelrepr(opc::DualOp, label, pad) = "$pad$(opc[label]) $(ktstr(brlabel(label)))$(brstr(ktlabel(label)))"
 
     Base.summary(op::AbstractOperator) = "$(typeof(op)) with $(length(op)) operator(s)"
-    Base.show(io::IO, op::GenericOperator) = dirac_show(io, op)
-    Base.showcompact(io::IO, op::GenericOperator) = dirac_showcompact(io, op)
-    Base.repr(op::GenericOperator) = dirac_repr(op)
+    Base.show(io::IO, op::GenericOp) = dirac_show(io, op)
+    Base.showcompact(io::IO, op::GenericOp) = dirac_showcompact(io, op)
+    Base.repr(op::GenericOp) = dirac_repr(op)
 
 ####################
 # Helper Functions #

@@ -80,14 +80,14 @@
     function Base.norm(op::Projector)
         result = 0
         for v in values(dict(op.kt)), c in values(dict(op.br))
-            result += (v*c)^2
+            result += (op.scalar * v * c')^2
         end
         return sqrt(result)
     end
 
     function Base.trace{O<:Orthonormal}(op::Projector{O})
         result = 0
-        for k in keys(dict(op.kt)), b in keys(dict(op.br))
+        for k in labels(op.kt), b in labels(op.br)
             if b==k
                 result += op[k,b]
             end
@@ -97,17 +97,17 @@
 
     function Base.trace{P}(op::Projector{P})
         result = 0
-        for k in keys(dict(op.kt)), b in keys(dict(op.br))
-            result += op[k,b] * inner_rule(P, b, k)
+        for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
+            result += v*c'*inner_rule(P, i, k) * inner_rule(P, b, i)
         end
-        return result
+        return op.scalar * result
     end
 
     inner(br::Bra, op::Projector) = op.scalar * inner(br, op.kt) * op.br
     inner(op::Projector, kt::Ket) = op.scalar * op.kt * inner(op.br, kt)
     inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.br,b.kt), a.kt, b.br)
-    inner(a::Projector, b::GenericOperator) = a.scalar * a.kt * inner(a.br, b)
-    inner(a::GenericOperator, b::Projector) = inner(a, b.kt) * b.br * b.scalar
+    inner(a::Projector, b::GenericOp) = a.scalar * a.kt * inner(a.br, b)
+    inner(a::GenericOp, b::Projector) = inner(a, b.kt) * b.br * b.scalar
 
     QuBase.tensor(kt::Ket, br::Bra) = Projector(1, kt, br)
     QuBase.tensor(br::Bra, kt::Ket) = tensor(kt, br)
@@ -118,11 +118,11 @@
     purity(op::Projector) = trace(op^2)
 
     ptrace{P}(op::Projector{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-    ptrace(op::Projector, over) = ptrace_proj!(op, over)
+    ptrace(op::Projector, over) = ptrace_proj(op, over)
 
-    function ptrace_proj!{O<:Orthonormal,N}(op::Projector{O,N}, over)
+    function ptrace_proj{O<:Orthonormal,N}(op::Projector{O,N}, over)
         result = OpDict()
-        for k in keys(dict(op.kt)), b in keys(dict(op.br))
+        for k in labels(op.kt), b in labels(op.br)
             if k[over] == b[over]
                 add_to_dict!(result,
                              OpLabel(except(k, over), except(b, over)),
@@ -132,12 +132,13 @@
         return DiracOp(O,result,Factors{N-1}())
     end
 
-    function ptrace_proj!{P,N}(op::Projector{P,N}, over)
+    function ptrace_proj{P,N}(op::Projector{P,N}, over)
         result = OpDict()
-        for k in keys(dict(op.kt)), b in keys(dict(op.br))
+        for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
             add_to_dict!(result,
                          OpLabel(except(k, over), except(b, over)),
-                         op[k,b]*inner_rule(P, k[over], b[over]))
+                         op.scalar*v*c'*inner_rule(P, i[over], k[over])
+                         *inner_rule(P, b[over], i[over]))
         end
         return DiracOp(P,result,Factors{N-1}())
     end
