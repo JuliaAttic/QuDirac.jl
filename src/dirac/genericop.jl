@@ -31,8 +31,11 @@
 
     type DualOp{P,N} <: GeneralOp{P,N}
         op::GenericOp{P,N}
+        DualOp(op::GenericOp{P,N}) = new(op)
+        DualOp(items...) = new(GenericOp{P,N}(items...))
     end
 
+    DualOp{P,N}(op::GenericOp{P,N}) = DualOp{P,N}(op)
     DualOp(items...) = DualOp(GenericOp(items...))
 
     Base.convert(::Type{GenericOp}, opc::DualOp) = eager_ctran(opc.op)
@@ -136,19 +139,21 @@
 # Function-passing functions (filter, map, etc.) #
 ##################################################
     Base.filter!(f::Function, op::GenericOp) = (filter!(f, dict(op)); return op)
-    Base.filter!(f::Function, opc::DualOp) = (filter!((k,v)->f(reverse(k),v'), opc.op); return opc)
+    Base.filter!(f::Function, opc::DualOp) = (filter!((k,v)->f(reverse(k),v'), dict(opc)); return opc)
 
     Base.filter(f::Function, op::GenericOp) = similar(op, filter(f, dict(op)))
-    Base.filter(f::Function, opc::DualOp) = DualOp(filter((k,v)->f(reverse(k),v'), opc.op))
+    Base.filter(f::Function, opc::DualOp) = similar(opc, filter((k,v)->f(reverse(k),v'), dict(opc)))
 
     Base.map(f::Function, op::GenericOp) = similar(op, mapkv(f, dict(op)))
-    Base.map(f::Function, opc::DualOp) = mapkv!((k,v)->f(reverse(k),v'), similar(opc), opc.op)
+    Base.map(f::Function, opc::DualOp) = similar(opc, mapkv((k,v)->dualkv(f(reverse(k),v')), dict(opc)))
     
+    dualkv(kv) = (reverse(kv[1]),kv[2]')
+
     mapcoeffs(f::Function, op::GenericOp) = similar(op, mapvals(f, dict(op)))
-    mapcoeffs(f::Function, opc::DualOp) = mapvals!(v->f(v'), similar(opc), opc.op)
+    mapcoeffs(f::Function, opc::DualOp) = similar(opc, mapvals(v->f(v')', dict(opc)))
 
     maplabels(f::Function, op::GenericOp) = similar(op, mapkeys(f, dict(op)))
-    maplabels(f::Function, opc::DualOp) = mapkeys!(k->f(reverse(k)), similar(opc), opc.op)
+    maplabels(f::Function, opc::DualOp) = similar(opc, mapkeys(k->reverse(f(reverse(k))), dict(opc)))
 
 ##########################
 # Mathematical Functions #
@@ -317,7 +322,7 @@
 # Printing Functions #
 ######################
     labelrepr(op::GenericOp, label, pad) = "$pad$(op[label]) $(ktstr(ktlabel(label)))$(brstr(brlabel(label)))"
-    labelrepr(opc::DualOp, label, pad) = "$pad$(opc[label]) $(ktstr(brlabel(label)))$(brstr(ktlabel(label)))"
+    labelrepr(opc::DualOp, label, pad) = "$pad$(opc[reverse(label)]) $(ktstr(brlabel(label)))$(brstr(ktlabel(label)))"
 
     Base.summary(op::AbstractOperator) = "$(typeof(op)) with $(length(op)) operator(s)"
     Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
@@ -341,4 +346,7 @@ export ptrace,
     filternz!,
     purity,
     labels,
-    coeffs
+    coeffs,
+    OpLabel,
+    ktlabel,
+    brlabel

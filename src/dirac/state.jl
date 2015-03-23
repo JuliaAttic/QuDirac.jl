@@ -18,8 +18,11 @@
 
     type Bra{P,N} <: AbstractState{P,N}
         kt::Ket{P,N}
+        Bra(kt::Ket{P,N}) = new(kt)
+        Bra(items...) = new(Ket{P,N}(items...))
     end
 
+    Bra{P,N}(kt::Ket{P,N}) = Bra{P,N}(kt)
     Bra(items...) = Bra(Ket(items...))
     bra(items...) = Bra(ket(items...))
 
@@ -79,21 +82,20 @@
 # Function-passing functions (filter, map, etc.) #
 ##################################################
     Base.filter!(f::Function, kt::Ket) = (filter!(f, dict(kt)); return kt)
-    Base.filter!(f::Function, br::Bra) = (filter!((k,v)->f(k,v'), br.kt); return br)
+    Base.filter!(f::Function, br::Bra) = (filter!((k,v)->f(k,v'), dict(br)); return br)
 
     Base.filter(f::Function, kt::Ket) = similar(kt, filter(f, dict(kt)))
-    Base.filter(f::Function, br::Bra) = Bra(filter((k,v)->f(k,v'), br.kt))
+    Base.filter(f::Function, br::Bra) = similar(br, filter((k,v)->f(k,v'), dict(br)))
 
     Base.map(f::Function, kt::Ket) = similar(kt, mapkv(f, dict(kt)))
+    Base.map(f::Function, br::Bra) = similar(br, mapkv((k,v)->valctran(f(k,v')), dict(br)))
 
-    # By mutating an existing Bra instance, coefficients are
-    # properly conjugated when they're both accessed *and* set
-    Base.map(f::Function, br::Bra) = mapkv!((k,v)->f(k,v'), similar(br), br.kt)
+    valctran(kv) = (kv[1], kv[2]')
 
     mapcoeffs!(f::Function, k::Ket) = (mapvals!(f, dict(k)); return k)
-    mapcoeffs!(f::Function, b::Bra) = (mapvals!(f, b, dict(b)); return b)
+    mapcoeffs!(f::Function, b::Bra) = (mapvals!(v->f(v')', dict(b)); return b)
     mapcoeffs(f::Function, kt::Ket) = similar(kt, mapvals(f, dict(kt)))
-    mapcoeffs(f::Function, br::Bra) = mapvals!(v->f(v'), similar(br), br.kt)
+    mapcoeffs(f::Function, br::Bra) = similar(br, mapvals(v->f(v')', dict(br)))
 
     maplabels!(f::Function, s::AbstractState) = (mapkeys!(f, dict(s)); return s)
     maplabels(f::Function, s::AbstractState) = similar(s, mapkeys(f, dict(s)))
