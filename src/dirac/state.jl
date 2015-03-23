@@ -84,19 +84,22 @@
     Base.filter(f::Function, kt::Ket) = similar(kt, filter(f, dict(kt)))
     Base.filter(f::Function, br::Bra) = Bra(filter((k,v)->f(k,v'), br.kt))
 
-    Base.map(f::Function, kt::Ket) = similar(kt, mapkv(f, dict(kt)))
+    labelcheck(pair::NTuple{2}, N) = length(kv[1]) == N ? return kv : throw(BoundsError())
+    labelcheck(label, N) = length(label) == N ? return label : throw(BoundsError())
+
+    Base.map{P,N}(f::Function, kt::Ket{P,N}) = similar(kt, mapkv((k,v) -> (labelcheck(f(k,v), N)), dict(kt)))
 
     # By mutating an existing Bra instance, coefficients are
     # properly conjugated when they're both accessed *and* set
-    Base.map(f::Function, br::Bra) = mapkv!((k,v)->f(k,v'), similar(br), br.kt)
+    Base.map{P,N}(f::Function, br::Bra{P,N}) = mapkv!((k,v) -> (labelcheck(f(k,v'), N)), similar(br), br.kt)
 
     mapcoeffs!(f::Function, k::Ket) = (mapvals!(f, dict(k)); return k)
     mapcoeffs!(f::Function, b::Bra) = (mapvals!(f, b, dict(b)); return b)
     mapcoeffs(f::Function, kt::Ket) = similar(kt, mapvals(f, dict(kt)))
     mapcoeffs(f::Function, br::Bra) = mapvals!(v->f(v'), similar(br), br.kt)
 
-    maplabels!(f::Function, s::AbstractState) = (mapkeys!(f, dict(s)); return s)
-    maplabels(f::Function, s::AbstractState) = similar(s, mapkeys(f, dict(s)))
+    maplabels!{P,N}(f::Function, s::AbstractState{P,N}) = (mapkeys!(f, dict(s)); return s)
+    maplabels{P,N}(f::Function, s::AbstractState{P,N}) = similar(s, mapkeys(label -> labelcheck(f(label), N), dict(s)))
 
     function wavefunc(f::Function, kt::Ket)
         return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(kt))
