@@ -6,9 +6,9 @@
     # represents an abstract scalar formulated in
     # Dirac notation - a br-kt product.
     immutable InnerProduct{P<:AbstractInner} <: DiracScalar
-        brlabel::Vector
-        ktlabel::Vector
-        InnerProduct(b::Vector, k::Vector) = new(b,k)
+        brlabel::Vector{Any}
+        ktlabel::Vector{Any}
+        InnerProduct(b::Array, k::Array) = new(b,k)
         InnerProduct(b, k) = InnerProduct{P}([b],[k])
     end
 
