@@ -49,9 +49,7 @@
 
     Base.getindex(k::Ket, label::Array) = dict(k)[label]
     Base.getindex(b::Bra, label::Array) = b.kt[label]'
-    Base.getindex{P,N}(::AbstractState{P,N}, ::Tuple) =  throw(BoundsError())
-    Base.getindex{P,N}(s::AbstractState{P,N}, label::NTuple{N}) =  getindex(s, collect(label))
-    Base.getindex{P,N}(s::AbstractState{P,N}, i...) = s[i]
+    Base.getindex(s::AbstractState, i...) = s[collect(i)]
 
     _setindex!(k::Ket, c, label::Array) = setindex!(dict(k), c, label)
     _setindex!(b::Bra, c, label::Array) = setindex!(b.kt, c', label)
