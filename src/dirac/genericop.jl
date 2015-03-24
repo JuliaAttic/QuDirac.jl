@@ -234,15 +234,15 @@
     Base.(:*)(a::AbstractOperator, b::AbstractOperator) = inner(a,b)
     Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 
-    Base.scale!(c::Number, op::GenericOp) = (castvals!(*, c, dict(op)); return op)
-    Base.scale!(op::GenericOp, c::Number) = (castvals!(*, dict(op), c); return op)
-    Base.scale!(c::Number, opc::DualOp) = DualOp(scale!(c',opc.op))
-    Base.scale!(opc::DualOp, c::Number) = DualOp(scale!(opc.op,c'))
+    Base.scale!(op::GenericOp, c::Number) = (dscale!(dict(op), c); return op)
+    Base.scale!(c::Number, op::GenericOp) = scale!(op, c)
+    Base.scale!(opc::DualOp, c::Number) = DualOp(scale!(opc.op, c'))
+    Base.scale!(c::Number, opc::DualOp) = scale!(opc, c)
 
-    Base.scale(c::Number, op::GenericOp) = similar(op, castvals(*, c, dict(op)))
-    Base.scale(op::GenericOp, c::Number) = similar(op, castvals(*, dict(op), c))
-    Base.scale(c::Number, opc::DualOp) = DualOp(scale(c',opc.op))
-    Base.scale(opc::DualOp, c::Number) = DualOp(scale(opc.op,c'))
+    Base.scale(op::GenericOp, c::Number) = similar(op, dscale(dict(op), c))
+    Base.scale(c::Number, op::GenericOp) = scale(op, c)
+    Base.scale(opc::DualOp, c::Number) = DualOp(scale(opc.op, c'))
+    Base.scale(c::Number, opc::DualOp) = scale(opc, c)
 
     Base.(:*)(c::Number, op::AbstractOperator) = scale(c, op)
     Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)

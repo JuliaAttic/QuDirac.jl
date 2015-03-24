@@ -156,16 +156,16 @@
         end
     end
 
-    Base.scale!(c::Number, k::Ket) = (castvals!(*, c, dict(k)); return k)
-    Base.scale!(k::Ket, c::Number) = (castvals!(*, dict(k), c); return k)
-    Base.scale!(c::Number, b::Bra) = Bra(scale!(c', b.kt))
+    Base.scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
+    Base.scale!(c::Number, k::Ket) = scale!(k,c)
     Base.scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
+    Base.scale!(c::Number, b::Bra) = scale!(b,c)
 
-    Base.scale(c::Number, k::Ket) = similar(k,castvals(*, c, dict(k)))
-    Base.scale(k::Ket, c::Number) = similar(k,castvals(*, dict(k), c))
-    Base.scale(c::Number, b::Bra) = Bra(scale(c', b.kt))
+    Base.scale(k::Ket, c::Number) = similar(k, dscale(dict(k), c))
+    Base.scale(c::Number, k::Ket) = scale(k,c)
     Base.scale(b::Bra, c::Number) = Bra(scale(b.kt, c'))
-
+    Base.scale(c::Number, b::Bra) = scale(b,c)
+    
     Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, mergef(+, dict(a), dict(b)))
     Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = a + (-b)
     Base.(:-){P,N}(kt::Ket{P,N}) = mapcoeffs(-, kt)

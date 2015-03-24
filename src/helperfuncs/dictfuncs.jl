@@ -8,6 +8,16 @@ function add_to_dict!(dict, label, c)
     return dict
 end
 
+function dscale!(result, d, c)
+    for (k,v) in d
+        result[k] = c*v
+    end
+    return result
+end
+
+dscale!(d, c) = dscale!(d, d, c)
+dscale(d, c) = dscale!(similar(d), d, c)
+
 function mergecart!(f::Function, result, d::Tuple)
     for pairs in product(d...)
         (k,v) = f(pairs)

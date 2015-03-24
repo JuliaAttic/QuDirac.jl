@@ -1,12 +1,14 @@
 using QuDirac
 using Base.Test
 
-include("constest.jl")
-include("orthotests.jl")
-include("generaltests.jl")
-
 QuDirac.set_default_inner(AbstractInner)
 
 include("constest.jl")
 include("abstractinnertests.jl")
+include("generaltests.jl")
+
+QuDirac.set_default_inner(Orthonormal)
+
+include("constest.jl")
+include("orthotests.jl")
 include("generaltests.jl")
