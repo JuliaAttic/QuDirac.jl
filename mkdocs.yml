@@ -1,8 +1,10 @@
 site_name: QuDirac.jl
 repo_url: https://github.com/JuliaQuantum/QuDirac.jl
-
 pages:
 - ['index.md', 'Introduction']
-- ['bras_and_kets.md', 'Bras and Kets']
-- ['states_as_data_structures.md', 'States as Data Structures']
-- ['custom_inner_products.md', 'Custom Inner Products']
+- ['states_intro.md', 'States', 'Introduction']
+- ['constructing_states.md', 'States', 'Constructing Single Bras and Kets']
+- ['state_math.md', 'States', 'Math with States']
+- ['analyzing_states.md','States', 'Analyzing States']
+- ['custom_inner_products.md', 'States', 'Custom Inner Products']
+theme: readthedocs

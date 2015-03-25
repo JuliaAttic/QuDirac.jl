@@ -5,20 +5,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>QuDirac.jl</title>
+  <title>Analyzing States - QuDirac.jl</title>
   
 
   
   <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
-  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="./css/highlight.css">
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
 
   <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
-  <script type="text/javascript" src="./js/highlight.pack.js"></script>
-  <script src="./js/theme.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script>
 
   <style>
     body {font-size: 90%;}
@@ -34,7 +34,7 @@
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
       <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> QuDirac.jl</a>
+        <a href=".." class="icon icon-home"> QuDirac.jl</a>
         
       </div>
 
@@ -45,27 +45,34 @@
         <span>States</span>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="states_intro/">Introduction</a>
+                    <a class="" href="../states_intro">Introduction</a>
                     
                 </li>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="constructing_states/">Constructing Single Bras and Kets</a>
+                    <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
                     
                 </li>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="state_math/">Math with States</a>
+                    <a class="" href="../state_math">Math with States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">Analyzing States</a>
+                    
+                        <ul>
+                        
+                            <li class="toctree-l2"><a href="#accessing-coefficients">Accessing coefficients</a></li>
+                            
+                        
+                        </ul>
                     
                 </li>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="analyzing_states/">Analyzing States</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="custom_inner_products/">Custom Inner Products</a>
+                    <a class="" href="../custom_inner_products">Custom Inner Products</a>
                     
                 </li>
             
@@ -83,7 +90,7 @@
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
-        <a href="."></a>
+        <a href=".."></a>
       </nav>
 
       
@@ -91,8 +98,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
-    <li><a href=".">Docs</a> &raquo;</li>
-    <li>Introduction</li>
+    <li><a href="..">Docs</a> &raquo;</li>
+    <li>Analyzing States</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -105,18 +112,10 @@
 </div>
           <div role="main">
             <div class="section">
-              <h1 id="qudiracjl">QuDirac.jl</h1>
-<p>QuDirac.jl is a <a href="http://julialang.org/">Julia</a> library for using Dirac notation to perform 
-quantum mechanics computations. </p>
-<p>Documentation is coming soon!</p>
-<p>Features:</p>
-<ul>
-<li>Implementations of state types (<code>Ket</code>,<code>Bra</code>), and a variety of operator types (<code>GenericOp</code>,<code>Projector</code>)</li>
-<li>Extensible inner product rules overloaded on types <code>T&lt;:AbstractInner</code> (undefined inner products are lazy evaluated)</li>
-<li>Subspace selection and transformation via user-defined functions on labels and coefficients</li>
-<li>Generate operator representations from user-defined functions</li>
-<li>Wave function generation from QuDirac states by using label functionals</li>
-</ul>
+              <p>Under the hood, <code>Ket</code>s and <code>Bra</code>s use the <code>Dict</code> type to map labels to coefficients. Thus, a lot of <code>Dict</code>-like behavior for states is supported. </p>
+<p>Because the label --&gt; coefficient map is stored as a <code>Dict</code>, </p>
+<h2 id="accessing-coefficients">Accessing coefficients</h2>
+<p>Coeffc</p>
 
             </div>
           </div>
@@ -124,8 +123,10 @@ quantum mechanics computations. </p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="states_intro/" class="btn btn-neutral float-right" title="Introduction"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../custom_inner_products" class="btn btn-neutral float-right" title="Custom Inner Products"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
+      
+        <a href="../state_math" class="btn btn-neutral" title="Math with States"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -153,8 +154,8 @@ quantum mechanics computations. </p>
         
             <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
         
-      <span><a href="" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="states_intro/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../state_math" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="../custom_inner_products" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 </body>
