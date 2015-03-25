@@ -1,1 +1,8 @@
 site_name: QuDirac.jl
+repo_url: https://github.com/JuliaQuantum/QuDirac.jl
+
+pages:
+- ['index.md', 'Introduction']
+- ['Bras_and_Kets.md', 'Bras and Kets']
+- ['States_as_Data_Structures.md', 'States as Data Structures']
+- ['Custom_Inner_Products.md', 'Custom Inner Products']
