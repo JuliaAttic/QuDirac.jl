@@ -109,7 +109,7 @@ Ket{Orthonormal,1} with 3 state(s):
 
 Two key observations can be made here: 
 
-1. The basis states of a Ket are unordered. See the [States as Data Structures](States_as_Data_Structures.md) section below.
+1. The basis states of a Ket are unordered. See the [States as Data Structures](states_as_data_structures.md) section.
 2. States do not automatically normalize themselves under operations like addition, which leads us to...
 
 
@@ -228,7 +228,7 @@ julia> bra(0,0) * k
 
 As you can see, the above calculations assume an *orthonormal* inner product. This behavior is stored in the state's type information (e.g. `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `P<:Orthonormal` by default. 
 
-QuDirac.jl has support for arbitrary, lazily evaluated inner products as well. To learn more, see the [Custom Inner Products](Custom_Inner_Products.md) section.
+QuDirac.jl has support for arbitrary, lazily evaluated inner products as well. To learn more, see the [Custom Inner Products](custom_inner_products.md) section.
 
 ### 2.6 Outer Product
 
