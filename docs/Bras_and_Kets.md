@@ -1,10 +1,10 @@
-# `Bra`s and `Ket`s
+# Bras and Kets
 
-This section provides an introduction to working with `Bra`s and `Ket`s, the building blocks of Dirac notation. 
+This section provides an introduction to working with Bras and Kets, the building blocks of Dirac notation. 
 
-*Note: Throughout this documentation, I'll refer to `ket`s (lowercase) and `Ket`s (uppercase). `Ket` refers to a type, while `ket` refers to the convenience constructor for that type. The same goes for `bra` and `Bra`.*
+*Note: Throughout this documentation, I'll refer to `ket`s (lowercase) and Kets (uppercase). "Ket" refers to a type, while `ket` refers to the convenience constructor for that type. The same goes for `bra` and "Bra".*
 
-## 1. Constructing Simple `Bra`s and `Ket`s
+## 1. Constructing Simple Bras and Kets
 
 ### 1.1 `ket` Constructor
 To begin, let's make a single state using the `ket` function:
@@ -19,7 +19,7 @@ Ket{Orthonormal,1} with 1 state(s):
 
 As you can see, the `ket` function takes labels (in this case, a single zero) as arguments. 
 
-Using QuDirac.jl, *ANYTHING can be used as a `Ket` label* - primitives, `String`s, composite types, and even other QuDirac objects. Simply pass the label in as we did `0` above:
+Using QuDirac.jl, *ANYTHING can be used as a Ket label* - primitives, `String`s, composite types, and even other QuDirac objects. Simply pass the label in as we did `0` above:
 
 ```
 julia> ket(":)")
@@ -38,7 +38,7 @@ Ket{Orthonormal,1} with 1 state(s):
 ### 1.2 `bra` Constructor
 
 
-`Bra`s can be constructed the same way using the `bra` function:
+Bras can be constructed the same way using the `bra` function:
 
 ```
 julia> bra(0)
@@ -46,7 +46,7 @@ Bra{Orthonormal,1} with 1 state(s):
   1 ⟨ 0 |
 ```
 
-Just like `Ket`s, `Bra` labels can be anything.  
+Just like Kets, Bra labels can be anything.  
 
 
 ### 1.3 Multi-factor states
@@ -79,7 +79,7 @@ julia> nfactors(k)
 
 ## 2. Math with States
 
-*Note: All arithmetic on `Ket`s also works on `Bra`s, though we may not explicitly give examples here.*
+*Note: All arithmetic on Kets also works on Bras, though we may not explicitly give examples here.*
 
 ### 2.1 Addition, Subtraction, and Scalar multiplication
 
@@ -109,7 +109,7 @@ Ket{Orthonormal,1} with 3 state(s):
 
 Two key observations can be made here: 
 
-1. The basis states of a `Ket` are unordered. See the [States as Data Structures](## 3. States as Data Structures) section below.
+1. The basis states of a Ket are unordered. See the [States as Data Structures](States_as_Data_Structures.md) section below.
 2. States do not automatically normalize themselves under operations like addition, which leads us to...
 
 
@@ -183,7 +183,7 @@ Ket{Orthonormal,2} with 1 state(s):
   1 | 0,0 ⟩
 ```
 
-As you might notice, a tensor product of `Ket`s is itself a `Ket`, and the result
+As you might notice, a tensor product of Kets is itself a Ket, and the result
 of the above is the same as if we input `ket(0,0)`. Taking the tensor product of 
 more complicated states illustrates the tensor product's cartesian properties:
 
@@ -213,7 +213,7 @@ Note that in the above, we used Julia's [`sum`](http://julia.readthedocs.org/en/
 
 ### 2.5 Inner Product
 
-Similarly to the tensor product, the inner product can be taken simply by multiplying `Bra`s with `Ket`s:
+Similarly to the tensor product, the inner product can be taken simply by multiplying Bras with Kets:
 
 ```
 julia> bra(0)*ket(1)
@@ -228,7 +228,7 @@ julia> bra(0,0) * k
 
 As you can see, the above calculations assume an *orthonormal* inner product. This behavior is stored in the state's type information (e.g. `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `P<:Orthonormal` by default. 
 
-QuDirac.jl has support for arbitrary, lazily evaluated inner products as well. To learn more, see the [Custom Inner Product]( section.
+QuDirac.jl has support for arbitrary, lazily evaluated inner products as well. To learn more, see the [Custom Inner Products](Custom_Inner_Products.md) section.
 
 ### 2.6 Outer Product
 
