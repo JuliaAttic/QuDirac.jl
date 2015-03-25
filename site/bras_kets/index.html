@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+
+        <title>Bras kets - QuDirac.jl</title>
+
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="..">QuDirac.jl</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            
+                <!-- Main navigation -->
+                <ul class="nav navbar-nav">
+                
+                
+                    <li class="active">
+                        <a href=".">Bras kets</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../custom_inner_products">Custom inner products</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../function_overview">Function overview</a>
+                    </li>
+                
+                
+                
+                    <li >
+                        <a href="../states_as_data_structures">States as data structures</a>
+                    </li>
+                
+                
+                </ul>
+            
+
+            
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                
+                
+                <li >
+                    <a rel="next" href="..">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li >
+                    <a rel="prev" href="../custom_inner_products">
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                
+            </ul>
+            
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#bras-and-kets">Bras and Kets</a></li>
+        
+            <li><a href="#1-constructing-simple-bras-and-kets">1. Constructing Simple Bras and Kets</a></li>
+        
+            <li><a href="#2-math-with-states">2. Math with States</a></li>
+        
+    
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="bras-and-kets"><code>Bra</code>s and <code>Ket</code>s</h1>
+<p>This section provides an introduction to working with <code>Bra</code>s and <code>Ket</code>s, the building blocks of Dirac notation. </p>
+<p><em>Note: Throughout this documentation, I'll refer to <code>ket</code>s (lowercase) and <code>Ket</code>s (uppercase). <code>Ket</code> refers to a type, while <code>ket</code> refers to the convenience constructor for that type. The same goes for <code>bra</code> and <code>Bra</code>.</em></p>
+<h2 id="1-constructing-simple-bras-and-kets">1. Constructing Simple <code>Bra</code>s and <code>Ket</code>s</h2>
+<h3 id="11-ket-constructor">1.1 <code>ket</code> Constructor</h3>
+<p>To begin, let's make a single state using the <code>ket</code> function:</p>
+<pre><code>julia&gt; using QuDirac
+
+julia&gt; ket(0)
+Ket{Orthonormal,1} with 1 state(s):
+  1 | 0 ⟩
+</code></pre>
+
+<p>As you can see, the <code>ket</code> function takes labels (in this case, a single zero) as arguments. </p>
+<p>Using QuDirac.jl, <em>ANYTHING can be used as a <code>Ket</code> label</em> - primitives, <code>String</code>s, composite types, and even other QuDirac objects. Simply pass the label in as we did <code>0</code> above:</p>
+<pre><code>julia&gt; ket(&quot;:)&quot;)
+Ket{Orthonormal,1} with 1 state(s):
+  1 | &quot;:)&quot; ⟩
+
+julia&gt; ket(:a)
+Ket{Orthonormal,1} with 1 state(s):
+  1 | :a ⟩
+
+julia&gt; ket([1,2,3])
+Ket{Orthonormal,1} with 1 state(s):
+  1 | [1,2,3] ⟩
+</code></pre>
+
+<h3 id="12-bra-constructor">1.2 <code>bra</code> Constructor</h3>
+<p><code>Bra</code>s can be constructed the same way using the <code>bra</code> function:</p>
+<pre><code>julia&gt; bra(0)
+Bra{Orthonormal,1} with 1 state(s):
+  1 ⟨ 0 |
+</code></pre>
+
+<p>Just like <code>Ket</code>s, <code>Bra</code> labels can be anything.  </p>
+<h3 id="13-multi-factor-states">1.3 Multi-factor states</h3>
+<p>The number of labels passed to the <code>ket</code>/<code>bra</code> functions determines how many factors there are in the basis of the resulting state. For example, to construct <code>| 0 ⟩ ⊗| 0 ⟩ ⊗ | 0 ⟩</code> we can simply do the following:</p>
+<pre><code>julia&gt; k = ket(0,0,0)
+Ket{Orthonormal,3} with 1 state(s):
+  1 | 0,0,0 ⟩
+
+julia&gt; nfactors(k)
+3
+</code></pre>
+
+<p>The number of factors is encoded in the type information of a state (e.g. the <code>3</code> in <code>Ket{Orthonormal, 3}</code> above) and can be retrieved using the <code>nfactors</code> function.</p>
+<p>Just as with single labels, one is free to use labels of any type for multi-factor states:</p>
+<pre><code>julia&gt; k = ket(0, &quot;:)&quot;, :a, [1,2,3])
+Ket{Orthonormal,4} with 1 state(s):
+  1 | 0,&quot;:)&quot;,:a,[1,2,3] ⟩
+
+julia&gt; nfactors(k)
+4
+</code></pre>
+
+<h2 id="2-math-with-states">2. Math with States</h2>
+<p><em>Note: All arithmetic on <code>Ket</code>s also works on <code>Bra</code>s, though we may not explicitly give examples here.</em></p>
+<h3 id="21-addition-subtraction-and-scalar-multiplication">2.1 Addition, Subtraction, and Scalar multiplication</h3>
+<p>Multiplying a state by a scalar modifies the coefficient appropriately:</p>
+<pre><code>julia&gt; (1+3.4im) * ket(0)
+Ket{Orthonormal,1} with 1 state(s):
+  1.0 + 3.4im | 0 ⟩
+</code></pre>
+
+<p>States can be also be added and subtracted:</p>
+<pre><code>julia&gt; ket(0) + ket(0) == 2 * ket(0)
+true
+
+julia&gt; ket(0) - ket(0) == 0 * ket(0)
+true
+
+julia&gt; 1/√3 * (ket(0) + ket(1) - ket(2))
+Ket{Orthonormal,1} with 3 state(s):
+  0.5773502691896258 | 0 ⟩
+  -0.5773502691896258 | 2 ⟩
+  0.5773502691896258 | 1 ⟩
+</code></pre>
+
+<p>Two key observations can be made here: </p>
+<ol>
+<li>The basis states of a <code>Ket</code> are unordered. See the <a href="## 3. States as Data Structures">States as Data Structures</a> section below.</li>
+<li>States do not automatically normalize themselves under operations like addition, which leads us to...</li>
+</ol>
+<h3 id="22-normalization">2.2 Normalization</h3>
+<p>We can normalize a state in-place by using the <code>normalize!</code> function:</p>
+<pre><code>julia&gt; k = ket(0) + ket(1)
+Ket{Orthonormal,1} with 2 state(s):
+  1 | 0 ⟩
+  1 | 1 ⟩
+
+julia&gt; normalize!(k); k
+Ket{Orthonormal,1} with 2 state(s):
+  0.7071067811865476 | 0 ⟩
+  0.7071067811865476 | 1 ⟩
+</code></pre>
+
+<p>A <code>normalize</code> function (without the trailing "!") is also provided, which normalizes a copy of the state instead of modifying the original:</p>
+<pre><code>julia&gt; k = ket(0) + ket(1)
+Ket{Orthonormal,1} with 2 state(s):
+  1 | 0 ⟩
+  1 | 1 ⟩
+
+julia&gt; normalize(k)
+Ket{Orthonormal,1} with 2 state(s):
+  0.7071067811865475 | 0 ⟩
+  0.7071067811865475 | 1 ⟩
+
+julia&gt; k
+Ket{Orthonormal,1} with 2 state(s):
+  1 | 0 ⟩
+  1 | 1 ⟩
+</code></pre>
+
+<p>You can check the norm of a state using the <code>norm</code> function:</p>
+<pre><code>julia&gt; norm(1/√2 * (ket(0) + ket(1)))
+0.9999999999999999
+</code></pre>
+
+<h3 id="23-getting-a-states-dual">2.3 Getting a State's Dual</h3>
+<p>One can use the <code>ctranspose</code> function to construct the dual of a given state:</p>
+<pre><code>julia&gt; k = im * ket(0)
+Ket{Orthonormal,1} with 1 state(s):
+  0 + 1im | 0 ⟩
+
+julia&gt; k'
+Bra{Orthonormal,1} with 1 state(s):
+  0 - 1im ⟨ 0 |
+
+julia&gt; k'' == k
+true
+
+</code></pre>
+
+<h3 id="24-tensor-product">2.4 Tensor Product</h3>
+<p>One can take a tensor product of states simply by multiplying them:</p>
+<pre><code>julia&gt; ket(0) * ket(0)
+Ket{Orthonormal,2} with 1 state(s):
+  1 | 0,0 ⟩
+</code></pre>
+
+<p>As you might notice, a tensor product of <code>Ket</code>s is itself a <code>Ket</code>, and the result
+of the above is the same as if we input <code>ket(0,0)</code>. Taking the tensor product of 
+more complicated states illustrates the tensor product's cartesian properties:</p>
+<pre><code>julia&gt; normalize!(sum(i-&gt;i^2*ket(i), 0:3) * sum(i-&gt;i/2*ket(i), -3:3))
+Ket{Orthonormal,2} with 28 state(s):
+  -0.5154323951168185 | 3,-3 ⟩
+  0.0 | 1,0 ⟩
+  0.3436215967445456 | 3,2 ⟩
+  -0.019090088708030313 | 1,-1 ⟩
+  0.22908106449636376 | 2,3 ⟩
+  -0.07636035483212125 | 2,-1 ⟩
+  0.019090088708030313 | 1,1 ⟩
+  0.0 | 2,0 ⟩
+  -0.22908106449636376 | 2,-3 ⟩
+  0.1718107983722728 | 3,1 ⟩
+  -0.0 | 0,-1 ⟩
+  -0.05727026612409094 | 1,-3 ⟩
+  0.0 | 0,2 ⟩
+  0.05727026612409094 | 1,3 ⟩
+  0.0 | 0,0 ⟩
+  -0.1718107983722728 | 3,-1 ⟩
+  ⁞
+</code></pre>
+
+<p>Note that in the above, we used Julia's <a href="http://julia.readthedocs.org/en/latest/stdlib/collections/?highlight=sum#Base.sum"><code>sum</code></a> function to quickly construct superpositions of states where the coefficients were a function of the labels (and thus scaled proportionally in the final normalized product). </p>
+<h3 id="25-inner-product">2.5 Inner Product</h3>
+<p>Similarly to the tensor product, the inner product can be taken simply by multiplying <code>Bra</code>s with <code>Ket</code>s:</p>
+<pre><code>julia&gt; bra(0)*ket(1)
+0
+
+julia&gt; k = 1/√2 * (ket(0,0) + ket(1,1)); k' * k
+0.9999999999999998
+
+julia&gt; bra(0,0) * k
+0.7071067811865475
+</code></pre>
+
+<p>As you can see, the above calculations assume an <em>orthonormal</em> inner product. This behavior is stored in the state's type information (e.g. <code>Ket{Orthonormal,1}</code>), and you may notice that the <code>bra</code>/<code>ket</code> functions construct states with product type <code>P&lt;:Orthonormal</code> by default. </p>
+<p>QuDirac.jl has support for arbitrary, lazily evaluated inner products as well. To learn more, see the [Custom Inner Product]( section.</p>
+<h3 id="26-outer-product">2.6 Outer Product</h3>
+</div>
+            
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            
+            <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+
+        
+
+        <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/prettify-1.0.min.js"></script>
+        <script src="../js/highlight.pack.js"></script>
+        <script src="../js/base.js"></script>
+    </body>
+</html>
