@@ -46,7 +46,7 @@ module QuDirac
     ######################
     # Include Statements #
     ######################
-        include("helperfuncs/arrfuncs.jl")
+        include("helperfuncs/miscfuncs.jl")
         include("helperfuncs/dictfuncs.jl")
         
         include("dirac/scalar.jl")

@@ -166,7 +166,7 @@
 ##########################
     nfactors{P,N}(::GeneralOp{P,N}) = N
 
-    eager_ctran(op::GenericOp) = map((k,v)->(reverse(k),v'), op)
+    eager_ctran(op::GenericOp) = map(ctpair, op)
     
     Base.ctranspose(op::GenericOp) = DualOp(op)
     Base.ctranspose(opc::DualOp) = opc.op
@@ -248,7 +248,7 @@
     Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
     Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
 
-    Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(a,mergef(+, dict(a), dict(b)))
+    Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(a, addmerge(dict(a), dict(b)))
     Base.(:+){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op + b.op)
     Base.(:+)(a::AbstractOperator, b::AbstractOperator) = +(promote(a,b)...)
 
@@ -256,7 +256,7 @@
     Base.(:-)(op::GenericOp) = mapcoeffs(-, op)
     Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
-    Base.norm(op::GenericOp) = sqrt(sum(v->v^2, values(dict(op))))
+    Base.norm(op::GenericOp) = sqrt(sum(sqr, values(dict(op))))
     Base.norm(opc::DualOp) = norm(opc.op)
     
     QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
@@ -282,14 +282,14 @@
 
     Base.trace(opc::DualOp) = trace(opc.op)'
 
-    QuBase.tensor{P}(ops::GenericOp{P}...) = GenericOp(P,mergecart!(tensor_op, OpDict(), map(dict, ops)),mapreduce(fact, +, ops))
-    QuBase.tensor(opcs::DualOp...) = tensor(map(opc->opc.op, opcs)...)'
+    QuBase.tensor{P}(ops::GenericOp{P}...) = GenericOp(P, tensorop!(OpDict(), map(dict, ops)), mapreduce(fact, +, ops))
+    QuBase.tensor(opcs::DualOp...) = tensor(map(ctranspose, opcs)...)'
     QuBase.tensor(ops::AbstractOperator...) = tensor(promote(ops...)...)
 
-    xsubspace(op::GeneralOp, x) = filter((k,v)->sum(ktlabel(k))==x && sum(brlabel(k))==x, op)
+    xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->isx(k,x), dict(op)))
+    filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
+    filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
 
-    filternz!(op::GeneralOp) = filter!((k, v) -> v != 0, op)
-    filternz(op::GeneralOp) = filter((k, v) -> v != 0, op)
     purity(op::GeneralOp) = trace(op^2)
 
     queval(f, op::AbstractOperator) = mapcoeffs(x->queval(f,x),op)
@@ -334,15 +334,6 @@
     Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
     Base.showcompact(io::IO, op::GeneralOp) = dirac_showcompact(io, op)
     Base.repr(op::GeneralOp) = dirac_repr(op)
-
-####################
-# Helper Functions #
-####################
-    function tensor_op(pairs)
-        #pairs structure is: (((op1ktlabel, op1brlabel), op1value), ((op2ktlabel, op2brlabel), op2value)...,)
-        labels = map(first, pairs)
-        return (OpLabel(vcat(map(ktlabel, labels)...), vcat(map(brlabel, labels)...)), prod(second, pairs))
-    end
 
 export ptrace,
     xsubspace,

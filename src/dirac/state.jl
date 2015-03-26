@@ -167,9 +167,9 @@
     Base.scale(b::Bra, c::Number) = Bra(scale(b.kt, c'))
     Base.scale(c::Number, b::Bra) = scale(b,c)
     
-    Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, mergef(+, dict(a), dict(b)))
+    Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, addmerge(dict(a), dict(b)))
     Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = a + (-b)
-    Base.(:-){P,N}(kt::Ket{P,N}) = mapcoeffs(-, kt)
+    Base.(:-){P,N}(kt::Ket{P,N}) = scale(-1,kt)
 
     Base.(:+)(a::Bra, b::Bra) = Bra(a.kt+b.kt)
     Base.(:-)(a::Bra, b::Bra) = Bra(a.kt-b.kt)
@@ -185,22 +185,22 @@
 
     Base.ctranspose(k::Ket) = Bra(k)
     Base.ctranspose(b::Bra) = b.kt
-    Base.norm(s::AbstractState) = sqrt(sum(v->v^2, values(dict(s))))
+    Base.norm(s::AbstractState) = sqrt(sum(sqr, values(dict(s))))
 
-    QuBase.tensor{P}(kts::Ket{P}...) = Ket(P,mergecart!(tensor_state, StateDict(), map(dict, kts)), mapreduce(fact, +, kts))
+    QuBase.tensor{P}(kts::Ket{P}...) = Ket(P,tensorstate!(StateDict(), map(dict, kts)), mapreduce(fact, +, kts))
     QuBase.tensor{P}(brs::Bra{P}...) = Bra(tensor(map(ctranspose, brs)...))
 
     QuBase.normalize(s::AbstractState) = (1/norm(s))*s
     QuBase.normalize!(s::AbstractState) = scale!(1/norm(s), s)
 
-    xsubspace(s::AbstractState, x) = filter((k,v)->sum(k)==x, s)
+    xsubspace(s::AbstractState, x) = similar(s, filter((k,v)->isx(k,x), dict(s)))
     switch(s::AbstractState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
     permute(s::AbstractState, perm) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
     switch!(s::AbstractState, i, j) = (mapkeys!(label->switch(label,i,j), dict(s)); return s)
     Base.permute!(s::AbstractState, perm::AbstractVector) = (mapkeys!(label->permute(label,perm), dict(s)); return s)
 
-    filternz!(s::AbstractState) = filter!((k, v) -> v != 0, s)
-    filternz(s::AbstractState) = filter((k, v) -> v != 0, s)
+    filternz!(s::AbstractState) = (filter!(nzcoeff, dict(s)); return s)
+    filternz(s::AbstractState) = similar(s, filter(nzcoeff, dict(s)))
 
     # should always be pure, of course,
     # but makes a good sanity check function
@@ -223,14 +223,6 @@
     Base.show(io::IO, s::AbstractState) = dirac_show(io, s)
     Base.showcompact(io::IO, s::AbstractState) = dirac_showcompact(io, s)
     Base.repr(s::AbstractState) = dirac_repr(s)
-
-####################
-# Helper Functions #
-####################
-    function tensor_state(pairs)
-        #pairs structure is: ((label1, value1), (label2, value2)....,)
-        return (vcat(map(first, pairs)...), prod(second, pairs))
-    end
 
 export ket,
     bra,

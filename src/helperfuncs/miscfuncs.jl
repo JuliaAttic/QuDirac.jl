@@ -1,6 +1,11 @@
-############################
-# Combinatorical Functions #
-############################
+####################
+# Passed Functions #
+####################
+isx(oplabel, x) = sum(ktlabel(oplabel))==x && sum(brlabel(oplabel))==x
+isx(k::Array, x) = sum(k) == x
+ctpair(k,v) = (reverse(k), v')
+sqr(v) = v^2
+nzcoeff(k,v) = v!=0
 second(t) = t[2]
 except(arr, i) = deleteat!(copy(arr), i)
 function switch!(arr, i, j)
