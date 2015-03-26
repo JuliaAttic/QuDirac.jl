@@ -9,7 +9,7 @@ While supporting a lot of `Dict`-like behavior opens up some interesting avenues
 ## Accessing coefficients
 ---
 
-Coefficients of states are accessed by the labels of the basis states:
+Coefficients are accessed by the labels of the basis states:
 
 ```
 julia> k = normalize!(sum(i->i*ket(i), 0:3))
