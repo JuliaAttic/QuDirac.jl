@@ -12,7 +12,6 @@
     end
 
     inner_eval{A,B}(::Type{A}, ::Type{B}, k, b) = inner_rule(typejoin(A, B), k, b)
-    inner_eval{A,B}(::Type{A}, ::Type{B}, k, b, i, j) = inner_rule(A, B, k[i], b[j])
 
     inner_rule{P<:AbstractInner}(::Type{P}, k, b) = ScalarExpr(InnerProduct{P}(k, b))
     inner_rule{O<:Orthonormal}(::Type{O}, k, b) = k == b ? 1 : 0

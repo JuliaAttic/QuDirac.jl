@@ -14,3 +14,6 @@
 @test_approx_eq purity(bell) 1
 
 @assert ptrace(ptrace(bitdens, 2), 1) == ptrace(ptrace(bitdens, 1), 2)
+
+@assert inner(bra(0), bell_unbal, 2)[1] == bell_unbal[1,0]
+@assert inner(bra(0), bell_unbal, 1)[1] == bell_unbal[0,1]

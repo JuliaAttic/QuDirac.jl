@@ -128,14 +128,15 @@
         end
     end
 
-    function inner{A,B}(br::Bra{A,1}, kt::Ket{B}, i)
-        result = StateCoeffs()
+    function inner{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
+        result = StateDict()
+        P = typejoin(A,B)
         for (b,c) in dict(br), (k,v) in dict(kt)
             add_to_dict!(result, 
-                         except(k,i), 
-                         c'*v*inner_eval(A,B,b,k,i,i))
+                         except(k,i),
+                         c'*v*inner_rule(P,b[1],k[i]))
         end
-        return Ket{B}(result)
+        return Ket(P, result, Factors{N-1}())
     end 
 
     function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::AbstractState{A}, b::AbstractState{B})
@@ -248,4 +249,5 @@ export ket,
     purity,
     wavefunc,
     labels,
-    coeffs
+    coeffs,
+    inner
