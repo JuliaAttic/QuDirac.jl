@@ -109,8 +109,8 @@
 ##########################
     nfactors{P,N}(::AbstractState{P,N}) = N
 
-    inner(br, kt) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
-    inner(br, kt, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
+    inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
+    inner(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
     function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
         result = 0

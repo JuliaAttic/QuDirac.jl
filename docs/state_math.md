@@ -189,6 +189,20 @@ Ket{Orthonormal,1} with 2 state(s):
   0.4472135954999579 | 1 ⟩
 ```
 
+This does, of course, work even when the Bra is a superposition of states:
+
+```
+julia> ϕ = 1/√2 * (bra(0) + bra(1))
+Bra{Orthonormal,1} with 2 state(s):
+  0.7071067811865475 ⟨ 0 |
+  0.7071067811865475 ⟨ 1 |
+
+julia> inner(ϕ, ψ, 2)
+Ket{Orthonormal,1} with 2 state(s):
+  0.3162277660168379 | 0 ⟩
+  0.6324555320336758 | 1 ⟩
+```
+
 As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `Orthonormal` in `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `Orthonormal` by default. QuDirac also has support for arbitrary, lazily evaluated inner products when states aren't simply orthonormal. To learn more, see the [Custom Inner Products](custom_inner_products.md) section.
 
 ---
