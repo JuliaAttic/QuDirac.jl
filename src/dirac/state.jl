@@ -187,8 +187,8 @@
     Base.ctranspose(b::Bra) = b.kt
     Base.norm(s::AbstractState) = sqrt(sum(sqr, values(dict(s))))
 
-    QuBase.tensor{P}(kts::Ket{P}...) = Ket(P,tensorstate!(StateDict(), map(dict, kts)), mapreduce(fact, +, kts))
-    QuBase.tensor{P}(brs::Bra{P}...) = Bra(tensor(map(ctranspose, brs)...))
+    QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(P,tensorstate!(StateDict(), dict(a), dict(b)), fact(a)+fact(b))
+    QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
     QuBase.normalize(s::AbstractState) = (1/norm(s))*s
     QuBase.normalize!(s::AbstractState) = scale!(1/norm(s), s)

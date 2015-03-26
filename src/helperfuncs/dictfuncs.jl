@@ -56,17 +56,21 @@ mapkeys(f::Function, d) = mapkeys!(f, similar(d), d)
 ##########
 # tensor #
 ##########
-function tensorstate!(result, d::Tuple)
-    for pairs in product(d...)
-        result[vcat(map(first, pairs)...)] = prod(second, pairs)
+function tensorstate!(result, a, b)
+    for kvs in product(a, b)
+        setindex!(result,
+                  kvs[1][2]*kvs[2][2],
+                  vcat(kvs[1][1], kvs[2][1]))
     end
     return result
 end
 
-function tensorop!(result, d::Tuple)
-    for pairs in product(d...)
-        labels = map(first, pairs)
-        result[OpLabel(vcat(map(ktlabel, labels)...), vcat(map(brlabel, labels)...))] = prod(second, pairs)
+function tensorop!(result, a, b)
+    for kvs in product(a, b)
+        setindex!(result, 
+                  kvs[1][2] * kvs[2][2],
+                  OpLabel(vcat(ktlabel(kvs[1][1]), ktlabel(kvs[2][1])), 
+                          vcat(brlabel(kvs[1][1]), brlabel(kvs[2][1]))))
     end
     return result
 end

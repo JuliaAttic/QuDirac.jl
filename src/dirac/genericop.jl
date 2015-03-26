@@ -282,9 +282,9 @@
 
     Base.trace(opc::DualOp) = trace(opc.op)'
 
-    QuBase.tensor{P}(ops::GenericOp{P}...) = GenericOp(P, tensorop!(OpDict(), map(dict, ops)), mapreduce(fact, +, ops))
-    QuBase.tensor(opcs::DualOp...) = tensor(map(ctranspose, opcs)...)'
-    QuBase.tensor(ops::AbstractOperator...) = tensor(promote(ops...)...)
+    QuBase.tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(P, tensorop!(OpDict(), dict(a), dict(b)), fact(a)+fact(b))
+    QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
+    QuBase.tensor(a::AbstractOperator, b::AbstractOperator) = tensor(promote(a,b)...)
 
     xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->isx(k,x), dict(op)))
     filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
