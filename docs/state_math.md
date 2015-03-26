@@ -154,9 +154,42 @@ julia> bra(0,0) * k
 0.7071067811865475
 ```
 
-As you can see, the above calculations assume an *orthonormal* inner product. This behavior is stored in the state's type information (e.g. `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `P<:Orthonormal` by default. 
+It is sometimes useful to take the inner product between a Bra and a *specific factor* of a Ket. A math example might be:
 
-QuDirac.jl has support for arbitrary, lazily evaluated inner products as well. To learn more, see the [Custom Inner Products](custom_inner_products.md) section.
+```
+| ψ ⟩ =   c₁ | 0, 1 ⟩ + c₂ | 1, 0 ⟩
+
+⟨ 0₂ | ψ ⟩ =  c₁ ⟨ 0₂ | 0, 1 ⟩ + c₂ ⟨ 0₂ | 1, 0 ⟩
+
+⟨ 0₂ | ψ ⟩ =  c₁ ⟨ 0 | 1 ⟩| 0 ⟩ + c₂ ⟨ 0 | 0 ⟩| 1 ⟩
+```
+
+If these states are orthonormal, our final result is
+
+```
+⟨ 0₂ | ψ ⟩ = 0 | 0 ⟩ + c₂ | 1 ⟩ 
+```
+
+QuDirac supports this operation through the use of the `inner` function:
+
+```
+julia> ψ = normalize!(ket(0,1) + 2*ket(1,0))
+Ket{Orthonormal,2} with 2 state(s):
+  0.4472135954999579 | 0,1 ⟩
+  0.8944271909999159 | 1,0 ⟩
+
+julia> inner(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
+Ket{Orthonormal,1} with 2 state(s):
+  0.0 | 0 ⟩
+  0.8944271909999159 | 1 ⟩
+
+julia> inner(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
+Ket{Orthonormal,1} with 2 state(s):
+  0.0 | 0 ⟩
+  0.4472135954999579 | 1 ⟩
+```
+
+As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `Orthonormal` in `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `Orthonormal` by default. QuDirac also has support for arbitrary, lazily evaluated inner products when states aren't simply orthonormal. To learn more, see the [Custom Inner Products](custom_inner_products.md) section.
 
 ---
 ## Outer Product

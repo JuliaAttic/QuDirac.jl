@@ -60,7 +60,7 @@
                             <li class="toctree-l2"><a href="#constructing-single-bras">Constructing Single Bras</a></li>
                             
                         
-                            <li class="toctree-l2"><a href="#constructing-single-multi-factor-states">Constructing Single Multi-factor States</a></li>
+                            <li class="toctree-l2"><a href="#constructing-single-product-states">Constructing Single Product States</a></li>
                             
                         
                         </ul>
@@ -151,7 +151,7 @@ Bra{Orthonormal,1} with 1 state(s):
 
 <p>Just like Kets, Bra labels can be anything.  </p>
 <hr />
-<h2 id="constructing-single-multi-factor-states">Constructing Single Multi-factor States</h2>
+<h2 id="constructing-single-product-states">Constructing Single Product States</h2>
 <hr />
 <p>The number of labels passed to the <code>ket</code>/<code>bra</code> functions determines how many factors there are in the basis of the resulting state. For example, to construct <code>| 0 ⟩ ⊗| 0 ⟩ ⊗ | 0 ⟩</code> we can simply do the following:</p>
 <pre><code>julia&gt; k = ket(0,0,0)
