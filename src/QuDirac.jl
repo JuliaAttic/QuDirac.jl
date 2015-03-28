@@ -6,53 +6,53 @@ module QuDirac
     ####################
     # String Constants #
     ####################
-        const lang = "\u27E8"
-        const rang = "\u27E9"
-        const otimes = "\u2297"
-        const vdots ="\u205E"
+    const lang = "\u27E8"
+    const rang = "\u27E9"
+    const otimes = "\u2297"
+    const vdots ="\u205E"
 
     ##################
     # Abstract Types #
     ##################
-        abstract AbstractInner
-        abstract Orthonormal <: AbstractInner
-        
-        abstract AbstractOperator{P<:AbstractInner,N}
-        abstract AbstractState{P<:AbstractInner,N}
+    abstract AbstractInner
+    abstract Orthonormal <: AbstractInner
+    
+    abstract AbstractOperator{P<:AbstractInner,N}
+    abstract AbstractState{P<:AbstractInner,N}
 
-        abstract DiracScalar <: Number
+    abstract DiracScalar <: Number
 
     #############
     # Functions #
     #############
-        QuBase.tensor() = error("Cannot call tensor function without arguments")
+    QuBase.tensor() = error("Cannot call tensor function without arguments")
 
-        global DEFAULT_INNER = Orthonormal
+    global DEFAULT_INNER = Orthonormal
 
-        function set_default_inner{P<:AbstractInner}(::Type{P})
-            global DEFAULT_INNER = P
-        end
+    function set_default_inner{P<:AbstractInner}(::Type{P})
+        global DEFAULT_INNER = P
+    end
 
     ###########
     # Factors #
     ###########
-        # could use Val{N} in julia v0.4,
-        # but we're targeting v0.3...
-        immutable Factors{N} end
+    # could use Val{N} in julia v0.4,
+    # but we're targeting v0.3...
+    immutable Factors{N} end
 
-        Base.copy{N}(::Factors{N}) = Factors{N}()
-        Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
+    Base.copy{N}(::Factors{N}) = Factors{N}()
+    Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
 
     ######################
     # Include Statements #
     ######################
-        include("helperfuncs/miscfuncs.jl")
-        include("helperfuncs/dictfuncs.jl")
-        
-        include("dirac/scalar.jl")
-        include("dirac/state.jl")
-        include("dirac/genericop.jl")
-        include("dirac/projector.jl")
+    include("helperfuncs/miscfuncs.jl")
+    include("helperfuncs/dictfuncs.jl")
+    
+    include("dirac/scalar.jl")
+    include("dirac/state.jl")
+    include("dirac/genericop.jl")
+    include("dirac/projector.jl")
 
     export AbstractInner,
         Orthonormal,
