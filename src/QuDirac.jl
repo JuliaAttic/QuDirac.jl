@@ -54,9 +54,25 @@ module QuDirac
     include("dirac/genericop.jl")
     include("dirac/projector.jl")
 
+    ########
+    # @drc #
+    ########
+    const ktpat = r"\|.*?\>"
+    const brpat = r"\<.*?\|"
+
+    ktrep(str) = "ket("*str[2:end-1]*")"
+    brrep(str) = "bra("*str[2:end-1]*")"
+
+    macro drc_str(str)
+        result = replace(str, brpat, brrep)
+        result = replace(result, ktpat, ktrep)
+        return parse(result)
+    end
+
     export AbstractInner,
         Orthonormal,
-        set_default_inner
+        set_default_inner,
+        @drc_str
 end 
 
 using QuBase
