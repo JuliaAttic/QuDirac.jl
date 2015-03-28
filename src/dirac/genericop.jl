@@ -57,17 +57,15 @@ fact(opc::DualOp) = fact(opc.op)
 ################
 function GenericOp{P,N}(f::Function, kt::Ket{P,N})
     result = OpDict()
-    for i in labels
-        for j in labels 
-            (c, new_j) = f(j)
-            if length(new_j) == N 
-                result[OpLabel(i,j)] = c * inner_rule(S, i, new_j)
-            else
-                throw(BoundsError())
-            end
+    for j in labels(kt)
+        (c, new_j) = f(j)
+        if length(new_j) == N
+            result[OpLabel(new_j, j)] = c
+        else
+            throw(BoundsError())
         end
     end
-    return GenericOp(P,result,fact(kt))
+    return filternz!(GenericOp(P,result,fact(kt)))
 end
 
 function GenericOp{A,B,N}(kt::Ket{A,N}, br::Bra{B,N})
@@ -335,7 +333,8 @@ Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
 Base.showcompact(io::IO, op::GeneralOp) = dirac_showcompact(io, op)
 Base.repr(op::GeneralOp) = dirac_repr(op)
 
-export ptrace,
+export GenericOp,
+    ptrace,
     xsubspace,
     nfactors,
     maplabels!,

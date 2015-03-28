@@ -71,7 +71,6 @@ module QuDirac
 
     export AbstractInner,
         Orthonormal,
-        set_default_inner,
         @drc_str
 end 
 
