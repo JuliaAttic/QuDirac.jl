@@ -32,6 +32,9 @@ Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 # Mathematical Operations #
 ###########################
 Base.(:(==))(a::InnerProduct, b::InnerProduct) = brlabel(a) == brlabel(b) && ktlabel(a) == ktlabel(b) 
+Base.(:(==))(::InnerProduct, ::Number) = false
+Base.(:(==))(::Number, ::InnerProduct) = false
+
 Base.conj{P}(i::InnerProduct{P}) = InnerProduct{P}(getktlabel(i), getbrlabel(i))
 
 ##############
@@ -59,6 +62,8 @@ ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
 ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
 
 Base.(:(==))(a::ScalarExpr, b::ScalarExpr) = a.ex == b.ex
+Base.(:(==))(a::InnerProduct, b::ScalarExpr) = ScalarExpr(a) == b
+Base.(:(==))(a::ScalarExpr, b::InnerProduct) = a == ScalarExpr(b)
 
 Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
 Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
