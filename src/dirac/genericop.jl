@@ -65,7 +65,7 @@ function GenericOp{P,N}(f::Function, kt::Ket{P,N})
             throw(BoundsError())
         end
     end
-    return filternz!(GenericOp(P,result,fact(kt)))
+    return GenericOp(P,result,fact(kt))
 end
 
 function GenericOp{A,B,N}(kt::Ket{A,N}, br::Bra{B,N})
