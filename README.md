@@ -91,11 +91,8 @@ Ket{Orthonormal,1} with 4 state(s):
   0.6324555320336759 | 1 ⟩
 
 julia> a*ket(4)
-Ket{Orthonormal,1} with 4 state(s):
-  0.0 | 0 ⟩
+Ket{Orthonormal,1} with 1 state(s):
   2.0 | 3 ⟩
-  0.0 | 2 ⟩
-  0.0 | 1 ⟩
 ```
 
 #### `@drc_str` for inputting expressions in natural Dirac notation
