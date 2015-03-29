@@ -115,5 +115,5 @@ julia> drc" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
 - `xsubspace` allows easy selection of excitation subspaces of states and operators
 - `permute!`/`permute` and `switch!`/`switch` allows generic permutation of factor labels for states
 - `filter`/`filter!` are supported on both the labels and coefficients of operators/states
-- Arbitrary `map` functions (`map`/`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
+- Arbitrary mapping functions (`map`/`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
 - Wave function generation from QuDirac states by using label functionals
