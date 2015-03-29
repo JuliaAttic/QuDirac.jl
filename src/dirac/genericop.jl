@@ -60,7 +60,9 @@ function GenericOp{P,N}(f::Function, kt::Ket{P,N})
     for j in labels(kt)
         (c, new_j) = f(j)
         if length(new_j) == N
-            result[OpLabel(new_j, j)] = c
+            if c != 0
+                result[OpLabel(new_j, j)] = c
+            end
         else
             throw(BoundsError())
         end
@@ -72,7 +74,10 @@ function GenericOp{A,B,N}(kt::Ket{A,N}, br::Bra{B,N})
     result = OpDict()
     for (k,kc) in dict(kt)
         for (b,bc) in dict(br)
-            result[OpLabel(k,b)] = kc * bc'
+            newc = kc * bc'
+            if newc != 0
+                result[OpLabel(k,b)] = newc
+            end
         end
     end
     return GenericOp(typejoin(A,B), result, fact(kt))

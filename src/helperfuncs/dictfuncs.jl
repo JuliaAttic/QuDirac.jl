@@ -113,6 +113,8 @@ function single_dict(dict, label, c)
 end
 
 function add_to_dict!(dict, label, c)
-    dict[label] = get(dict, label, 0)+c
+    if c != 0
+        dict[label] = get(dict, label, 0)+c
+    end
     return dict
 end
