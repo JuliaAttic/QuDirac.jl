@@ -180,12 +180,10 @@ Ket{Orthonormal,2} with 2 state(s):
 
 julia> inner(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
 Ket{Orthonormal,1} with 2 state(s):
-  0.0 | 0 ⟩
   0.8944271909999159 | 1 ⟩
 
 julia> inner(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
 Ket{Orthonormal,1} with 2 state(s):
-  0.0 | 0 ⟩
   0.4472135954999579 | 1 ⟩
 ```
 

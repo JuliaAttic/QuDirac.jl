@@ -78,13 +78,15 @@ end
 #########
 # merge #
 #########
-function addmerge!(d, others...)
+function addmerge!(result, others...)
     for other in others
         for (k,v) in other
-            d[k] = v + get(d,k,0)
+            if v != 0
+                result[k] = v + get(result,k,0)
+            end
         end
     end
-    return d
+    return result
 end
 
 function addmerge(d, others...)
