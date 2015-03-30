@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Constructing Single Bras and Kets - QuDirac.jl</title>
+  <title>Natural expression input using @drc_str - QuDirac.jl</title>
   
 
   
@@ -49,21 +49,8 @@
                     
                 </li>
             
-                <li class="toctree-l1 current">
-                    <a class="current" href=".">Constructing Single Bras and Kets</a>
-                    
-                        <ul>
-                        
-                            <li class="toctree-l2"><a href="#constructing-single-kets">Constructing Single Kets</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#constructing-single-bras">Constructing Single Bras</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#constructing-single-product-states">Constructing Single Product States</a></li>
-                            
-                        
-                        </ul>
+                <li class="toctree-l1 ">
+                    <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
                     
                 </li>
             
@@ -88,8 +75,12 @@
         
         <span>Misc</span>
             
-                <li class="toctree-l1 ">
-                    <a class="" href="../drc_str">Natural expression input using @drc_str</a>
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">Natural expression input using @drc_str</a>
+                    
+                        <ul>
+                        
+                        </ul>
                     
                 </li>
             
@@ -116,7 +107,7 @@
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
-    <li>Constructing Single Bras and Kets</li>
+    <li>Natural expression input using @drc_str</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -129,60 +120,7 @@
 </div>
           <div role="main">
             <div class="section">
-              <h2 id="constructing-single-kets">Constructing Single Kets</h2>
-<hr />
-<p>To begin, let's make a single state using the <code>ket</code> function:</p>
-<pre><code>julia&gt; ket(0)
-Ket{Orthonormal,1} with 1 state(s):
-  1 | 0 ⟩
-</code></pre>
-
-<p>As you can see, the <code>ket</code> function takes labels (in this case, a single zero) as arguments. In QuDirac.jl, anything can be used as a Ket label - primitives, strings, composite types, and even other QuDirac objects. Simply pass the desired label in as we did <code>0</code> above:</p>
-<pre><code>julia&gt; ket(&quot;:)&quot;)
-Ket{Orthonormal,1} with 1 state(s):
-  1 | &quot;:)&quot; ⟩
-
-julia&gt; ket(:a)
-Ket{Orthonormal,1} with 1 state(s):
-  1 | :a ⟩
-
-julia&gt; ket([1,2,3])
-Ket{Orthonormal,1} with 1 state(s):
-  1 | [1,2,3] ⟩
-</code></pre>
-
-<hr />
-<h2 id="constructing-single-bras">Constructing Single Bras</h2>
-<hr />
-<p>Bras can be constructed the same way using the <code>bra</code> function:</p>
-<pre><code>julia&gt; bra(0)
-Bra{Orthonormal,1} with 1 state(s):
-  1 ⟨ 0 |
-</code></pre>
-
-<p>Just like Kets, Bra labels can be anything.  </p>
-<hr />
-<h2 id="constructing-single-product-states">Constructing Single Product States</h2>
-<hr />
-<p>The number of labels passed to the <code>ket</code>/<code>bra</code> functions determines how many factors there are in the basis of the resulting state. For example, to construct <code>| 0 ⟩ ⊗| 0 ⟩ ⊗ | 0 ⟩</code> we can simply do the following:</p>
-<pre><code>julia&gt; k = ket(0,0,0)
-Ket{Orthonormal,3} with 1 state(s):
-  1 | 0,0,0 ⟩
-
-julia&gt; nfactors(k)
-3
-</code></pre>
-
-<p>The number of factors is encoded in the type information of a state (e.g. the <code>3</code> in <code>Ket{Orthonormal, 3}</code> above) and can be retrieved using the <code>nfactors</code> function.</p>
-<p>Just as with single labels, one is free to use labels of any type for multi-factor states:</p>
-<pre><code>julia&gt; k = ket(0, &quot;:)&quot;, :a, [1,2,3])
-Ket{Orthonormal,4} with 1 state(s):
-  1 | 0,&quot;:)&quot;,:a,[1,2,3] ⟩
-
-julia&gt; nfactors(k)
-4
-</code></pre>
-
+              <p>TODO</p>
 
             </div>
           </div>
@@ -190,10 +128,8 @@ julia&gt; nfactors(k)
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../state_math" class="btn btn-neutral float-right" title="Math with States"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
-      
-        <a href="../states_intro" class="btn btn-neutral" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../custom_inner_products" class="btn btn-neutral" title="Custom Inner Products"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -221,8 +157,8 @@ julia&gt; nfactors(k)
         
             <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
         
-      <span><a href="../states_intro" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../state_math" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../custom_inner_products" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 </body>

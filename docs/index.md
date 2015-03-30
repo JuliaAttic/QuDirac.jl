@@ -8,7 +8,7 @@ Documentation is coming soon!
 Features:
 
 - Implementations of state types (`Ket`,`Bra`), and a variety of operator types (`GenericOp`,`Projector`)
-- Extensible inner product rules overloaded on types `T<:AbstractInner` (undefined inner products are lazy evaluated)
+- Extensible inner product rules and inner products types for lazy evaluation
 - Subspace selection and transformation via user-defined functions on labels and coefficients
 - Generate operator representations from user-defined functions
 - Wave function generation from QuDirac states by using label functionals
