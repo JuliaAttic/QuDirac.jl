@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/JuliaQuantum/QuDirac.jl.svg?branch=master)](https://travis-ci.org/JuliaQuantum/QuDirac.jl)
+
 # QuDirac.jl
 
 QuDirac.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
