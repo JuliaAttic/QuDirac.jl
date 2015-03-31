@@ -4,7 +4,7 @@ QuDirac provides a variety of functions for filtering out components of states.
 
 Methods: `filter(obj::AbstractDirac)`, `filter!(obj::AbstractDirac)` 
 
-Description: This function acts exactly like a Julia's built-in filtering functions for `Dict`s
+Description: This function acts exactly like Julia's built-in filtering function for `Dict`s
 
 Example:
 

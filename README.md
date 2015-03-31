@@ -96,15 +96,15 @@ Ket{Orthonormal,1} with 1 state(s):
   2.0 | 3 ⟩
 ```
 
-#### `@drc_str` for inputting expressions in natural Dirac notation
+#### `@d_str` for inputting expressions in natural Dirac notation
 
 ```julia
-julia> drc" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
+julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 0.7071067811865475
 
 julia> QuDirac.set_default_inner(AbstractInner);
 
-julia> drc" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
+julia> d" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 'a','b' | 1,1 ⟩ + ⟨ 'a','b' | 0,0 ⟩) / 1.4142135623730951)
 ```
 

@@ -64,7 +64,7 @@ module QuDirac
     ktrep(str) = "ket("*str[2:end-1]*")"
     brrep(str) = "bra("*str[2:end-1]*")"
 
-    macro drc_str(str)
+    macro d_str(str)
         result = replace(str, brpat, brrep)
         result = replace(result, ktpat, ktrep)
         return parse(result)
@@ -72,7 +72,7 @@ module QuDirac
 
     export AbstractInner,
         Orthonormal,
-        @drc_str,
+        @d_str,
         AbstractDirac,
         DiracState,
         DiracOperator,
