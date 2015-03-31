@@ -1,7 +1,7 @@
 #############
 # Projector #
 #############
-type Projector{P,N} <: AbstractOperator{P,N}
+type Projector{P,N} <: DiracOperator{P,N}
     scalar::Number
     kt::Ket{P,N}
     br::Bra{P,N}

@@ -1,7 +1,7 @@
 ####################
 # Passed Functions #
 ####################
-isx(oplabel, x) = sum(ktlabel(oplabel))==sum(brlabel(oplabel))==x
+isx(label::OpLabel, x) = sum(ktlabel(label))==sum(brlabel(label))==x
 isx(k::Array, x) = sum(k) == x
 ctpair(k,v) = (reverse(k), v')
 sqr(v) = v^2

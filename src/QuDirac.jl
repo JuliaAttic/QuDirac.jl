@@ -17,8 +17,9 @@ module QuDirac
     abstract AbstractInner
     abstract Orthonormal <: AbstractInner
     
-    abstract AbstractOperator{P<:AbstractInner,N}
-    abstract AbstractState{P<:AbstractInner,N}
+    abstract AbstractDirac
+    abstract DiracOperator{P<:AbstractInner,N} <: AbstractDirac
+    abstract DiracState{P<:AbstractInner,N} <: AbstractDirac
 
     abstract DiracScalar <: Number
 
@@ -46,14 +47,14 @@ module QuDirac
     ######################
     # Include Statements #
     ######################
-    include("helperfuncs/miscfuncs.jl")
-    include("helperfuncs/dictfuncs.jl")
-    
     include("dirac/scalar.jl")
     include("dirac/state.jl")
     include("dirac/genericop.jl")
     include("dirac/projector.jl")
 
+    include("helperfuncs/miscfuncs.jl")
+    include("helperfuncs/dictfuncs.jl")
+    
     ########
     # @drc #
     ########
@@ -71,7 +72,11 @@ module QuDirac
 
     export AbstractInner,
         Orthonormal,
-        @drc_str
+        @drc_str,
+        AbstractDirac,
+        DiracState,
+        DiracOperator,
+        DiracScalar
 end 
 
 using QuBase

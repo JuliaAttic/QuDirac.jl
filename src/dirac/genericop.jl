@@ -16,7 +16,7 @@ Base.hash(label::OpLabel) = hash(ktlabel(label), hash(brlabel(label)))
 ####################
 # GenericOp/DualOp #
 ####################
-abstract GeneralOp{P,N} <: AbstractOperator{P,N}
+abstract GeneralOp{P,N} <: DiracOperator{P,N}
 
 typealias OpDict Dict{OpLabel,Number}
 
@@ -91,7 +91,7 @@ Base.similar(op::GeneralOp, d=similar(dict(op))) = typeof(op)(d, fact(op))
 #######################
 Base.(:(==)){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = dict(a) == dict(b)
 Base.(:(==)){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = a.op == b.op
-Base.(:(==))(a::AbstractOperator, b::AbstractOperator) = ==(promote(a,b)...)
+Base.(:(==))(a::DiracOperator, b::DiracOperator) = ==(promote(a,b)...)
 
 Base.hash(op::GeneralOp) = hash(dict(op), hash(typeof(op)))
 
@@ -232,9 +232,9 @@ inner(br::Bra, opc::DualOp) = inner(opc.op, br')'
 inner(opc::DualOp, kt::Ket) = inner(kt', opc.op)'
 inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
 
-Base.(:*)(br::Bra, op::AbstractOperator) = inner(br,op)
-Base.(:*)(op::AbstractOperator, kt::Ket) = inner(op,kt)
-Base.(:*)(a::AbstractOperator, b::AbstractOperator) = inner(a,b)
+Base.(:*)(br::Bra, op::DiracOperator) = inner(br,op)
+Base.(:*)(op::DiracOperator, kt::Ket) = inner(op,kt)
+Base.(:*)(a::DiracOperator, b::DiracOperator) = inner(a,b)
 Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 
 Base.scale!(op::GenericOp, c::Number) = (dscale!(dict(op), c); return op)
@@ -247,23 +247,23 @@ Base.scale(c::Number, op::GenericOp) = scale(op, c)
 Base.scale(opc::DualOp, c::Number) = DualOp(scale(opc.op, c'))
 Base.scale(c::Number, opc::DualOp) = scale(opc, c)
 
-Base.(:*)(c::Number, op::AbstractOperator) = scale(c, op)
-Base.(:*)(op::AbstractOperator, c::Number) = scale(op, c)
-Base.(:/)(op::AbstractOperator, c::Number) = scale(op, 1/c)
+Base.(:*)(c::Number, op::DiracOperator) = scale(c, op)
+Base.(:*)(op::DiracOperator, c::Number) = scale(op, c)
+Base.(:/)(op::DiracOperator, c::Number) = scale(op, 1/c)
 
 Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(a, addmerge(dict(a), dict(b)))
 Base.(:+){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op + b.op)
-Base.(:+)(a::AbstractOperator, b::AbstractOperator) = +(promote(a,b)...)
+Base.(:+)(a::DiracOperator, b::DiracOperator) = +(promote(a,b)...)
 
-Base.(:-)(a::AbstractOperator, b::AbstractOperator) = a + (-b)
+Base.(:-)(a::DiracOperator, b::DiracOperator) = a + (-b)
 Base.(:-)(op::GenericOp) = mapcoeffs(-, op)
 Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
 Base.norm(op::GenericOp) = sqrt(sum(sqr, values(dict(op))))
 Base.norm(opc::DualOp) = norm(opc.op)
 
-QuBase.normalize(op::AbstractOperator) = scale(1/norm(op), op)
-QuBase.normalize!(op::AbstractOperator) = scale!(1/norm(op), op)
+QuBase.normalize(op::DiracOperator) = scale(1/norm(op), op)
+QuBase.normalize!(op::DiracOperator) = scale!(1/norm(op), op)
 
 function Base.trace{O<:Orthonormal}(op::GenericOp{O})
     result = 0
@@ -287,7 +287,7 @@ Base.trace(opc::DualOp) = trace(opc.op)'
 
 QuBase.tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(P, tensorop!(OpDict(), dict(a), dict(b)), fact(a)+fact(b))
 QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
-QuBase.tensor(a::AbstractOperator, b::AbstractOperator) = tensor(promote(a,b)...)
+QuBase.tensor(a::DiracOperator, b::DiracOperator) = tensor(promote(a,b)...)
 
 xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->isx(k,x), dict(op)))
 filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
@@ -295,7 +295,7 @@ filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
 
 purity(op::GeneralOp) = trace(op^2)
 
-queval(f, op::AbstractOperator) = mapcoeffs(x->queval(f,x),op)
+queval(f, op::DiracOperator) = mapcoeffs(x->queval(f,x),op)
 
 #################
 # Partial trace #
@@ -333,7 +333,7 @@ end
 labelrepr(op::GenericOp, label, pad) = "$pad$(op[label]) $(ktstr(ktlabel(label)))$(brstr(brlabel(label)))"
 labelrepr(opc::DualOp, label, pad) = "$pad$(opc[reverse(label)]) $(ktstr(brlabel(label)))$(brstr(ktlabel(label)))"
 
-Base.summary(op::AbstractOperator) = "$(typeof(op)) with $(length(op)) operator(s)"
+Base.summary(op::DiracOperator) = "$(typeof(op)) with $(length(op)) operator(s)"
 Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
 Base.showcompact(io::IO, op::GeneralOp) = dirac_showcompact(io, op)
 Base.repr(op::GeneralOp) = dirac_repr(op)
