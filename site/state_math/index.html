@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Math with States - QuDirac.jl</title>
+  <title>Math with QuDirac objects - QuDirac.jl</title>
   
 
   
@@ -42,55 +42,30 @@
       <ul class="current">
     
         
-        <span>States</span>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../states_intro">Introduction</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 current">
-                    <a class="current" href=".">Math with States</a>
-                    
-                        <ul>
-                        
-                            <li class="toctree-l2"><a href="#addition-subtraction-and-scalar-multiplication">Addition, Subtraction, and Scalar multiplication</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#normalization">Normalization</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#getting-a-states-dual">Getting a State's Dual</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#tensor-product">Tensor Product</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#inner-product">Inner Product</a></li>
-                            
-                        
-                            <li class="toctree-l2"><a href="#outer-product">Outer Product</a></li>
-                            
-                        
-                        </ul>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../analyzing_states">Analyzing States</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../custom_inner_products">Custom Inner Products</a>
-                    
-                </li>
-            
+            <li class="toctree-l1 ">
+                <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 current">
+                <a class="current" href=".">Math with QuDirac objects</a>
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../labels_and_coeffs">Working with labels and coefficients</a>
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../custom_inner_products">Custom Inner Products</a>
+            </li>
         
 
     
@@ -98,7 +73,23 @@
         <span>Misc</span>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../drc_str">Natural expression input using @drc_str</a>
+                    <a class="" href="../d_str">Natural expression input using @d_str</a>
+                    
+                </li>
+            
+        
+
+    
+        
+        <span>API</span>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../filtering_functions">Filtering functions</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../mapping_functions">Mapping functions</a>
                     
                 </li>
             
@@ -125,7 +116,7 @@
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
-    <li>Math with States</li>
+    <li>Math with QuDirac objects</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -140,14 +131,21 @@
             <div class="section">
               <p><em>Note: All arithmetic on Kets also works on Bras, although we may not explicitly give examples here.</em></p>
 <hr />
-<h2 id="addition-subtraction-and-scalar-multiplication">Addition, Subtraction, and Scalar multiplication</h2>
+<h2 id="scalar-multiplication">Scalar multiplication</h2>
 <hr />
 <p>Multiplying a state by a scalar modifies the coefficient appropriately:</p>
-<pre><code>julia&gt; (1+3.4im) * ket(0)
+<pre><code>julia&gt; k = (1+3.4im) * ket(0)
 Ket{Orthonormal,1} with 1 state(s):
   1.0 + 3.4im | 0 ⟩
+
+julia&gt; k/2
+Ket{Orthonormal,1} with 1 state(s):
+  0.5 + 1.7im | 0 ⟩
 </code></pre>
 
+<hr />
+<h2 id="addition-and-subtraction">Addition and Subtraction</h2>
+<hr />
 <p>States can be also be added and subtracted:</p>
 <pre><code>julia&gt; ket(0) + ket(0) == 2 * ket(0)
 true
@@ -162,14 +160,25 @@ Ket{Orthonormal,1} with 3 state(s):
   0.5773502691896258 | 1 ⟩
 </code></pre>
 
+<p>One can conviently construct sums of states using Julia's <code>sum</code> function:</p>
+<pre><code>julia&gt; 1/√5 * sum(ket, 1:5)
+Ket{Orthonormal,1} with 5 state(s):
+  0.4472135954999579 | 2 ⟩
+  0.4472135954999579 | 3 ⟩
+  0.4472135954999579 | 5 ⟩
+  0.4472135954999579 | 4 ⟩
+  0.4472135954999579 | 1 ⟩
+</code></pre>
+
 <p>Two key observations can be made here: </p>
 <ol>
-<li>The basis states of a Ket are unordered. See the <a href="../analyzing_states">Analyzing States</a> section for more info about Bras and Kets as data structures.</li>
+<li>The basis states of a Ket are unordered. See the <a href="../labels_and_coeffs">Working with labels and coefficients</a> section for more info about Bras and Kets as data structures.</li>
 <li>States do not automatically normalize themselves under operations like addition, which leads us to the next section...</li>
 </ol>
 <hr />
 <h2 id="normalization">Normalization</h2>
 <hr />
+<p>In general, QuDirac objects <em>do not automatically normalize themselves</em>.</p>
 <p>We can normalize a state in-place by using the <code>normalize!</code> function:</p>
 <pre><code>julia&gt; k = ket(0) + ket(1)
 Ket{Orthonormal,1} with 2 state(s):
@@ -320,7 +329,7 @@ Ket{Orthonormal,1} with 2 state(s):
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../analyzing_states" class="btn btn-neutral float-right" title="Analyzing States"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../labels_and_coeffs" class="btn btn-neutral float-right" title="Working with labels and coefficients"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
         <a href="../constructing_states" class="btn btn-neutral" title="Constructing Single Bras and Kets"><span class="icon icon-circle-arrow-left"></span> Previous</a>
@@ -352,7 +361,7 @@ Ket{Orthonormal,1} with 2 state(s):
             <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
         
       <span><a href="../constructing_states" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../analyzing_states" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span style="margin-left: 15px"><a href="../labels_and_coeffs" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 </body>

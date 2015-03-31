@@ -36,7 +36,7 @@ Ket{Orthonormal,1} with 3 state(s):
   0.5773502691896258 | 1 ⟩
 ```
 
-One can conviently construct sums of states using Julia's `sum` function:
+One can conviently sum over an iterable of labels by using Julia's `sum` function in conjunction with the `ket`/`bra` function:
 
 ```
 julia> 1/√5 * sum(ket, 1:5)
@@ -50,7 +50,7 @@ Ket{Orthonormal,1} with 5 state(s):
 
 Two key observations can be made here: 
 
-1. The basis states of a Ket are unordered. See the [Analyzing States](analyzing_states.md) section for more info about Bras and Kets as data structures.
+1. The basis states of a Ket are unordered. See the [Working with labels and coefficients](labels_and_coeffs.md) section for more info about Bras and Kets as data structures.
 2. States do not automatically normalize themselves under operations like addition, which leads us to the next section...
 
 ---
@@ -158,6 +158,14 @@ Ket{Orthonormal,2} with 18 state(s):
 ```
 
 Note that in the above, we used Julia's [`sum`](http://julia.readthedocs.org/en/latest/stdlib/collections/?highlight=sum#Base.sum) function to quickly construct superpositions of states where the coefficients were a function of the labels (and scaled proportionally in the final normalized product). 
+
+Similarly to `sum`, the `prod` function can be used to quickly construct product states given an iterable of labels:
+
+```
+julia> prod(ket, 'a':'f')
+Ket{Orthonormal,6} with 1 state(s):
+  1 | 'a','b','c','d','e','f' ⟩
+```
 
 ---
 ## Inner Product

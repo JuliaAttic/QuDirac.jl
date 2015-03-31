@@ -2,12 +2,11 @@ site_name: QuDirac.jl
 repo_url: https://github.com/JuliaQuantum/QuDirac.jl
 pages:
 - ['index.md', 'Introduction']
-- ['states_intro.md', 'States', 'Introduction']
-- ['constructing_states.md', 'States', 'Constructing Single Bras and Kets']
-- ['state_math.md', 'States', 'Math with States']
-- ['analyzing_states.md','States', 'Analyzing States']
-- ['custom_inner_products.md', 'States', 'Custom Inner Products']
-- ['d_str.md', 'Misc', 'Natural expression input using @d_str']
+- ['constructing_states.md', 'User Guide', '1. Constructing Single States']
+- ['state_math.md', 'User Guide', '2. Math with QuDirac objects']
+- ['labels_and_coeffs.md', 'User Guide', '3. Working with labels and coefficients']
+- ['custom_inner_products.md', 'User Guide', '4. Custom Inner Products']
+- ['d_str.md', 'User Guide', '5. Natural expression input using @d_str']
 - ['filtering_functions.md', 'API', 'Filtering functions']
 - ['mapping_functions.md', 'API', 'Mapping functions']
 

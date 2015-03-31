@@ -1,3 +1,6 @@
+*Note: Throughout this documentation, I'll refer to `ket`s (lowercase) and Kets (uppercase). "Ket" refers to a type, while `ket` refers to the convenience constructor for that type. The same goes for `bra` and "Bra".*
+
+---
 ## Constructing Single Kets
 ---
 

@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Introduction - QuDirac.jl</title>
+  <title>Mapping functions - QuDirac.jl</title>
   
 
   
@@ -42,37 +42,30 @@
       <ul class="current">
     
         
-        <span>States</span>
-            
-                <li class="toctree-l1 current">
-                    <a class="current" href=".">Introduction</a>
-                    
-                        <ul>
-                        
-                        </ul>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../state_math">Math with States</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../analyzing_states">Analyzing States</a>
-                    
-                </li>
-            
-                <li class="toctree-l1 ">
-                    <a class="" href="../custom_inner_products">Custom Inner Products</a>
-                    
-                </li>
-            
+            <li class="toctree-l1 ">
+                <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../state_math">Math with QuDirac objects</a>
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../labels_and_coeffs">Working with labels and coefficients</a>
+            </li>
+        
+
+    
+        
+            <li class="toctree-l1 ">
+                <a class="" href="../custom_inner_products">Custom Inner Products</a>
+            </li>
         
 
     
@@ -80,7 +73,42 @@
         <span>Misc</span>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../drc_str">Natural expression input using @drc_str</a>
+                    <a class="" href="../d_str">Natural expression input using @d_str</a>
+                    
+                </li>
+            
+        
+
+    
+        
+        <span>API</span>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../filtering_functions">Filtering functions</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">Mapping functions</a>
+                    
+                        <ul>
+                        
+                            <li class="toctree-l2"><a href="#map">map</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#mapcoeffsmapcoeffs">mapcoeffs/mapcoeffs!</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#maplabelsmaplabels">maplabels/maplabels!</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#permutepermute">permute/permute!</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#switchswitch">switch/switch!</a></li>
+                            
+                        
+                        </ul>
                     
                 </li>
             
@@ -107,7 +135,7 @@
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
-    <li>Introduction</li>
+    <li>Mapping functions</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -120,8 +148,12 @@
 </div>
           <div role="main">
             <div class="section">
-              <p>This section provides an introduction to working with Bras and Kets, the building blocks of Dirac notation. </p>
-<p><em>Note: Throughout this documentation, I'll refer to <code>ket</code>s (lowercase) and Kets (uppercase). "Ket" refers to a type, while <code>ket</code> refers to the convenience constructor for that type. The same goes for <code>bra</code> and "Bra".</em></p>
+              <p>QuDirac provides several mapping functions for applying passed-in functions to various coefficients and state labels.</p>
+<h3 id="map">map</h3>
+<h3 id="mapcoeffsmapcoeffs">mapcoeffs/mapcoeffs!</h3>
+<h3 id="maplabelsmaplabels">maplabels/maplabels!</h3>
+<h3 id="permutepermute">permute/permute!</h3>
+<h3 id="switchswitch">switch/switch!</h3>
 
             </div>
           </div>
@@ -129,10 +161,8 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../constructing_states" class="btn btn-neutral float-right" title="Constructing Single Bras and Kets"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
-      
-        <a href=".." class="btn btn-neutral" title="Introduction"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../filtering_functions" class="btn btn-neutral" title="Filtering functions"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -160,8 +190,8 @@
         
             <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
         
-      <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
-      <span style="margin-left: 15px"><a href="../constructing_states" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../filtering_functions" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>
 </body>
