@@ -89,7 +89,11 @@ julia> k[0] += 1 # faster than the above, but of course mutates k
 ## Filtering States
 ---
 
-QuDirac provides a variety of functions for filtering states. The most generic of these functions is `filter(f::Function, s::AbstractState)` (and its in-place counterpart, `filter!`). This `filter` function acts exactly like a Julia's built-in filtering functions for `Dict`s:
+QuDirac provides a variety of functions for filtering out components of states.
+
+### `filter`/`filter!`
+
+This function acts exactly like a Julia's built-in filtering functions for `Dict`s:
 
 ```
 julia> s = normalize!(sum(ket, 0:4)^3);
@@ -115,7 +119,9 @@ Ket{Orthonormal,3} with 25 state(s):
   ⁞
 ```
 
-For convience, a function `xsubspace(s::AbstractState, x)` is provided which extracts the states whose labels sum to `x`:
+### `xsubspace` 
+
+Extracts the states whose labels sum to the second argument:
 
 ```julia
 julia> xsubspace(s, 10)
@@ -141,7 +147,9 @@ Ket{Orthonormal,3} with 6 state(s):
   0.08944271909999159 | 4,2,4 ⟩
 ```
 
-Our last filtering function is `filternz(s::AbstractState)`, which filters out the zero components of a state:
+### `filternz`/`filternz!`
+
+Removes the zero components of a state:
 
 ```
 julia> k = sum(ket, 0:4); k[2] = 0; normalize!(k)
