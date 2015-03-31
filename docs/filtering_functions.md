@@ -3,6 +3,7 @@ QuDirac provides a variety of functions for filtering out components of states.
 ### filter/filter!
 
 Methods: `filter(obj::AbstractDirac)`, `filter!(obj::AbstractDirac)` 
+
 Description: This function acts exactly like a Julia's built-in filtering functions for `Dict`s
 
 Example:
@@ -34,6 +35,7 @@ Ket{Orthonormal,3} with 25 state(s):
 ### xsubspace
 
 Methods: `xsubspace(obj::AbstractDirac, x)`
+
 Description: Extracts the elements of `obj` whose labels sum to `x`.
 
 Example:
@@ -65,6 +67,7 @@ Ket{Orthonormal,3} with 6 state(s):
 ### filternz/filternz!
 
 Methods: `filter(obj::AbstractDirac)`, `filter!(obj::AbstractDirac)` 
+
 Description: Removes the zero components of `obj`
 
 Example:
