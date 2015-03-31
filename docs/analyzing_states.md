@@ -18,7 +18,7 @@ While supporting a lot of `Dict`-like behavior opens up some interesting avenues
 
 Coefficients are accessed by the labels of the basis states:
 
-```julia
+```
 julia> k = normalize!(sum(i->i*ket(i), 1:3))
 Ket{Orthonormal,1} with 3 state(s):
   0.5345224838248488 | 2 ⟩
@@ -32,7 +32,7 @@ julia> k[3]
 
 The coefficients of product states are accessed in the same fashion:
 
-```julia
+```
 julia> k4 = k^4
 Ket{Orthonormal,4} with 81 state(s):
   0.06122448979591838 | 3,2,2,1 ⟩
@@ -91,7 +91,7 @@ julia> k[0] += 1 # faster than the above, but of course mutates k
 
 QuDirac provides a variety of functions for filtering states. The most generic of these functions is `filter(f::Function, s::AbstractState)` (and its in-place counterpart, `filter!`). This `filter` function acts exactly like a Julia's built-in filtering functions for `Dict`s:
 
-```julia
+```
 julia> s = normalize!(sum(ket, 0:4)^3);
 
 julia> filter((label, c)->label[2]==2, s) # extract labels where the second factor is labeled "2" 
@@ -130,7 +130,7 @@ Ket{Orthonormal,3} with 6 state(s):
 
 For example's sake, this is equivalent to calling:
 
-```julia
+```
 julia> filter((label,c)->sum(label)==10, s)
 Ket{Orthonormal,3} with 6 state(s):
   0.08944271909999159 | 4,4,2 ⟩
