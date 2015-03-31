@@ -2,7 +2,10 @@ QuDirac provides a variety of functions for filtering out components of states.
 
 ### filter/filter!
 
-This function acts exactly like a Julia's built-in filtering functions for `Dict`s:
+Methods: `filter(obj::AbstractDirac)`, `filter!(obj::AbstractDirac)` 
+Description: This function acts exactly like a Julia's built-in filtering functions for `Dict`s
+
+Example:
 
 ```
 julia> s = normalize!(sum(ket, 0:4)^3);
@@ -30,7 +33,10 @@ Ket{Orthonormal,3} with 25 state(s):
 
 ### xsubspace
 
-Extracts the states whose labels sum to the second argument:
+Methods: `xsubspace(obj::AbstractDirac, x)`
+Description: Extracts the elements of `obj` whose labels sum to `x`.
+
+Example:
 
 ```julia
 julia> xsubspace(s, 10)
@@ -58,7 +64,10 @@ Ket{Orthonormal,3} with 6 state(s):
 
 ### filternz/filternz!
 
-Removes the zero components of a state:
+Methods: `filter(obj::AbstractDirac)`, `filter!(obj::AbstractDirac)` 
+Description: Removes the zero components of `obj`
+
+Example:
 
 ```
 julia> k = sum(ket, 0:4); k[2] = 0; normalize!(k)
