@@ -10,7 +10,7 @@ Ket{Orthonormal,1} with 1 state(s):
   1 | 0 ⟩
 ```
 
-As you can see, the `ket` function takes labels (in this case, a single zero) as arguments. In QuDirac.jl, anything can be used as a Ket label - primitives, strings, composite types, and even other QuDirac objects. Simply pass the desired label in as we did `0` above:
+As you can see, the `ket` function takes labels (in this case, a single zero) as arguments. In QuDirac, anything can be used as a Ket label - primitives, strings, composite types, and even other QuDirac objects. Simply pass the desired label in as we did `0` above:
 
 ```
 julia> ket(":)")
