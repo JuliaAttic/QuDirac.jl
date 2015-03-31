@@ -8,4 +8,7 @@ pages:
 - ['analyzing_states.md','States', 'Analyzing States']
 - ['custom_inner_products.md', 'States', 'Custom Inner Products']
 - ['drc_str.md', 'Misc', 'Natural expression input using @drc_str']
+- ['filtering_functions.md', 'API', 'Filtering functions']
+- ['mapping_functions.md', 'API', 'Mapping functions']
+
 theme: readthedocs

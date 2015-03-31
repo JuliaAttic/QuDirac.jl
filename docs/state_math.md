@@ -1,16 +1,24 @@
 *Note: All arithmetic on Kets also works on Bras, although we may not explicitly give examples here.*
 
 ---
-## Addition, Subtraction, and Scalar multiplication
+## Scalar multiplication
 ---
 
 Multiplying a state by a scalar modifies the coefficient appropriately:
 
 ```
-julia> (1+3.4im) * ket(0)
+julia> k = (1+3.4im) * ket(0)
 Ket{Orthonormal,1} with 1 state(s):
   1.0 + 3.4im | 0 ⟩
+
+julia> k/2
+Ket{Orthonormal,1} with 1 state(s):
+  0.5 + 1.7im | 0 ⟩
 ```
+
+---
+## Addition and Subtraction
+---
 
 States can be also be added and subtracted:
 
@@ -28,6 +36,18 @@ Ket{Orthonormal,1} with 3 state(s):
   0.5773502691896258 | 1 ⟩
 ```
 
+One can conviently construct sums of states using Julia's `sum` function:
+
+```
+julia> 1/√5 * sum(ket, 1:5)
+Ket{Orthonormal,1} with 5 state(s):
+  0.4472135954999579 | 2 ⟩
+  0.4472135954999579 | 3 ⟩
+  0.4472135954999579 | 5 ⟩
+  0.4472135954999579 | 4 ⟩
+  0.4472135954999579 | 1 ⟩
+```
+
 Two key observations can be made here: 
 
 1. The basis states of a Ket are unordered. See the [Analyzing States](analyzing_states.md) section for more info about Bras and Kets as data structures.
@@ -37,7 +57,7 @@ Two key observations can be made here:
 ## Normalization
 ---
 
-In general, QuDirac objects *do not automatically normalize themselves* after/during any given operation.
+In general, QuDirac objects *do not automatically normalize themselves*.
 
 We can normalize a state in-place by using the `normalize!` function:
 
