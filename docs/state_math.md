@@ -37,6 +37,8 @@ Two key observations can be made here:
 ## Normalization
 ---
 
+In general, QuDirac objects *do not automatically normalize themselves* after/during any given operation.
+
 We can normalize a state in-place by using the `normalize!` function:
 
 ```

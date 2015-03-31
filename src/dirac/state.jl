@@ -63,7 +63,7 @@ function Base.setindex!{P,N}(s::AbstractState{P,N}, c, label::Array)
 end
 
 Base.setindex!{P,N}(::AbstractState{P,N}, c, ::Tuple) =  throw(BoundsError())
-Base.setindex!{P,N}(s::AbstractState{P,N}, label::NTuple{N}) =  _setindex!(s, c, collect(label))
+Base.setindex!{P,N}(s::AbstractState{P,N}, c, label::NTuple{N}) =  _setindex!(s, c, collect(label))
 Base.setindex!{P,N}(s::AbstractState{P,N}, c, i...) = setindex!(s,c,i)
 
 Base.haskey(s::AbstractState, label::Array) = haskey(dict(s), label)
