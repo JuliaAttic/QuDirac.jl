@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Working with labels and coefficients - QuDirac.jl</title>
+  <title>3. Working with labels and coefficients - QuDirac.jl</title>
   
 
   
@@ -42,38 +42,43 @@
       <ul class="current">
     
         
-            <li class="toctree-l1 ">
-                <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../state_math">Math with QuDirac objects</a>
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 current">
-                <a class="current" href=".">Working with labels and coefficients</a>
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../custom_inner_products">Custom Inner Products</a>
-            </li>
-        
-
-    
-        
-        <span>Misc</span>
+        <span>User Guide</span>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../d_str">Natural expression input using @d_str</a>
+                    <a class="" href="../constructing_states">1. Constructing Single States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../state_math">2. Math with QuDirac objects</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">3. Working with labels and coefficients</a>
+                    
+                        <ul>
+                        
+                            <li class="toctree-l2"><a href="#qudirac-objects-as-data-structures">QuDirac objects as data structures</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#accessingassigning-coefficients">Accessing/Assigning coefficients</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#label-and-coefficient-iterators">Label and coefficient iterators</a></li>
+                            
+                        
+                        </ul>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../custom_inner_products">4. Custom Inner Products</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../d_str">5. Natural expression input using @d_str</a>
                     
                 </li>
             
@@ -116,7 +121,7 @@
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
-    <li>Working with labels and coefficients</li>
+    <li>3. Working with labels and coefficients</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -129,15 +134,22 @@
 </div>
           <div role="main">
             <div class="section">
-              <p>There are few important things to keep in mind when working with states:</p>
+              <h2 id="qudirac-objects-as-data-structures">QuDirac objects as data structures</h2>
+<hr />
+<p>Under the hood, QuDirac's Kets, Bras, and operator types use dictionaries to map labels to coefficients.</p>
+<p>There are few important things to keep in mind when working with these structures:</p>
 <ul>
-<li>State labels are of type <code>Vector{Any}</code> and coefficients are restricted to be a subtype of <code>Number</code>.</li>
-<li>Because the label-to-coefficient map is stored as a <code>Dict</code>, the state labels are "unordered", i.e. iteration through a set of labels is not guaranteed to be in any particular order.</li>
+<li>All coefficients are restricted to be a subtype of <code>Number</code>.</li>
+<li>All state labels are of type <code>Vector{Any}</code>.</li>
+<li>All operator labels are of type <code>OpLabel</code>, a composite type that holds a pair of state labels</li>
+<li>Because the label-to-coefficient map is stored as a <code>Dict</code>, the components of a QuDirac object are "unordered". In other words, iteration through a QuDirac object's labels is not guaranteed to be in any particular order.</li>
 </ul>
 <hr />
-<h2 id="accessingassigning-coefficients-with-labels">Accessing/Assigning coefficients with labels</h2>
+<h2 id="accessingassigning-coefficients">Accessing/Assigning coefficients</h2>
 <hr />
-<p>Coefficients are accessed by the labels of the basis states:</p>
+<p><strong>States</strong></p>
+<hr />
+<p>Julia's <code>getindex</code> function has been overloaded to allow coefficients of a state to be accessed by the basis states' labels:</p>
 <pre><code>julia&gt; k = normalize!(sum(i-&gt;i*ket(i), 1:3))
 Ket{Orthonormal,1} with 3 state(s):
   0.5345224838248488 | 2 ⟩
@@ -187,22 +199,26 @@ Ket{Orthonormal,1} with 3 state(s):
   0.4364357804719848 | 1 ⟩
 </code></pre>
 
-<p>Tip: Performing a <code>setindex!</code> operation on a state is faster than constructing new states for the sake of addition/subtraction:</p>
+<p>Note that performing a <code>setindex!</code> operation on a state is faster than constructing new states for the sake of addition/subtraction,
+but is a mutation of the orginal state:</p>
 <pre><code>julia&gt; k + ket(0) # this requires constructing a new instance of | 0 ⟩
 Ket{Orthonormal,1} with 3 state(s):
   1.8728715609439694 | 0 ⟩
   0.2182178902359924 | 2 ⟩
   0.4364357804719848 | 1 ⟩
 
-julia&gt; k[0] += 1 # faster than the above, but of course mutates k
+julia&gt; k[0] += 1 # faster than the above, but mutates k
 1.8728715609439694
 </code></pre>
 
 <hr />
-<h2 id="note-on-performance">Note on Performance</h2>
+<p><strong>Operators</strong></p>
 <hr />
-<p>Under the hood, QuDirac's Kets, Bras, and operator types use dictionaries to map state labels to coefficients.</p>
-<p>Supporting <code>Dict</code>-like behavior for states and operators opens up some interesting avenues of analysis, some of which will be demonstrated in the following sections. Obviously, however, there are practical tradeoffs associated with storing label information alongside the corresponding coefficients - operations that are purely coefficient transformations will have more performant implementations on regular arrays than on QuDirac states and operators. Hopefully these tradeoffs will make more sense as you make your way through this documentation.</p>
+<p>TODO</p>
+<hr />
+<h2 id="label-and-coefficient-iterators">Label and coefficient iterators</h2>
+<hr />
+<p>TODO</p>
 
             </div>
           </div>
@@ -210,10 +226,10 @@ julia&gt; k[0] += 1 # faster than the above, but of course mutates k
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../custom_inner_products" class="btn btn-neutral float-right" title="Custom Inner Products"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../custom_inner_products" class="btn btn-neutral float-right" title="4. Custom Inner Products"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../state_math" class="btn btn-neutral" title="Math with QuDirac objects"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../state_math" class="btn btn-neutral" title="2. Math with QuDirac objects"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   

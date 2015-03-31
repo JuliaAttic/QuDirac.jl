@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Math with QuDirac objects - QuDirac.jl</title>
+  <title>2. Math with QuDirac objects - QuDirac.jl</title>
   
 
   
@@ -42,38 +42,55 @@
       <ul class="current">
     
         
-            <li class="toctree-l1 ">
-                <a class="" href="../constructing_states">Constructing Single Bras and Kets</a>
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 current">
-                <a class="current" href=".">Math with QuDirac objects</a>
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../labels_and_coeffs">Working with labels and coefficients</a>
-            </li>
-        
-
-    
-        
-            <li class="toctree-l1 ">
-                <a class="" href="../custom_inner_products">Custom Inner Products</a>
-            </li>
-        
-
-    
-        
-        <span>Misc</span>
+        <span>User Guide</span>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../d_str">Natural expression input using @d_str</a>
+                    <a class="" href="../constructing_states">1. Constructing Single States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">2. Math with QuDirac objects</a>
+                    
+                        <ul>
+                        
+                            <li class="toctree-l2"><a href="#scalar-multiplication">Scalar multiplication</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#addition-and-subtraction">Addition and Subtraction</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#normalization">Normalization</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#getting-a-states-dual">Getting a State's Dual</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#tensor-product">Tensor Product</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#inner-product">Inner Product</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#outer-product">Outer Product</a></li>
+                            
+                        
+                        </ul>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../labels_and_coeffs">3. Working with labels and coefficients</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../custom_inner_products">4. Custom Inner Products</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../d_str">5. Natural expression input using @d_str</a>
                     
                 </li>
             
@@ -116,7 +133,7 @@
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
-    <li>Math with QuDirac objects</li>
+    <li>2. Math with QuDirac objects</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -160,7 +177,7 @@ Ket{Orthonormal,1} with 3 state(s):
   0.5773502691896258 | 1 ⟩
 </code></pre>
 
-<p>One can conviently construct sums of states using Julia's <code>sum</code> function:</p>
+<p>One can conviently sum over an iterable of labels by using Julia's <code>sum</code> function in conjunction with the <code>ket</code>/<code>bra</code> function:</p>
 <pre><code>julia&gt; 1/√5 * sum(ket, 1:5)
 Ket{Orthonormal,1} with 5 state(s):
   0.4472135954999579 | 2 ⟩
@@ -264,6 +281,12 @@ Ket{Orthonormal,2} with 18 state(s):
 </code></pre>
 
 <p>Note that in the above, we used Julia's <a href="http://julia.readthedocs.org/en/latest/stdlib/collections/?highlight=sum#Base.sum"><code>sum</code></a> function to quickly construct superpositions of states where the coefficients were a function of the labels (and scaled proportionally in the final normalized product). </p>
+<p>Similarly to <code>sum</code>, the <code>prod</code> function can be used to quickly construct product states given an iterable of labels:</p>
+<pre><code>julia&gt; prod(ket, 'a':'f')
+Ket{Orthonormal,6} with 1 state(s):
+  1 | 'a','b','c','d','e','f' ⟩
+</code></pre>
+
 <hr />
 <h2 id="inner-product">Inner Product</h2>
 <hr />
@@ -329,10 +352,10 @@ Ket{Orthonormal,1} with 2 state(s):
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../labels_and_coeffs" class="btn btn-neutral float-right" title="Working with labels and coefficients"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../labels_and_coeffs" class="btn btn-neutral float-right" title="3. Working with labels and coefficients"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../constructing_states" class="btn btn-neutral" title="Constructing Single Bras and Kets"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../constructing_states" class="btn btn-neutral" title="1. Constructing Single States"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
