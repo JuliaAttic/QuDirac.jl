@@ -191,16 +191,18 @@ It is sometimes useful to take the inner product between a Bra and a *specific f
 
 ⟨ 0₂ | ψ ⟩ =  c₁ ⟨ 0₂ | 0, 1 ⟩ + c₂ ⟨ 0₂ | 1, 0 ⟩
 
-⟨ 0₂ | ψ ⟩ =  c₁ ⟨ 0 | 1 ⟩| 0 ⟩ + c₂ ⟨ 0 | 0 ⟩| 1 ⟩
+           =  c₁ ⟨ 0 | 1 ⟩| 0 ⟩ + c₂ ⟨ 0 | 0 ⟩| 1 ⟩
 ```
 
 If these states are orthonormal, our final result is
 
 ```
 ⟨ 0₂ | ψ ⟩ = 0 | 0 ⟩ + c₂ | 1 ⟩ 
+           = c₂ | 1 ⟩ 
+
 ```
 
-QuDirac supports this operation through the use of the `inner` function:
+QuDirac supports this operation through the use of the `innerat` function:
 
 ```
 julia> ψ = normalize!(ket(0,1) + 2*ket(1,0))
@@ -208,11 +210,11 @@ Ket{Orthonormal,2} with 2 state(s):
   0.4472135954999579 | 0,1 ⟩
   0.8944271909999159 | 1,0 ⟩
 
-julia> inner(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
+julia> innerat(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
 Ket{Orthonormal,1} with 2 state(s):
   0.8944271909999159 | 1 ⟩
 
-julia> inner(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
+julia> innerat(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
 Ket{Orthonormal,1} with 2 state(s):
   0.4472135954999579 | 1 ⟩
 ```
@@ -225,7 +227,7 @@ Bra{Orthonormal,1} with 2 state(s):
   0.7071067811865475 ⟨ 0 |
   0.7071067811865475 ⟨ 1 |
 
-julia> inner(ϕ, ψ, 2)
+julia> innerat(ϕ, ψ, 2)
 Ket{Orthonormal,1} with 2 state(s):
   0.3162277660168379 | 0 ⟩
   0.6324555320336758 | 1 ⟩
