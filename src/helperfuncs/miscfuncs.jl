@@ -4,7 +4,6 @@
 isx(label::OpLabel, x) = sum(ktlabel(label))==sum(brlabel(label))==x
 isx(k::Array, x) = sum(k) == x
 ctpair(k,v) = (reverse(k), v')
-sqr(v) = v^2
 nzcoeff(k,v) = v!=0
 second(t) = t[2]
 except(arr, i) = deleteat!(copy(arr), i)

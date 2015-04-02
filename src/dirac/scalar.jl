@@ -133,6 +133,8 @@ Base.(:^)(s::DiracScalar, n::Rational) = exponentiate(s,n)
 Base.(:^)(s::DiracScalar, n::Number) = exponentiate(s,n)
 
 Base.exp(s::DiracScalar) = ScalarExpr(:(exp($(s))))
+Base.exp2(s::DiracScalar) = ScalarExpr(:(exp2($(s))))
+
 Base.sqrt(s::DiracScalar) = ScalarExpr(:(sqrt($(s))))
 
 # The reason we don't actually implement the below comment
@@ -142,6 +144,8 @@ Base.sqrt(s::DiracScalar) = ScalarExpr(:(sqrt($(s))))
 # exp(s::DiracScalar) = length(s)==2 && s[1]==:log ? s[2] : ScalarExpr(:(exp($(s))))
 
 Base.log(s::DiracScalar) = length(s)==2 && s[1]==:exp ? s[2] : ScalarExpr(:(log($(s))))
+Base.log2(s::DiracScalar) = length(s)==2 && s[1]==:exp2 ? s[2] : ScalarExpr(:(log2($(s))))
+
 Base.log(a::MathConst{:e}, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
 
 Base.log(a::DiracScalar, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
@@ -259,7 +263,9 @@ end
 ## Absolute Value ##
 ####################
 Base.abs(s::ScalarExpr) = length(s)==2 && s[1]==:abs ? s :  ScalarExpr(:(abs($(s))))
-Base.abs(s::DiracScalar) = ScalarExpr(:(abs($i)))
+Base.abs(s::DiracScalar) = ScalarExpr(:(abs($s)))
+
+Base.abs2(s::DiracScalar) = ScalarExpr(:(abs2($s)))
 
 #######################
 ## Complex Conjugate ##

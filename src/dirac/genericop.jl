@@ -259,7 +259,7 @@ Base.(:-)(a::DiracOperator, b::DiracOperator) = a + (-b)
 Base.(:-)(op::GenericOp) = mapcoeffs(-, op)
 Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
-Base.norm(op::GenericOp) = sqrt(sum(sqr, values(dict(op))))
+Base.norm(op::GenericOp) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOp) = norm(opc.op)
 
 QuBase.normalize(op::DiracOperator) = scale(1/norm(op), op)

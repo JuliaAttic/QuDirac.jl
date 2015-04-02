@@ -185,7 +185,7 @@ Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
 
 Base.ctranspose(k::Ket) = Bra(k)
 Base.ctranspose(b::Bra) = b.kt
-Base.norm(s::DiracState) = sqrt(sum(sqr, values(dict(s))))
+Base.norm(s::DiracState) = sqrt(sum(abs2, values(dict(s))))
 
 QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(P,tensorstate!(StateDict(), dict(a), dict(b)), fact(a)+fact(b))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'

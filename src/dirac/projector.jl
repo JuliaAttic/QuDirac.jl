@@ -81,7 +81,7 @@ Base.(:+)(a::Projector, b::Projector) = convert(GenericOp, a) + convert(GenericO
 function Base.norm(op::Projector)
     result = 0
     for v in values(dict(op.kt)), c in values(dict(op.br))
-        result += (op.scalar * v * c')^2
+        result += abs2(op.scalar * v * c')
     end
     return sqrt(result)
 end
