@@ -191,15 +191,15 @@ It is sometimes useful to take the inner product between a Bra and a *specific f
 
 ⟨ 0₂ | ψ ⟩ =  c₁ ⟨ 0₂ | 0, 1 ⟩ + c₂ ⟨ 0₂ | 1, 0 ⟩
 
-           =  c₁ ⟨ 0 | 1 ⟩| 0 ⟩ + c₂ ⟨ 0 | 0 ⟩| 1 ⟩
+          =  c₁ ⟨ 0 | 1 ⟩| 0 ⟩ + c₂ ⟨ 0 | 0 ⟩| 1 ⟩
 ```
 
 If these states are orthonormal, our final result is
 
 ```
 ⟨ 0₂ | ψ ⟩ = 0 | 0 ⟩ + c₂ | 1 ⟩ 
-           = c₂ | 1 ⟩ 
-
+          
+          = c₂ | 1 ⟩ 
 ```
 
 QuDirac supports this operation through the use of the `innerat` function:
