@@ -231,7 +231,7 @@ Ket{Orthonormal,1} with 2 state(s):
   0.6324555320336758 | 1 ⟩
 ```
 
-As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `Orthonormal` in `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `Orthonormal` by default. QuDirac also has support for arbitrary, lazily evaluated inner products when states aren't simply orthonormal. To learn more, see the [Custom Inner Products](custom_inner_products.md) section.
+As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `Orthonormal` in `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `Orthonormal` by default. QuDirac also has support for arbitrary, lazily evaluated inner products when states aren't simply orthonormal. To learn more, see the [Working with Inner Products](inner_products.md) section.
 
 ---
 ## Outer Product
