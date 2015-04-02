@@ -11,16 +11,17 @@ immutable InnerProduct{P<:AbstractInner} <: DiracScalar
     InnerProduct(b, k) = InnerProduct{P}([b],[k])
 end
 
-inner_eval{A,B}(::Type{A}, ::Type{B}, k, b) = inner_rule(typejoin(A, B), k, b)
-
-inner_rule{P<:AbstractInner}(::Type{P}, k, b) = ScalarExpr(InnerProduct{P}(k, b))
-inner_rule{O<:Orthonormal}(::Type{O}, k, b) = k == b ? 1 : 0
-
 ######################
 # Accessor Functions #
 ######################
 brlabel(i::InnerProduct) = i.brlabel
 ktlabel(i::InnerProduct) = i.ktlabel
+
+##############
+# inner_rule #
+##############
+inner_rule{P<:AbstractInner}(::Type{P}, k, b) = ScalarExpr(InnerProduct{P}(k, b))
+inner_rule{O<:Orthonormal}(::Type{O}, k, b) = k == b ? 1 : 0
 
 ######################
 # Printing Functions #
@@ -49,7 +50,7 @@ Base.conj{P}(i::InnerProduct{P}) = InnerProduct{P}(getktlabel(i), getbrlabel(i))
 #
 # is representable as a ScalarExpr.
 #
-# One can then use the queval(::Function, ::ScalarExpr) 
+# One can then use the inner_eval(::Function, ::ScalarExpr) 
 # function to map an evaluation function onto all InnerProducts
 # contained in the ScalarExpr, and evaluate the expression
 # arthimetically.
@@ -76,20 +77,33 @@ Base.promote_rule{N<:Number}(::Type{ScalarExpr}, ::Type{N}) = ScalarExpr
 Base.length(s::ScalarExpr) = length(s.ex.args)
 Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 
-##########
-# queval #
-##########
-queval(f::Function, s::ScalarExpr) = eval(qureduce!(f, copy(s.ex)))
-queval(f::Function, i::InnerProduct) = f(i)
-queval(f::Function, n::Number) = n
+##############
+# inner_eval #
+##############
+inner_eval{A,B}(::Type{A}, ::Type{B}, k, b) = inner_rule(typejoin(A, B), k, b)
+inner_eval{P}(i::InnerProduct{P}) = inner_rule(P, ktlabel(i), brlabel(i))
+inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
+inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))
+inner_eval(n::Number) = n
 
-qureduce!(f::Function, s::ScalarExpr) = qureduce!(f, copy(s.ex))
-qureduce!(f::Function, i::InnerProduct) = f(i)
-qureduce!(f::Function, n) = n
+inner_reduce!(s::ScalarExpr) = inner_reduce!(copy(s.ex))
+inner_reduce!(i::InnerProduct) = inner_eval(i)
+inner_reduce!(n) = n
 
-function qureduce!(f::Function, ex::Expr)
+function inner_reduce!(ex::Expr)
     for i=1:length(ex.args)
-        ex.args[i] = qureduce!(f, ex.args[i])
+        ex.args[i] = inner_reduce!(ex.args[i])
+    end
+    return ex
+end
+
+f_reduce!(f::Function, s::ScalarExpr) = f_reduce!(f, copy(s.ex))
+f_reduce!(f::Function, i::InnerProduct) = f(brlabel(i), ktlabel(i))
+f_reduce!(f::Function, n) = n
+
+function f_reduce!(f::Function, ex::Expr)
+    for i=1:length(ex.args)
+        ex.args[i] = f_reduce!(f, ex.args[i])
     end
     return ex
 end
@@ -286,4 +300,4 @@ Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 export ScalarExpr,
     ktlabel,
     brlabel,
-    queval
+    inner_eval

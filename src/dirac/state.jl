@@ -207,7 +207,8 @@ filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 purity(kt::Ket) = purity(kt*kt')
 purity(br::Bra) = purity(br.kt)
 
-queval(f, s::DiracState) = mapcoeffs(x->queval(f,x),s)
+inner_eval(f::Function, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
+inner_eval(s::DiracState) = mapcoeffs(inner_eval,s)
 
 ######################
 # Printing Functions #
@@ -242,4 +243,5 @@ export ket,
     wavefunc,
     labels,
     coeffs,
-    inner
+    inner,
+    inner_eval

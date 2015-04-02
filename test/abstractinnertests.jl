@@ -1,4 +1,4 @@
-f(i) = ktlabel(i)[1] - brlabel(i)[1]
+f(b,k) = k[1] - b[1]
 
-@assert queval(f, b*(k*b)*k) == queval(f, (b*k)*(b*k))
-@assert queval(f, ptrace(ptrace(bitdens, 2), 1)) == queval(f, ptrace(ptrace(bitdens, 1), 2))
+@assert inner_eval(f, b*(k*b)*k) == inner_eval(f, (b*k)*(b*k))
+@assert inner_eval(f, ptrace(ptrace(bitdens, 2), 1)) == inner_eval(f, ptrace(ptrace(bitdens, 1), 2))

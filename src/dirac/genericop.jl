@@ -295,7 +295,8 @@ filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
 
 purity(op::GeneralOp) = trace(op^2)
 
-queval(f, op::DiracOperator) = mapcoeffs(x->queval(f,x),op)
+inner_eval(f::Function, op::DiracOperator) = mapcoeffs(x->inner_eval(f,x),op)
+inner_eval(op::DiracOperator) = mapcoeffs(inner_eval,op)
 
 #################
 # Partial trace #
@@ -353,4 +354,5 @@ export GenericOp,
     coeffs,
     OpLabel,
     ktlabel,
-    brlabel
+    brlabel,
+    inner_eval
