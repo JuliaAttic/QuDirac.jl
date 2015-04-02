@@ -73,8 +73,8 @@ Base.get(b::Bra, label::Array, default) = haskey(b, label) ? b[label] : default
 Base.delete!(s::DiracState, label::Array) = (delete!(dict(s), label); return s)
 
 labels(s::DiracState) = keys(dict(s))
-coeffs(kt::Ket) = values(dict(kt))
-coeffs(br::Bra) = imap(ctranspose, coeffs(br.kt))
+QuBase.coeffs(kt::Ket) = values(dict(kt))
+QuBase.coeffs(br::Bra) = imap(ctranspose, coeffs(br.kt))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
@@ -110,7 +110,7 @@ end
 nfactors{P,N}(::DiracState{P,N}) = N
 
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
-inner(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
+innerat(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
 function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
     result = 0
@@ -119,25 +119,6 @@ function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
     end
     return result  
 end
-
-function inner{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
-    if i==1
-        return inner(br, kt)
-    else
-        throw(BoundsError())
-    end
-end
-
-function inner{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
-    result = StateDict()
-    P = typejoin(A,B)
-    for (b,c) in dict(br), (k,v) in dict(kt)
-        add_to_dict!(result, 
-                     except(k,i),
-                     c'*v*inner_rule(P,b[1],k[i]))
-    end
-    return Ket(P, result, Factors{N-1}())
-end 
 
 function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::DiracState{A}, b::DiracState{B})
     result = 0
@@ -156,6 +137,25 @@ function inner{A<:Orthonormal,B<:Orthonormal,N}(br::Bra{A,N}, kt::Ket{B,N})
         return ortho_inner(br, kt)
     end
 end
+
+function innerat{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
+    if i==1
+        return inner(br, kt)
+    else
+        throw(BoundsError())
+    end
+end
+
+function innerat{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
+    result = StateDict()
+    P = typejoin(A,B)
+    for (b,c) in dict(br), (k,v) in dict(kt)
+        add_to_dict!(result, 
+                     except(k,i),
+                     c'*v*inner_rule(P,b[1],k[i]))
+    end
+    return Ket(P, result, Factors{N-1}())
+end 
 
 Base.scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
 Base.scale!(c::Number, k::Ket) = scale!(k,c)
@@ -243,5 +243,5 @@ export ket,
     wavefunc,
     labels,
     coeffs,
-    inner,
+    innerat,
     inner_eval

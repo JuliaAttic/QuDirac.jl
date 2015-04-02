@@ -135,8 +135,8 @@ Base.delete!(op::GeneralOp, k::Array, b::Array) = delete!(op, OpLabel(k,b))
 
 labels(op::GenericOp) = keys(dict(op))
 labels(opc::DualOp) = imap(reverse, labels(opc.op))
-coeffs(op::GenericOp) = values(dict(op))
-coeffs(opc::DualOp) = imap(conj, coeffs(opc.op))
+QuBase.coeffs(op::GenericOp) = values(dict(op))
+QuBase.coeffs(opc::DualOp) = imap(conj, coeffs(opc.op))
 
 ##################################################
 # Function-passing functions (filter, map, etc.) #
