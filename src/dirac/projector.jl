@@ -75,7 +75,7 @@ Base.scale!(op::Projector, c::Number) = (op.scalar = op.scalar*c; return op)
 Base.scale(c::Number, op::Projector) = scale!(c,copy(op))
 Base.scale(op::Projector, c::Number) = scale!(copy(op),c)
 
-Base.(:-)(op::Projector) = (op.scalar = -op.scalar)
+Base.(:-)(op::Projector) = scale(-1, op)
 Base.(:+)(a::Projector, b::Projector) = convert(GenericOp, a) + convert(GenericOp, b)
 
 function Base.norm(op::Projector)
