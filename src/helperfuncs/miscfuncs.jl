@@ -1,5 +1,5 @@
 ####################
-# Passed Functions #
+# Helper Functions #
 ####################
 isx(label::OpLabel, x) = sum(ktlabel(label))==sum(brlabel(label))==x
 isx(k::Array, x) = sum(k) == x
@@ -15,6 +15,7 @@ function switch!(arr, i, j)
 end
 switch(arr, i, j) = switch!(copy(arr), i, j)
 permute(arr, perm) = permute!(copy(arr), perm)
+placeat(arr, x, y) = setindex!(copy(arr), x, y)
 
 ######################
 # Printing Functions #

@@ -57,14 +57,25 @@ fact(opc::DualOp) = fact(opc.op)
 ################
 function GenericOp{P,N}(f::Function, kt::Ket{P,N})
     result = OpDict()
-    for j in labels(kt)
-        (c, new_j) = f(j)
-        if length(new_j) == N
+    for label in labels(kt)
+        (c, new_label) = f(label)
+        if length(new_label) == N
             if c != 0
-                result[OpLabel(new_j, j)] = c
+                result[OpLabel(new_label, label)] = c
             end
         else
             throw(BoundsError())
+        end
+    end
+    return GenericOp(P,result,fact(kt))
+end
+
+function GenericOp{P}(f::Function, kt::Ket{P}, i)
+    result = OpDict()
+    for label in labels(kt)
+        (c, new_i) = f(label[i])
+        if c != 0
+            result[OpLabel(placeat(label, new_i, i), label)] = c
         end
     end
     return GenericOp(P,result,fact(kt))
