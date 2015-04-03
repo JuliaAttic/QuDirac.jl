@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>3. Labels and coefficients - QuDirac.jl</title>
+  <title>5. Labels and coefficients - QuDirac.jl</title>
   
 
   
@@ -50,12 +50,22 @@
                 </li>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../state_math">2. Math with QuDirac objects</a>
+                    <a class="" href="../state_math">2. Math with States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../op_math">3. Math with Operators</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../func_op_def">4. Functionally Defining Operators</a>
                     
                 </li>
             
                 <li class="toctree-l1 current">
-                    <a class="current" href=".">3. Labels and coefficients</a>
+                    <a class="current" href=".">5. Labels and coefficients</a>
                     
                         <ul>
                         
@@ -63,6 +73,9 @@
                             
                         
                             <li class="toctree-l2"><a href="#accessingassigning-coefficients">Accessing/Assigning coefficients</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#using-the-gethaskey-functions">Using the get/haskey functions</a></li>
                             
                         
                             <li class="toctree-l2"><a href="#label-and-coefficient-iterators">Label and coefficient iterators</a></li>
@@ -73,12 +86,17 @@
                 </li>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../inner_products">Working with Inner Products</a>
+                    <a class="" href="../inner_products">6. Working with Inner Products</a>
                     
                 </li>
             
                 <li class="toctree-l1 ">
-                    <a class="" href="../d_str">5. Natural expression input using @d_str</a>
+                    <a class="" href="../d_str">7. Natural expression input using @d_str</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../view_copy">8. Views vs. Copies in QuDirac</a>
                     
                 </li>
             
@@ -121,7 +139,7 @@
           <div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="..">Docs</a> &raquo;</li>
-    <li>3. Labels and coefficients</li>
+    <li>5. Labels and coefficients</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -170,16 +188,6 @@ Ket{Orthonormal,4} with 81 state(s):
   0.045918367346938785 | 1,3,1,3 ⟩
   0.09183673469387757 | 2,1,3,3 ⟩
   0.06122448979591838 | 3,2,1,2 ⟩
-  0.040816326530612256 | 2,1,2,2 ⟩
-  0.2755102040816327 | 3,2,3,3 ⟩
-  0.13775510204081634 | 3,3,1,3 ⟩
-  0.020408163265306128 | 1,2,2,1 ⟩
-  0.13775510204081634 | 3,3,3,1 ⟩
-  0.09183673469387757 | 3,3,1,2 ⟩
-  0.09183673469387757 | 3,3,2,1 ⟩
-  0.03061224489795919 | 3,1,1,2 ⟩
-  0.03061224489795919 | 1,3,2,1 ⟩
-  0.12244897959183676 | 2,3,2,2 ⟩
   ⁞
 
 julia&gt; k4[3,2,3,3]
@@ -216,6 +224,10 @@ julia&gt; k[0] += 1 # faster than the above, but mutates k
 <hr />
 <p>TODO</p>
 <hr />
+<h2 id="using-the-gethaskey-functions">Using the <code>get</code>/<code>haskey</code> functions</h2>
+<hr />
+<p>TODO</p>
+<hr />
 <h2 id="label-and-coefficient-iterators">Label and coefficient iterators</h2>
 <hr />
 <p>TODO</p>
@@ -226,10 +238,10 @@ julia&gt; k[0] += 1 # faster than the above, but mutates k
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../inner_products" class="btn btn-neutral float-right" title="Working with Inner Products"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../inner_products" class="btn btn-neutral float-right" title="6. Working with Inner Products"/>Next <span class="icon icon-circle-arrow-right"></span></a>
       
       
-        <a href="../state_math" class="btn btn-neutral" title="2. Math with QuDirac objects"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../func_op_def" class="btn btn-neutral" title="4. Functionally Defining Operators"><span class="icon icon-circle-arrow-left"></span> Previous</a>
       
     </div>
   
@@ -257,7 +269,7 @@ julia&gt; k[0] += 1 # faster than the above, but mutates k
         
             <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
         
-      <span><a href="../state_math" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span><a href="../func_op_def" style="color: #fcfcfc;">&laquo; Previous</a></span>
       <span style="margin-left: 15px"><a href="../inner_products" style="color: #fcfcfc">Next &raquo;</a></span>
     </span>
 </div>

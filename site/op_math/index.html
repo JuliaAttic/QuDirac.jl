@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. Math with Operators - QuDirac.jl</title>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script>
+
+  <style>
+    body {font-size: 90%;}
+    pre, code {font-size: 100%;}
+    h3, h4, h5, h6 {color: #2980b9; font-weight: 300}
+  </style> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> QuDirac.jl</a>
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <ul class="current">
+    
+        
+        <span>User Guide</span>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../constructing_states">1. Constructing Single States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../state_math">2. Math with States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">3. Math with Operators</a>
+                    
+                        <ul>
+                        
+                            <li class="toctree-l2"><a href="#outer-product-of-two-states">Outer Product of Two States</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#functional-definition-of-an-operator">Functional Definition of an Operator</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#scalar-multiplication">Scalar Multiplication</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#addition-and-subtraction">Addition and Subtraction</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#normalization">Normalization</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#getting-an-operators-adjoint">Getting an Operator's Adjoint</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#tensor-product">Tensor Product</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#inner-product">Inner Product</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#expectation-values">Expectation values</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#trace-and-partial-trace">Trace and Partial Trace</a></li>
+                            
+                        
+                        </ul>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../func_op_def">4. Functionally Defining Operators</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../labels_and_coeffs">5. Labels and coefficients</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../inner_products">6. Working with Inner Products</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../d_str">7. Natural expression input using @d_str</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../view_copy">8. Views vs. Copies in QuDirac</a>
+                    
+                </li>
+            
+        
+
+    
+        
+        <span>API</span>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../filtering_functions">Filtering functions</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../mapping_functions">Mapping functions</a>
+                    
+                </li>
+            
+        
+
+    
+</ul>
+
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
+        <a href=".."></a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    <li>3. Math with Operators</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="https://github.com/JuliaQuantum/QuDirac.jl" class="icon icon-github"> Edit on GitHub</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              <p>QuDirac supports a variety of operator types. This section will </p>
+<hr />
+<h2 id="outer-product-of-two-states">Outer Product of Two States</h2>
+<hr />
+<p>The simplest way to construct a QuDirac operator is to take the outer product of two states:</p>
+<pre><code>julia&gt; k = 1/√2 * (ket(0,0) - ket(1,1))
+Ket{Orthonormal,2} with 2 state(s):
+  -0.7071067811865475 | 1,1 ⟩
+  0.7071067811865475 | 0,0 ⟩
+
+julia&gt; k*k' # | k ⟩⟨ k |
+Projector{Orthonormal,2} with 4 operator(s):
+  0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
+  -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
+  -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
+  0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
+</code></pre>
+
+<p>Specifically, an outer product of two states will yield an instance of the <code>Projector</code> type, as can be seen above. </p>
+<p>The <code>Projector</code> type is a lazy representation of the outer product of two states - it simply stores a reference to 
+the two factor states, and behaves accordingly. Thus, the <code>Projector</code> type acts as a <em>view</em> onto the factor states 
+(see <a href="../view_copy">Views vs. Copies in QuDirac</a>). </p>
+<hr />
+<h2 id="functional-definition-of-an-operator">Functional Definition of an Operator</h2>
+<hr />
+<hr />
+<h2 id="scalar-multiplication">Scalar Multiplication</h2>
+<hr />
+<p>Like states, operators can be multiplied by a scalar: </p>
+<pre><code>julia&gt; op = ket('a') * bra('b')
+Projector{Orthonormal,1} with 1 operator(s):
+  1 | 'a' ⟩⟨ 'b' |
+
+julia&gt; im * op
+Projector{Orthonormal,1} with 1 operator(s):
+  0 + 1im | 'a' ⟩⟨ 'b' |
+
+julia&gt; op/2
+Projector{Orthonormal,1} with 1 operator(s):
+  0.5 | 'a' ⟩⟨ 'b' |
+</code></pre>
+
+<hr />
+<h2 id="addition-and-subtraction">Addition and Subtraction</h2>
+<hr />
+<p>Operators can be added and subtracted just like states:</p>
+<pre><code>julia&gt; op + op
+GenericOp{Orthonormal,1} with 1 operator(s):
+  2 | 'a' ⟩⟨ 'b' |
+
+julia&gt; gop = 1/√2 * (op - (ket(0) * bra(1)))
+GenericOp{Orthonormal,1} with 2 operator(s):
+  0.7071067811865475 | 'a' ⟩⟨ 'b' |
+  -0.7071067811865475 | 0 ⟩⟨ 1 |
+</code></pre>
+
+<p>Note that addition and subtraction of <code>Projector</code>s results in <code>GenericOp</code>s. While the former
+simply represents an outer product, the latter can more generally represent a <em>sum</em> of operators, 
+and is no longer a view. </p>
+<hr />
+<h2 id="normalization">Normalization</h2>
+<hr />
+<p>Similarly to states, the Hilbert–Schmidt norm can be computed on an operator using the <code>norm</code> function:</p>
+<pre><code>julia&gt; norm(gop) # using gop from the previous example
+0.9999999999999999
+</code></pre>
+
+<p>Of course, <code>normalize</code>/<code>normalize!</code> are provided for operators:</p>
+<pre><code>julia&gt; normalize!(sum(i -&gt; ket(i) * bra(i^2), 1:5))
+GenericOp{Orthonormal,1} with 5 operator(s):
+  0.4472135954999579 | 1 ⟩⟨ 1 |
+  0.4472135954999579 | 4 ⟩⟨ 16 |
+  0.4472135954999579 | 5 ⟩⟨ 25 |
+  0.4472135954999579 | 2 ⟩⟨ 4 |
+  0.4472135954999579 | 3 ⟩⟨ 9 |
+</code></pre>
+
+<hr />
+<h2 id="getting-an-operators-adjoint">Getting an Operator's Adjoint</h2>
+<hr />
+<p>Take the conjugate transpose of an operator using the ctranspose function:</p>
+<hr />
+<h2 id="tensor-product">Tensor Product</h2>
+<hr />
+<hr />
+<h2 id="inner-product">Inner Product</h2>
+<hr />
+<hr />
+<h2 id="expectation-values">Expectation values</h2>
+<hr />
+<hr />
+<h2 id="trace-and-partial-trace">Trace and Partial Trace</h2>
+<hr />
+
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../func_op_def" class="btn btn-neutral float-right" title="4. Functionally Defining Operators"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../state_math" class="btn btn-neutral" title="2. Math with States"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+    <!-- Copyright etc -->
+    </p>
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        
+            <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+        
+      <span><a href="../state_math" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="../func_op_def" style="color: #fcfcfc">Next &raquo;</a></span>
+    </span>
+</div>
+</body>
+</html>

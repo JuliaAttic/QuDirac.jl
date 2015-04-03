@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4. Functionally Defining Operators - QuDirac.jl</title>
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script>
+  <script src="../js/theme.js"></script>
+
+  <style>
+    body {font-size: 90%;}
+    pre, code {font-size: 100%;}
+    h3, h4, h5, h6 {color: #2980b9; font-weight: 300}
+  </style> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> QuDirac.jl</a>
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+      <ul class="current">
+    
+        
+        <span>User Guide</span>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../constructing_states">1. Constructing Single States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../state_math">2. Math with States</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../op_math">3. Math with Operators</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 current">
+                    <a class="current" href=".">4. Functionally Defining Operators</a>
+                    
+                        <ul>
+                        
+                            <li class="toctree-l2"><a href="#constructing-operators-by-defining-their-action-on-a-basis">Constructing operators by defining their action on a basis</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#functionally-defining-operators-on-single-factors">Functionally defining operators on single factors</a></li>
+                            
+                        
+                            <li class="toctree-l2"><a href="#functionally-defining-operators-on-all-factors">Functionally defining operators on all factors</a></li>
+                            
+                        
+                        </ul>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../labels_and_coeffs">5. Labels and coefficients</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../inner_products">6. Working with Inner Products</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../d_str">7. Natural expression input using @d_str</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../view_copy">8. Views vs. Copies in QuDirac</a>
+                    
+                </li>
+            
+        
+
+    
+        
+        <span>API</span>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../filtering_functions">Filtering functions</a>
+                    
+                </li>
+            
+                <li class="toctree-l1 ">
+                    <a class="" href="../mapping_functions">Mapping functions</a>
+                    
+                </li>
+            
+        
+
+    
+</ul>
+
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="icon icon-reorder"></i>
+        <a href=".."></a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    <li>4. Functionally Defining Operators</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="https://github.com/JuliaQuantum/QuDirac.jl" class="icon icon-github"> Edit on GitHub</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              <p>QuDirac supports the functional construction of operators that can be defined in the form:</p>
+<pre><code>Ô | a ⟩ = c_ab | b ⟩
+</code></pre>
+
+<p>Where <code>| a ⟩</code> and <code>| b ⟩</code> are single basis states (i.e. not superpositions).</p>
+<hr />
+<h2 id="constructing-operators-by-defining-their-action-on-a-basis">Constructing operators by defining their action on a basis</h2>
+<hr />
+<p>Operators are often defined by their actions on individual Kets. The quintessential example is the lowering operator, defined
+on Kets as:</p>
+<pre><code>â | n ⟩ = √n | n - 1 ⟩
+</code></pre>
+
+<p>To define an operator in this manner using QuDirac, we can use the constructor for <code>GenericOp</code>, 
+which takes a function, a Ket, and a factor index as arguments. </p>
+<p>Let's say we have a simple Ket <code>k</code>:</p>
+<pre><code>julia&gt; k = normalize!(sum(ket, 0:4))
+Ket{Orthonormal,1} with 5 state(s):
+  0.4472135954999579 | 0 ⟩
+  0.4472135954999579 | 2 ⟩
+  0.4472135954999579 | 3 ⟩
+  0.4472135954999579 | 4 ⟩
+  0.4472135954999579 | 1 ⟩
+</code></pre>
+
+<p>Now we can define our lowering operator in <code>k</code>'s basis:</p>
+<pre><code>f(label) = (sqrt(label), label-1)
+
+julia&gt; â = GenericOp(f, k, 1)
+GenericOp{Orthonormal,1} with 4 operator(s):
+  1.0 | 0 ⟩⟨ 1 |
+  2.0 | 3 ⟩⟨ 4 |
+  1.7320508075688772 | 2 ⟩⟨ 3 |
+  1.4142135623730951 | 1 ⟩⟨ 2 |
+</code></pre>
+
+<p>Let's examine the arguments we passed to the <code>GenericOp</code> constructor above. </p>
+<p>First, we have a function <code>f</code> defined as <code>label-&gt;(sqrt(label),label-1)</code>. As you can see, this
+function takes in a single argument (a label) and returns two things: a transformation coefficient, 
+and the resultant label. The labels passed to this function are simply the labels of the basis
+states of <code>k</code>. We passed in <code>1</code> to denote that we wanted this function to act on the
+first (in this case, only) factor of the labels of <code>k</code>.</p>
+<p>Thus, mixing Julia syntax and math, our functional construction of 'â' can be written out like this:</p>
+<pre><code>for n ∈ k, 
+
+where f(label) = (sqrt(label),label-1):
+
+construct â such that
+
+â | n ⟩ = f(n)[1] | f(n)[2] ⟩
+</code></pre>
+
+<p>As we can see, this operator we defined works as expected:</p>
+<pre><code>julia&gt; â*k
+Ket{Orthonormal,1} with 4 state(s):
+  0.4472135954999579 | 0 ⟩
+  0.8944271909999159 | 3 ⟩
+  0.7745966692414833 | 2 ⟩
+  0.6324555320336759 | 1 ⟩
+
+julia&gt; â*ket(4)
+Ket{Orthonormal,1} with 1 state(s):
+  2.0 | 3 ⟩
+</code></pre>
+
+<hr />
+<h2 id="functionally-defining-operators-on-single-factors">Functionally defining operators on single factors</h2>
+<hr />
+<p>In the previous example, we passed in <code>1</code> to the <code>GenericOp</code> constructor to indicate that our function <code>f</code>
+only acted on a the first factor of the labels in <code>k</code>'s basis. This is rather boring, since <code>k</code> only has one factor 
+in the first place!</p>
+<p>To demonstrate this in a more practical context, let's construct a lowering operator on the second factor of a 3-factor basis.</p>
+<p>We'll just reuse <code>k</code> to construct our basis labels:</p>
+<pre><code>julia&gt; k3 = k^3
+Ket{Orthonormal,3} with 125 state(s):
+  0.08944271909999157 | 1,4,1 ⟩
+  0.08944271909999157 | 3,4,4 ⟩
+  0.08944271909999157 | 2,3,1 ⟩
+  0.08944271909999157 | 4,2,0 ⟩
+  0.08944271909999157 | 0,1,2 ⟩
+  0.08944271909999157 | 2,3,2 ⟩
+  ⁞
+</code></pre>
+
+<p>...and we can reuse <code>f</code> as well, but define the operator on the second factor by passing in <code>2</code>:</p>
+<pre><code>julia&gt; â₂ = GenericOp(f, k3, 2)
+GenericOp{Orthonormal,3} with 100 operator(s):
+  1.4142135623730951 | 3,1,0 ⟩⟨ 3,2,0 |
+  1.0 | 3,0,3 ⟩⟨ 3,1,3 |
+  1.4142135623730951 | 4,1,2 ⟩⟨ 4,2,2 |
+  1.7320508075688772 | 3,2,4 ⟩⟨ 3,3,4 |
+  1.7320508075688772 | 4,2,0 ⟩⟨ 4,3,0 |
+  1.0 | 1,0,2 ⟩⟨ 1,1,2 |
+  ⁞
+</code></pre>
+
+<p>Testing it out:</p>
+<pre><code>julia&gt; â₂ * k3
+Ket{Orthonormal,3} with 100 state(s):
+  0.17888543819998315 | 2,3,1 ⟩
+  0.15491933384829665 | 4,2,0 ⟩
+  0.12649110640673517 | 0,1,2 ⟩
+  0.17888543819998315 | 3,3,1 ⟩
+  0.17888543819998315 | 2,3,2 ⟩
+  0.17888543819998315 | 2,3,4 ⟩
+  ⁞
+
+julia&gt; â₂ * ket(1,2,3)
+Ket{Orthonormal,3} with 1 state(s):
+  1.4142135623730951 | 1,1,3 ⟩
+</code></pre>
+
+<hr />
+<h2 id="functionally-defining-operators-on-all-factors">Functionally defining operators on all factors</h2>
+<hr />
+<p>If you wish to functionally define an operator on all factors of the basis, you may easily do so by not passing in a factor index at all:</p>
+<pre><code>julia&gt; k = sum(i -&gt; i * ket(i,i+1,i+2), 1:10)
+Ket{Orthonormal,3} with 10 state(s):
+  1 | 1,2,3 ⟩
+  5 | 5,6,7 ⟩
+  3 | 3,4,5 ⟩
+  8 | 8,9,10 ⟩
+  4 | 4,5,6 ⟩
+  10 | 10,11,12 ⟩
+  9 | 9,10,11 ⟩
+  6 | 6,7,8 ⟩
+  2 | 2,3,4 ⟩
+  7 | 7,8,9 ⟩
+
+julia&gt; p23 = GenericOp(label -&gt; (1, switch(label, 2, 3)), k)
+GenericOp{Orthonormal,3} with 10 operator(s):
+  1 | 6,8,7 ⟩⟨ 6,7,8 |
+  1 | 4,6,5 ⟩⟨ 4,5,6 |
+  1 | 2,4,3 ⟩⟨ 2,3,4 |
+  1 | 8,10,9 ⟩⟨ 8,9,10 |
+  1 | 1,3,2 ⟩⟨ 1,2,3 |
+  1 | 9,11,10 ⟩⟨ 9,10,11 |
+  1 | 5,7,6 ⟩⟨ 5,6,7 |
+  1 | 10,12,11 ⟩⟨ 10,11,12 |
+  1 | 3,5,4 ⟩⟨ 3,4,5 |
+  1 | 7,9,8 ⟩⟨ 7,8,9 |
+</code></pre>
+
+<p>As you can see, the above operator simply switches the second and third factors of 
+the basis labels (the <code>switch</code> function is provided by QuDirac, and can be found in
+the API section).</p>
+<p>Acting it on <code>k</code>:</p>
+<pre><code>julia&gt; p23 * k
+Ket{Orthonormal,3} with 10 state(s):
+  4 | 4,6,5 ⟩
+  9 | 9,11,10 ⟩
+  6 | 6,8,7 ⟩
+  7 | 7,9,8 ⟩
+  5 | 5,7,6 ⟩
+  2 | 2,4,3 ⟩
+  1 | 1,3,2 ⟩
+  8 | 8,10,9 ⟩
+  10 | 10,12,11 ⟩
+  3 | 3,5,4 ⟩
+</code></pre>
+
+
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../labels_and_coeffs" class="btn btn-neutral float-right" title="5. Labels and coefficients"/>Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../op_math" class="btn btn-neutral" title="3. Math with Operators"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+    <!-- Copyright etc -->
+    </p>
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        
+            <a class="icon icon-github" style="float: left; color: #fcfcfc"> GitHub</a>
+        
+      <span><a href="../op_math" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      <span style="margin-left: 15px"><a href="../labels_and_coeffs" style="color: #fcfcfc">Next &raquo;</a></span>
+    </span>
+</div>
+</body>
+</html>

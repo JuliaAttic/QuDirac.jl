@@ -119,6 +119,8 @@ true
 
 ```
 
+For efficiency's sake, Bras are *views* onto their Kets, not copies (see [Views vs. Copies in QuDirac](view_copy.md)).
+
 ---
 ## Tensor Product
 ---
@@ -144,16 +146,6 @@ Ket{Orthonormal,2} with 18 state(s):
   0.22908106449636376 | 2,3 ⟩
   -0.07636035483212125 | 2,-1 ⟩
   0.019090088708030313 | 1,1 ⟩
-  -0.22908106449636376 | 2,-3 ⟩
-  0.1718107983722728 | 3,1 ⟩
-  -0.05727026612409094 | 1,-3 ⟩
-  0.05727026612409094 | 1,3 ⟩
-  -0.1718107983722728 | 3,-1 ⟩
-  0.038180177416060626 | 1,2 ⟩
-  -0.1527207096642425 | 2,-2 ⟩
-  0.5154323951168185 | 3,3 ⟩
-  -0.038180177416060626 | 1,-2 ⟩
-  0.07636035483212125 | 2,1 ⟩
   ⁞
 ```
 
@@ -235,8 +227,4 @@ Ket{Orthonormal,1} with 2 state(s):
 
 As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `Orthonormal` in `Ket{Orthonormal,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `Orthonormal` by default. QuDirac also has support for arbitrary, lazily evaluated inner products when states aren't simply orthonormal. To learn more, see the [Working with Inner Products](inner_products.md) section.
 
----
-## Outer Product
----
 
-TODO
