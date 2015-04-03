@@ -110,6 +110,12 @@ julia> gop'' == gop
 true
 ```
 
+Similarly to states, the conjugate transpose of a `GenericOp` is a `DualOp`, which is
+a *view* on the original (see [Views vs. Copies in QuDirac](view_copy.md)). 
+
+The dual of a `Projector` is simply a `Projector`, but is, of course, still a view on 
+the original factor states.
+
 ---
 ## Tensor Product
 ---
