@@ -55,7 +55,7 @@ Ket{Orthonormal,3} with 6 state(s):
 
 ### filternz/filternz!
 
-Methods: `filter(obj::AbstractDirac)`, `filter!(obj::AbstractDirac)` 
+Methods: `filternz(obj::AbstractDirac)`, `filternz!(obj::AbstractDirac)` 
 
 Description: Removes the zero components of `obj`
 
