@@ -35,7 +35,7 @@ Ket{Orthonormal,1} with 5 state(s):
 Now we can define our lowering operator in `k`'s basis:
 
 ```
-f(label) = (sqrt(label), label-1)
+julia> f(label) = (sqrt(label), label-1)
 
 julia> â = GenericOp(f, k, 1)
 GenericOp{Orthonormal,1} with 4 operator(s):

@@ -77,21 +77,23 @@ Ket{Orthonormal,1} with 5 state(s):
   0.4472135954999579 | 4 ⟩
   0.4472135954999579 | 1 ⟩
 
-julia> a = GenericOp(label->(sqrt(label[1]),{label[1]-1}), k)
+julia> f(label) = (sqrt(label), label-1)
+
+julia> â = GenericOp(f, k, 1)
 GenericOp{Orthonormal,1} with 4 operator(s):
   1.0 | 0 ⟩⟨ 1 |
   2.0 | 3 ⟩⟨ 4 |
   1.7320508075688772 | 2 ⟩⟨ 3 |
   1.4142135623730951 | 1 ⟩⟨ 2 |
 
-julia> a*k
+julia> â*k
 Ket{Orthonormal,1} with 4 state(s):
   0.4472135954999579 | 0 ⟩
   0.8944271909999159 | 3 ⟩
   0.7745966692414833 | 2 ⟩
   0.6324555320336759 | 1 ⟩
 
-julia> a*ket(4)
+julia> â*ket(4)
 Ket{Orthonormal,1} with 1 state(s):
   2.0 | 3 ⟩
 ```
