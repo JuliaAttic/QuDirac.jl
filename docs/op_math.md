@@ -64,7 +64,7 @@ GenericOp{Orthonormal,1} with 2 operator(s):
 
 Note that addition and subtraction of `Projector`s results in `GenericOp`s. While the former
 simply represents an outer product, the latter can more generally represent a *sum* of operators, 
-and is no longer a view. 
+and is no longer a view on underlying states.
 
 ---
 ## Normalization
