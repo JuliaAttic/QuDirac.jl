@@ -15,11 +15,11 @@
 
 @assert ptrace(ptrace(bitdens, 2), 1) == ptrace(ptrace(bitdens, 1), 2)
 
-@assert innerat(bra(0), bell_unbal, 2)[1] == bell_unbal[1,0]
-@assert innerat(bra(0), bell_unbal, 1)[1] == bell_unbal[0,1]
+@assert act_on(bra(0), bell_unbal, 2)[1] == bell_unbal[1,0]
+@assert act_on(bra(0), bell_unbal, 1)[1] == bell_unbal[0,1]
 
 b = 1/√2 * (bra(0) + bra(1))
-itest = innerat(b, bell_unbal, 2)
+itest = act_on(b, bell_unbal, 2)
 
 @assert itest[0] == b[1]*bell_unbal[0,1]
 @assert itest[1] == b[0]*bell_unbal[1,0]

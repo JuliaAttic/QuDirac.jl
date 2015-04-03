@@ -194,7 +194,7 @@ If these states are orthonormal, our final result is
           = c₂ | 1 ⟩ 
 ```
 
-QuDirac supports this operation through the use of the `innerat` function:
+QuDirac supports this operation through the use of the `act_on` function:
 
 ```
 julia> ψ = normalize!(ket(0,1) + 2*ket(1,0))
@@ -202,11 +202,11 @@ Ket{Orthonormal,2} with 2 state(s):
   0.4472135954999579 | 0,1 ⟩
   0.8944271909999159 | 1,0 ⟩
 
-julia> innerat(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
+julia> act_on(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
 Ket{Orthonormal,1} with 2 state(s):
   0.8944271909999159 | 1 ⟩
 
-julia> innerat(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
+julia> act_on(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
 Ket{Orthonormal,1} with 2 state(s):
   0.4472135954999579 | 1 ⟩
 ```
@@ -219,7 +219,7 @@ Bra{Orthonormal,1} with 2 state(s):
   0.7071067811865475 ⟨ 0 |
   0.7071067811865475 ⟨ 1 |
 
-julia> innerat(ϕ, ψ, 2)
+julia> act_on(ϕ, ψ, 2)
 Ket{Orthonormal,1} with 2 state(s):
   0.3162277660168379 | 0 ⟩
   0.6324555320336758 | 1 ⟩

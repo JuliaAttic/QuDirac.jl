@@ -110,7 +110,7 @@ end
 nfactors{P,N}(::DiracState{P,N}) = N
 
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
-innerat(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
+act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
 function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
     result = 0
@@ -138,7 +138,7 @@ function inner{A<:Orthonormal,B<:Orthonormal,N}(br::Bra{A,N}, kt::Ket{B,N})
     end
 end
 
-function innerat{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
+function act_on{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
     if i==1
         return inner(br, kt)
     else
@@ -146,7 +146,7 @@ function innerat{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
     end
 end
 
-function innerat{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
+function act_on{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
     result = StateDict()
     P = typejoin(A,B)
     for (b,c) in dict(br), (k,v) in dict(kt)
@@ -243,5 +243,5 @@ export ket,
     wavefunc,
     labels,
     coeffs,
-    innerat,
+    act_on,
     inner_eval

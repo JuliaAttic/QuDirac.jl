@@ -1,6 +1,3 @@
-QuDirac supports a variety of operator types. This section will 
-
----
 ## Outer Product of Two States
 ---
 
@@ -23,12 +20,11 @@ Projector{Orthonormal,2} with 4 operator(s):
 Specifically, an outer product of two states will yield an instance of the `Projector` type, as can be seen above. 
 
 The `Projector` type is a lazy representation of the outer product of two states - it simply stores a reference to 
-the two factor states, and behaves accordingly. Thus, the `Projector` type acts as a *view* onto the factor states 
-(see [Views vs. Copies in QuDirac](view_copy.md)). 
+the two factor states, and uses the state information to behave like an operator. Thus, the `Projector` type acts as 
+a *view* onto the factor states (see [Views vs. Copies in QuDirac](view_copy.md)). 
 
----
-## Functional Definition of an Operator
----
+Outer products are not the only way to construct operators - certain kinds of operators can be constructed simply by 
+defining their action on basis Kets. See [Functionally Defining Operators](func_op_def.md) for details.
 
 ---
 ## Scalar Multiplication
@@ -81,7 +77,7 @@ julia> norm(gop) # using gop from the previous example
 0.9999999999999999
 ```
 
-Of course, `normalize`/`normalize!` are provided for operators:
+Of course, the `normalize` and `normalize!` functions are provided for operators:
 
 ```
 julia> normalize!(sum(i -> ket(i) * bra(i^2), 1:5))
@@ -97,9 +93,22 @@ GenericOp{Orthonormal,1} with 5 operator(s):
 ## Getting an Operator's Adjoint
 ---
 
-Take the conjugate transpose of an operator using the ctranspose function:
+Take the conjugate transpose of an operator, simply use the `ctranspose` function:
 
+```
+julia> gop #from the earlier example
+GenericOp{Orthonormal,1} with 2 operator(s):
+  0.7071067811865475 | 'a' ⟩⟨ 'b' |
+  -0.7071067811865475 | 0 ⟩⟨ 1 |
 
+julia> gop'
+DualOp{Orthonormal,1} with 2 operator(s):
+  0.7071067811865475 | 'b' ⟩⟨ 'a' |
+  -0.7071067811865475 | 1 ⟩⟨ 0 |
+
+julia> gop'' == gop
+true
+```
 
 ---
 ## Tensor Product
