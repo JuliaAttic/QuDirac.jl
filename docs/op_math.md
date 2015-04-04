@@ -162,7 +162,7 @@ julia> act_on(a, k, 2)
 Ket{Orthonormal,3} with 2 state(s):
   4.47213595499958 | 3,4,1 ⟩
   1.4142135623730951 | 1,1,3 ⟩
-``
+```
 
 Like states, operator inner products have support for both lazy and custom evaluation rules. 
 See the [Working with Inner Products](inner_products.md) section for information 
