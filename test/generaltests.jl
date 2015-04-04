@@ -13,5 +13,9 @@
 @assert op-op+op == op
 @assert filternz!(xsubspace(tensor(op,op,op),3)) == (16 - 88im) * ket(1,1,1) * bra(1,1,1) 
 
+op_copy = copy(op)
+op_copy[3,0] = 32.03+im
+@assert op_copy[3,0] == 32.03+im
+
 @test_approx_eq norm(qubits) 1
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)

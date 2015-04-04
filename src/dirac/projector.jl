@@ -1,7 +1,7 @@
 #############
 # Projector #
 #############
-type Projector{P,N} <: DiracOperator{P,N}
+type Projector{P,N} <: DiracOp{P,N}
     scalar::Number
     kt::Ket{P,N}
     br::Bra{P,N}
@@ -62,22 +62,50 @@ Base.map(f::Function, op::Projector) = map(f, convert(GenericOp, op))
 mapcoeffs(f::Function, op::Projector) = mapcoeffs(f, convert(GenericOp, op))
 maplabels(f::Function, op::Projector) = maplabels(f, convert(GenericOp, op))
 
-##########################
-# Mathematical Functions #
-##########################
-nfactors{P,N}(op::Projector{P,N}) = N
-
+##############
+# ctranspose #
+##############
 Base.ctranspose{P}(op::Projector{P}) = Projector(P, op.scalar', op.br', op.kt')
 
+#########
+# inner #
+#########
+inner(br::Bra, op::Projector) = op.scalar * inner(br, op.kt) * op.br
+inner(op::Projector, kt::Ket) = op.scalar * op.kt * inner(op.br, kt)
+inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.br,b.kt), a.kt, b.br)
+inner(a::Projector, b::GeneralOp) = a.scalar * a.kt * inner(a.br, b)
+inner(a::GeneralOp, b::Projector) = inner(a, b.kt) * b.br * b.scalar
+
+##########
+# act_on #
+##########
+act_on(op::Projector, kt::Ket, i) = act_on(convert(GenericOp, op), kt, i)
+
+##########
+# tensor #
+##########
+QuBase.tensor(kt::Ket, br::Bra) = Projector(1, kt, br)
+QuBase.tensor(br::Bra, kt::Ket) = tensor(kt, br)
+QuBase.tensor(a::Projector, b::Projector) = Projector(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
+
+###########
+# Scaling #
+###########
 Base.scale!(c::Number, op::Projector) = (op.scalar = c*op.scalar; return op)
 Base.scale!(op::Projector, c::Number) = (op.scalar = op.scalar*c; return op)
 
 Base.scale(c::Number, op::Projector) = scale!(c,copy(op))
 Base.scale(op::Projector, c::Number) = scale!(copy(op),c)
 
+###########
+# + and - #
+###########
 Base.(:-)(op::Projector) = scale(-1, op)
 Base.(:+)(a::Projector, b::Projector) = convert(GenericOp, a) + convert(GenericOp, b)
 
+#################
+# Normalization #
+#################
 function Base.norm(op::Projector)
     result = 0
     for v in values(dict(op.kt)), c in values(dict(op.br))
@@ -86,6 +114,9 @@ function Base.norm(op::Projector)
     return sqrt(result)
 end
 
+#########
+# Trace #
+#########
 function Base.trace{O<:Orthonormal}(op::Projector{O})
     result = 0
     for k in labels(op.kt), b in labels(op.br)
@@ -104,20 +135,9 @@ function Base.trace{P}(op::Projector{P})
     return op.scalar * result
 end
 
-inner(br::Bra, op::Projector) = op.scalar * inner(br, op.kt) * op.br
-inner(op::Projector, kt::Ket) = op.scalar * op.kt * inner(op.br, kt)
-inner(a::Projector, b::Projector) = Projector(a.scalar * b.scalar * inner(a.br,b.kt), a.kt, b.br)
-inner(a::Projector, b::GeneralOp) = a.scalar * a.kt * inner(a.br, b)
-inner(a::GeneralOp, b::Projector) = inner(a, b.kt) * b.br * b.scalar
-
-QuBase.tensor(kt::Ket, br::Bra) = Projector(1, kt, br)
-QuBase.tensor(br::Bra, kt::Ket) = tensor(kt, br)
-QuBase.tensor(a::Projector, b::Projector) = Projector(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
-
-xsubspace(op::Projector,x) = xsubspace(convert(GenericOp, op), x)
-filternz(op::Projector) = filternz(convert(GenericOp, op))
-purity(op::Projector) = trace(op^2)
-
+#################
+# Partial Trace #
+#################
 ptrace{P}(op::Projector{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
 ptrace(op::Projector, over) = ptrace_proj(op, over)
 
@@ -143,6 +163,15 @@ function ptrace_proj{P,N}(op::Projector{P,N}, over)
     end
     return GenericOp(P,result,Factors{N-1}())
 end
+
+########################
+# Misc. Math Functions #
+########################
+nfactors{P,N}(op::Projector{P,N}) = N
+
+xsubspace(op::Projector,x) = xsubspace(convert(GenericOp, op), x)
+filternz(op::Projector) = filternz(convert(GenericOp, op))
+purity(op::Projector) = trace(op^2)
 
 ######################
 # Printing Functions #

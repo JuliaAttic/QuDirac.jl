@@ -104,27 +104,32 @@ function wavefunc(f::Function, kt::Ket)
     return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(kt))
 end
 
-##########################
-# Mathematical Functions #
-##########################
-nfactors{P,N}(::DiracState{P,N}) = N
+##############
+# ctranspose #
+##############
+Base.ctranspose(k::Ket) = Bra(k)
+Base.ctranspose(b::Bra) = b.kt
 
+#########
+# inner #
+#########
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
-act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
 function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
     result = 0
+    P = typejoin(A,B)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        result += c'*v*inner_eval(A,B,b,k)
+        result += c'*v*inner_rule(P,b,k)
     end
     return result  
 end
 
 function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::DiracState{A}, b::DiracState{B})
     result = 0
+    P = typejoin(A,B)
     for label in keys(dict(b))
         if haskey(a, label)
-            result += a[label]*b[label]*inner_eval(A,B,label,label)
+            result += a[label]*b[label]*inner_rule(P,label,label)
         end
     end
     return result
@@ -137,6 +142,13 @@ function inner{A<:Orthonormal,B<:Orthonormal,N}(br::Bra{A,N}, kt::Ket{B,N})
         return ortho_inner(br, kt)
     end
 end
+
+Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
+
+##########
+# act_on #
+##########
+act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
 function act_on{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
     if i==1
@@ -157,6 +169,9 @@ function act_on{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
     return Ket(P, result, Factors{N-1}())
 end 
 
+###########
+# Scaling #
+###########
 Base.scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
 Base.scale!(c::Number, k::Ket) = scale!(k,c)
 Base.scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
@@ -167,32 +182,42 @@ Base.scale(c::Number, k::Ket) = scale(k,c)
 Base.scale(b::Bra, c::Number) = Bra(scale(b.kt, c'))
 Base.scale(c::Number, b::Bra) = scale(b,c)
 
-Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, addmerge(dict(a), dict(b)))
-Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = a + (-b)
-Base.(:-){P,N}(kt::Ket{P,N}) = scale(-1,kt)
-
-Base.(:+)(a::Bra, b::Bra) = Bra(a.kt+b.kt)
-Base.(:-)(a::Bra, b::Bra) = Bra(a.kt-b.kt)
-Base.(:-)(br::Bra) = Bra(-br.kt)
-
-Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
-Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
-Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
-
 Base.(:*)(c::Number, s::DiracState) = scale(c, s)
 Base.(:*)(s::DiracState, c::Number) = scale(s, c)
 Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
 
-Base.ctranspose(k::Ket) = Bra(k)
-Base.ctranspose(b::Bra) = b.kt
-Base.norm(s::DiracState) = sqrt(sum(abs2, values(dict(s))))
+###########
+# + and - #
+###########
+Base.(:-){P,N}(kt::Ket{P,N}) = -1 * kt
+Base.(:-)(br::Bra) = Bra(-br.kt)
 
+Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+
+Base.(:+)(a::Bra, b::Bra) = Bra(a.kt + b.kt)
+Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
+
+##########
+# tensor #
+##########
 QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(P,tensorstate!(StateDict(), dict(a), dict(b)), fact(a)+fact(b))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
+Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
+Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
+
+#################
+# Normalization #
+#################
+Base.norm(s::DiracState) = sqrt(sum(abs2, values(dict(s))))
 QuBase.normalize(s::DiracState) = (1/norm(s))*s
 QuBase.normalize!(s::DiracState) = scale!(1/norm(s), s)
 
+########################
+# Misc. Math Functions #
+########################
+nfactors{P,N}(::DiracState{P,N}) = N
 xsubspace(s::DiracState, x) = similar(s, filter((k,v)->isx(k,x), dict(s)))
 switch(s::DiracState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
 permute(s::DiracState, perm) = similar(s, mapkeys(label->permute(label,perm), dict(s)))

@@ -53,7 +53,7 @@ and the resultant label. The labels passed to this function are simply the label
 states of `k`. We passed in `1` to denote that we wanted this function to act on the
 first (in this case, only) factor of the labels of `k`.
 
-Thus, mixing Julia syntax and math, our functional construction of 'â' can be written out like this:
+Thus, mixing Julia syntax and math, our functional construction of `â` can be written out like this:
 
 ```
 for n ∈ k, 
@@ -171,7 +171,7 @@ GenericOp{Orthonormal,3} with 10 operator(s):
   1 | 7,9,8 ⟩⟨ 7,8,9 |
 ```
 
-*Note: One should keep in mind that the `label` argument above is a `Vector{Any}`. See the [Labels and coefficients](labels_and_coeffs.md) section for details.
+*Note: The `label` argument above is a `Vector{Any}`. See the [Labels and coefficients](labels_and_coeffs.md) section for details.*
 
 As you can see, the above operator simply switches the second and third factors of 
 the basis labels (the `switch` function is provided by QuDirac, and can be found in

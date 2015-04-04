@@ -116,7 +116,6 @@ Bra{Orthonormal,1} with 1 state(s):
   
 julia> k'' == k
 true
-
 ```
 
 For efficiency's sake, Bras are *views* onto their Kets, not copies (see [Views vs. Copies in QuDirac](view_copy.md)).

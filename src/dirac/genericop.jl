@@ -16,7 +16,7 @@ Base.hash(label::OpLabel) = hash(ktlabel(label), hash(brlabel(label)))
 ####################
 # GenericOp/DualOp #
 ####################
-abstract GeneralOp{P,N} <: DiracOperator{P,N}
+abstract GeneralOp{P,N} <: DiracOp{P,N}
 
 typealias OpDict Dict{OpLabel,Number}
 
@@ -102,7 +102,7 @@ Base.similar(op::GeneralOp, d=similar(dict(op))) = typeof(op)(d, fact(op))
 #######################
 Base.(:(==)){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = dict(a) == dict(b)
 Base.(:(==)){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = a.op == b.op
-Base.(:(==))(a::DiracOperator, b::DiracOperator) = ==(promote(a,b)...)
+Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
 
 Base.hash(op::GeneralOp) = hash(dict(op), hash(typeof(op)))
 
@@ -114,17 +114,22 @@ Base.getindex(opc::DualOp, label::OpLabel) = opc.op[reverse(label)]'
 Base.getindex(opc::DualOp, k::Array, b::Array) = opc.op[OpLabel(b,k)]'
 Base.getindex(op::GeneralOp, k, b) = op[[k],[b]]
 
-function Base.setindex!{P,N}(s::GeneralOp{P,N}, c, label::OpLabel)
+_setindex!(op::GenericOp, c, label::OpLabel) = setindex!(dict(op), c, label)
+_setindex!(opc::DualOp, c, label::OpLabel) = _setindex!(opc.op, c', reverse(label))
+_setindex!(op::GenericOp, c, k, b) = _setindex!(op, c, OpLabel(k, b))
+_setindex!(opc::DualOp, c, k, b) = _setindex!(opc.op, c', OpLabel(b, k))
+
+function Base.setindex!{P,N}(op::GeneralOp{P,N}, c, label::OpLabel)
     if length(ktlabel(label)) == N && length(brlabel(label)) == N
-        return _setindex!(s, c, label)
+        return _setindex!(op, c, label)
     else
         throw(BoundsError())
     end
 end
 
-function Base.setindex!{P,N}(s::GeneralOp{P,N}, c, k::Array, b::Array)
+function Base.setindex!{P,N}(op::GeneralOp{P,N}, c, k::Array, b::Array)
     if length(k) == N && length(b) == N
-        return _setindex!(s, c, k, b)
+        return _setindex!(op, c, k, b)
     else
         throw(BoundsError())
     end
@@ -175,22 +180,24 @@ maplabels!{P,N}(f::Function, opc::DualOp{P,N}) = (mapkeys!(k->reverse(labelcheck
 maplabels{P,N}(f::Function, op::GenericOp{P,N}) = similar(op, mapkeys(k->labelcheck(f(k),N), dict(op)))
 maplabels{P,N}(f::Function, opc::DualOp{P,N}) = similar(opc, mapkeys(k->reverse(labelcheck(f(reverse(k)),N)), dict(opc)))
 
-##########################
-# Mathematical Functions #
-##########################
-nfactors{P,N}(::GeneralOp{P,N}) = N
-
+#############
+# ctranpose #
+#############
 eager_ctran(op::GenericOp) = map(ctpair, op)
 
 Base.ctranspose(op::GenericOp) = DualOp(op)
 Base.ctranspose(opc::DualOp) = opc.op
 
+#########
+# inner #
+#########
 function inner{A,B,N}(br::Bra{A,N}, op::GenericOp{B,N})
     result = StateDict()
+    P = typejoin(A,B)
     for (label,v) in dict(op)
         coeff = 0
         for (b,c) in dict(br)
-            coeff += c'*v*inner_eval(A,B,ktlabel(label),b) 
+            coeff += c'*v*inner_rule(P,ktlabel(label),b) 
         end
         add_to_dict!(result, brlabel(label), coeff')
     end
@@ -199,55 +206,109 @@ end
 
 function inner{A,B,N}(op::GenericOp{A,N}, kt::Ket{B,N})
     result = StateDict()
+    P = typejoin(A,B)
     for (label,c) in dict(op)
         coeff = 0
         for (k,v) in dict(kt)
-            coeff += c*v*inner_eval(A,B,brlabel(label),k) 
+            coeff += c*v*inner_rule(P,brlabel(label),k) 
         end
         add_to_dict!(result, ktlabel(label), coeff)
     end
-    return Ket(typejoin(A,B), result, fact(op))
+    return Ket(P, result, fact(op))
 end
 
 function inner{A,B,N}(a::GenericOp{A,N}, b::GenericOp{B,N})
     result = OpDict()
+    P = typejoin(A,B)
     for (label1,v) in dict(a), (label2,c) in dict(b)
         add_to_dict!(result,
                      OpLabel(ktlabel(label1),brlabel(label2)),
-                     v*c*inner_eval(A,B,brlabel(label1),ktlabel(label2)))
+                     v*c*inner_rule(P,brlabel(label1),ktlabel(label2)))
     end
-    return GenericOp(typejoin(A,B), result, fact(a))
+    return GenericOp(P, result, fact(a))
 end
 
 function inner{A,B,N}(a::GenericOp{A,N}, b::DualOp{B,N})
     result = OpDict()
+    P = typejoin(A,B)
     for (label1,v) in dict(a), (label2,c) in dict(b)
         add_to_dict!(result,
                      OpLabel(ktlabel(label1),ktlabel(label2)),
-                     v*c'*inner_eval(A,B,brlabel(label1),brlabel(label2)))
+                     v*c'*inner_rule(P,brlabel(label1),brlabel(label2)))
     end
-    return GenericOp(typejoin(A,B), result, fact(b))
+    return GenericOp(P, result, fact(b))
 end
 
 function inner{A,B,N}(a::DualOp{A,N}, b::GenericOp{B,N})
     result = OpDict()
+    P = typejoin(A,B)
     for (label1,v) in dict(a), (label2,c) in dict(b)
         add_to_dict!(result,
                      OpLabel(brlabel(label1),brlabel(label2)),
-                     v'*c*inner_eval(A,B,ktlabel(label1),ktlabel(label2)))
+                     v'*c*inner_rule(P,ktlabel(label1),ktlabel(label2)))
     end
-    return GenericOp(typejoin(A,B), result, fact(b))
+    return GenericOp(P, result, fact(b))
 end
 
 inner(br::Bra, opc::DualOp) = inner(opc.op, br')'
 inner(opc::DualOp, kt::Ket) = inner(kt', opc.op)'
 inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
 
-Base.(:*)(br::Bra, op::DiracOperator) = inner(br,op)
-Base.(:*)(op::DiracOperator, kt::Ket) = inner(op,kt)
-Base.(:*)(a::DiracOperator, b::DiracOperator) = inner(a,b)
+Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
+Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
+Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
+
+##########
+# act_on #
+##########
+act_on(op::GeneralOp, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
+
+# clear up ambiguity warnings
+act_on{A,B}(op::GenericOp{A,1}, kt::Ket{B,1}, i) = invoke(act_on, (GeneralOp{A,1}, Ket{B,1}, Any), op, kt, i)
+act_on{A,B}(op::DualOp{A,1}, kt::Ket{B,1}, i) = invoke(act_on, (GeneralOp{A,1}, Ket{B,1}, Any), op, kt, i)
+
+function act_on{A,B}(op::GeneralOp{A,1}, kt::Ket{B,1}, i)
+    if i==1
+        return inner(op, kt)
+    else
+        throw(BoundsError())
+    end
+end
+
+function act_on{A,B,N}(op::GenericOp{A,1}, kt::Ket{B,N}, i)
+    result = StateDict()
+    P = typejoin(A,B)
+    for (label, c) in dict(op), (k,v) in dict(kt)
+        add_to_dict!(result,
+                     vcat(k[1:i-1], ktlabel(label), k[i+1:end]),
+                     c * v * inner_rule(P, first(brlabel(label)), k[i]))
+    end
+    return Ket(P, result, Factors{N}())
+end
+
+function act_on{A,B,N}(op::DualOp{A,1}, kt::Ket{B,N}, i)
+    result = StateDict()
+    P = typejoin(A,B)
+    for (label, c) in dict(op), (k,v) in dict(kt)
+        add_to_dict!(result,
+                     vcat(k[1:i-1], brlabel(label), k[i+1:end]),
+                     c' * v * inner_rule(P, first(ktlabel(label)), k[i]))
+    end
+    return Ket(P, result, Factors{N}())
+end
+
+##########
+# tensor #
+##########
+QuBase.tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(P, tensorop!(OpDict(), dict(a), dict(b)), fact(a)+fact(b))
+QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
+QuBase.tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
+
 Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 
+###########
+# Scaling #
+###########
 Base.scale!(op::GenericOp, c::Number) = (dscale!(dict(op), c); return op)
 Base.scale!(c::Number, op::GenericOp) = scale!(op, c)
 Base.scale!(opc::DualOp, c::Number) = DualOp(scale!(opc.op, c'))
@@ -258,24 +319,37 @@ Base.scale(c::Number, op::GenericOp) = scale(op, c)
 Base.scale(opc::DualOp, c::Number) = DualOp(scale(opc.op, c'))
 Base.scale(c::Number, opc::DualOp) = scale(opc, c)
 
-Base.(:*)(c::Number, op::DiracOperator) = scale(c, op)
-Base.(:*)(op::DiracOperator, c::Number) = scale(op, c)
-Base.(:/)(op::DiracOperator, c::Number) = scale(op, 1/c)
+Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
+Base.(:*)(op::DiracOp, c::Number) = scale(op, c)
+Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
 
-Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(a, addmerge(dict(a), dict(b)))
-Base.(:+){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op + b.op)
-Base.(:+)(a::DiracOperator, b::DiracOperator) = +(promote(a,b)...)
-
-Base.(:-)(a::DiracOperator, b::DiracOperator) = a + (-b)
+###########
+# + and - #
+###########
 Base.(:-)(op::GenericOp) = mapcoeffs(-, op)
 Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
+Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.(:-){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+
+Base.(:+){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op + b.op)
+Base.(:-){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op - b.op)
+
+Base.(:+)(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
+Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
+
+#################
+# Normalization #
+#################
 Base.norm(op::GenericOp) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOp) = norm(opc.op)
 
-QuBase.normalize(op::DiracOperator) = scale(1/norm(op), op)
-QuBase.normalize!(op::DiracOperator) = scale!(1/norm(op), op)
+QuBase.normalize(op::DiracOp) = scale(1/norm(op), op)
+QuBase.normalize!(op::DiracOp) = scale!(1/norm(op), op)
 
+#########
+# Trace #
+#########
 function Base.trace{O<:Orthonormal}(op::GenericOp{O})
     result = 0
     for label in labels(op)
@@ -295,19 +369,6 @@ function Base.trace{P}(op::GenericOp{P})
 end
 
 Base.trace(opc::DualOp) = trace(opc.op)'
-
-QuBase.tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(P, tensorop!(OpDict(), dict(a), dict(b)), fact(a)+fact(b))
-QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
-QuBase.tensor(a::DiracOperator, b::DiracOperator) = tensor(promote(a,b)...)
-
-xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->isx(k,x), dict(op)))
-filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
-filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
-
-purity(op::GeneralOp) = trace(op^2)
-
-inner_eval(f::Function, op::DiracOperator) = mapcoeffs(x->inner_eval(f,x),op)
-inner_eval(op::DiracOperator) = mapcoeffs(inner_eval,op)
 
 #################
 # Partial trace #
@@ -339,13 +400,26 @@ function ptrace_op{P,N}(op::GeneralOp{P,N}, over)
     return GenericOp(P,result,Factors{N-1}())
 end
 
+########################
+# Misc. Math Functions #
+########################
+nfactors{P,N}(::GeneralOp{P,N}) = N
+xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->isx(k,x), dict(op)))
+filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
+filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
+
+purity(op::GeneralOp) = trace(op^2)
+
+inner_eval(f::Function, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
+inner_eval(op::DiracOp) = mapcoeffs(inner_eval,op)
+
 ######################
 # Printing Functions #
 ######################
 labelrepr(op::GenericOp, label, pad) = "$pad$(op[label]) $(ktstr(ktlabel(label)))$(brstr(brlabel(label)))"
 labelrepr(opc::DualOp, label, pad) = "$pad$(opc[reverse(label)]) $(ktstr(brlabel(label)))$(brstr(ktlabel(label)))"
 
-Base.summary(op::DiracOperator) = "$(typeof(op)) with $(length(op)) operator(s)"
+Base.summary(op::DiracOp) = "$(typeof(op)) with $(length(op)) operator(s)"
 Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
 Base.showcompact(io::IO, op::GeneralOp) = dirac_showcompact(io, op)
 Base.repr(op::GeneralOp) = dirac_repr(op)
@@ -366,4 +440,5 @@ export GenericOp,
     OpLabel,
     ktlabel,
     brlabel,
+    act_on,
     inner_eval

@@ -80,7 +80,6 @@ Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 ##############
 # inner_eval #
 ##############
-inner_eval{A,B}(::Type{A}, ::Type{B}, k, b) = inner_rule(typejoin(A, B), k, b)
 inner_eval{P}(i::InnerProduct{P}) = inner_rule(P, ktlabel(i), brlabel(i))
 inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
 inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))

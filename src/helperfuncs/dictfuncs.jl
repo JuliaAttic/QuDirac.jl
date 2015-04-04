@@ -78,19 +78,30 @@ end
 #########
 # merge #
 #########
-function addmerge!(result, others...)
-    for other in others
-        for (k,v) in other
-            if v != 0
-                result[k] = v + get(result,k,0)
-            end
+function add_merge!(result, other)
+    for (k,v) in other
+        if v != 0
+            result[k] = get(result,k,0) + v 
         end
     end
     return result
 end
 
-function addmerge(d, others...)
-    return addmerge!(similar(d), d, others...)
+function add_merge(a, b)
+    return add_merge!(copy(a), b)
+end
+
+function sub_merge!(result, other)
+    for (k,v) in other
+        if v != 0
+            result[k] = get(result,k,0) - v 
+        end
+    end
+    return result
+end
+
+function sub_merge(a, b)
+    return sub_merge!(copy(a), b)
 end
 
 ##########
