@@ -175,7 +175,12 @@ julia> bra(0,0) * k
 0.7071067811865475
 ```
 
-It is sometimes useful to take the inner product between a Bra and a *specific factor* of a Ket. A math example might be:
+---
+## Acting a Bra on a specific Ket factor
+---
+
+It is sometimes useful to take the inner product between a Bra and a *specific factor* of a Ket.
+A math example might be:
 
 ```
 | ψ ⟩ =   c₁ | 0, 1 ⟩ + c₂ | 1, 0 ⟩

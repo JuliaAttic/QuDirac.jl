@@ -142,31 +142,15 @@ Projector{Orthonormal,2} with 2 operator(s):
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 ```
 
-One can use the `act_on` function to apply an operator to a specific factor of a Ket:
+Expectation values are obtained in this manner:
 
 ```
-julia> a = sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5) # lowering operator
-GenericOp{Orthonormal,1} with 5 operator(s):
-  1.0 | 0 ⟩⟨ 1 |
-  2.0 | 3 ⟩⟨ 4 |
-  2.23606797749979 | 4 ⟩⟨ 5 |
-  1.7320508075688772 | 2 ⟩⟨ 3 |
-  1.4142135623730951 | 1 ⟩⟨ 2 |
+julia> bra(1,1)*op*ket(1,1)
+0.4999999999999999
 
-julia> k = ket(1,2,3) + 2*ket(3,5,1)
-Ket{Orthonormal,3} with 2 state(s):
-  2 | 3,5,1 ⟩
-  1 | 1,2,3 ⟩
-
-julia> act_on(a, k, 2)
-Ket{Orthonormal,3} with 2 state(s):
-  4.47213595499958 | 3,4,1 ⟩
-  1.4142135623730951 | 1,1,3 ⟩
+julia> k'*op*k
+0.9999999999999997
 ```
-
-Like states, operator inner products have support for both lazy and custom evaluation rules. 
-See the [Working with Inner Products](inner_products.md) section for information 
-regarding these features.
 
 ---
 ## Tensor Product
@@ -196,12 +180,75 @@ Projector{Orthonormal,3} with 4 operator(s):
 ```
 
 ---
-## Expectation values
+## Acting an operator on a specific Ket factor
 ---
 
-As we've
+One can use the `act_on` function to apply an operator to a specific factor of a Ket:
+
+```
+julia> a = sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5) # lowering operator
+GenericOp{Orthonormal,1} with 5 operator(s):
+  1.0 | 0 ⟩⟨ 1 |
+  2.0 | 3 ⟩⟨ 4 |
+  2.23606797749979 | 4 ⟩⟨ 5 |
+  1.7320508075688772 | 2 ⟩⟨ 3 |
+  1.4142135623730951 | 1 ⟩⟨ 2 |
+
+julia> k = ket(1,2,3) + 2*ket(3,5,1)
+Ket{Orthonormal,3} with 2 state(s):
+  2 | 3,5,1 ⟩
+  1 | 1,2,3 ⟩
+
+julia> act_on(a, k, 2)
+Ket{Orthonormal,3} with 2 state(s):
+  4.47213595499958 | 3,4,1 ⟩
+  1.4142135623730951 | 1,1,3 ⟩
+```
+
+Like states, operator inner products have support for both lazy and custom evaluation rules.
+See the [Working with Inner Products](inner_products.md) section for information
+regarding these features.
 
 ---
 ## Trace and Partial Trace
 ---
 
+To take the trace of an operator, simply use the `trace` function:
+
+```
+julia> k = normalize!(sum(ket, 0:5))
+Ket{Orthonormal,1} with 6 state(s):
+  0.4082482904638631 | 0 ⟩
+  0.4082482904638631 | 2 ⟩
+  0.4082482904638631 | 3 ⟩
+  0.4082482904638631 | 5 ⟩
+  0.4082482904638631 | 4 ⟩
+  0.4082482904638631 | 1 ⟩
+
+julia> trace(k*k')
+1.0000000000000002
+```
+
+The partial trace of an operator can be taken using the `ptrace` function:
+
+```
+julia> bell = 1/√2 * (ket('b','a') + ket('a','b'))
+Ket{Orthonormal,2} with 2 state(s):
+  0.7071067811865475 | 'a','b' ⟩
+  0.7071067811865475 | 'b','a' ⟩
+
+julia> dense = bell * bell'
+Projector{Orthonormal,2} with 4 operator(s):
+  0.4999999999999999 | 'a','b' ⟩⟨ 'a','b' |
+  0.4999999999999999 | 'a','b' ⟩⟨ 'b','a' |
+  0.4999999999999999 | 'b','a' ⟩⟨ 'a','b' |
+  0.4999999999999999 | 'b','a' ⟩⟨ 'b','a' |
+
+julia> ptrace(dense,1)
+GenericOp{Orthonormal,1} with 2 operator(s):
+  0.4999999999999999 | 'b' ⟩⟨ 'b' |
+  0.4999999999999999 | 'a' ⟩⟨ 'a' |
+
+julia> purity(ans) # get the purity of the previous result
+0.4999999999999998
+```
