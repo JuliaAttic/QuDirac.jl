@@ -1,7 +1,7 @@
 *Note: Throughout this documentation, I'll refer to `ket` (lowercase) and Ket (uppercase). "Ket" refers to a type, while `ket` refers to the convenience constructor for that type. The same goes for `bra` and Bra.*
 
 ---
-## Constructing Single Kets
+# Constructing Single Kets
 ---
 
 To begin, let's make a single state using the `ket` function:
@@ -30,7 +30,7 @@ Ket{Orthonormal,1} with 1 state(s):
 ```
 
 ---
-## Constructing Single Bras
+# Constructing Single Bras
 ---
 
 Bras can be constructed the same way using the `bra` function:
@@ -45,7 +45,7 @@ Just like Kets, Bra labels can be anything.
 
 
 ---
-## Constructing Single Product States
+# Constructing Single Product States
 ---
 
 The number of labels passed to the `ket`/`bra` functions determines how many factors there are in the basis of the resulting state. For example, to construct `| 0 ⟩ ⊗| 0 ⟩ ⊗ | 0 ⟩` we can simply do the following:

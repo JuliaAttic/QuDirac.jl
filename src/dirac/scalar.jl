@@ -20,8 +20,8 @@ ktlabel(i::InnerProduct) = i.ktlabel
 ##############
 # inner_rule #
 ##############
-inner_rule{P<:AbstractInner}(::Type{P}, k, b) = ScalarExpr(InnerProduct{P}(k, b))
-inner_rule{O<:Orthonormal}(::Type{O}, k, b) = k == b ? 1 : 0
+inner_rule{P<:AbstractInner}(::Type{P}, b, k) = ScalarExpr(InnerProduct{P}(b, k))
+inner_rule{O<:Orthonormal}(::Type{O}, b, k) = b == k ? 1 : 0
 
 ######################
 # Printing Functions #
@@ -80,7 +80,7 @@ Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 ##############
 # inner_eval #
 ##############
-inner_eval{P}(i::InnerProduct{P}) = inner_rule(P, ktlabel(i), brlabel(i))
+inner_eval{P}(i::InnerProduct{P}) = inner_rule(P, brlabel(i), ktlabel(i))
 inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
 inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))
 inner_eval(n::Number) = n
@@ -302,7 +302,6 @@ end
 
 Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
-export ScalarExpr,
-    ktlabel,
+export ktlabel,
     brlabel,
     inner_eval

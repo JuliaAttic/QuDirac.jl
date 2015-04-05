@@ -1,7 +1,7 @@
 *Note: All arithmetic on Kets also works on Bras, although we may not explicitly give examples here.*
 
 ---
-## Scalar multiplication
+# Scalar multiplication
 ---
 
 Multiplying a state by a scalar modifies the coefficient appropriately:
@@ -17,7 +17,7 @@ Ket{Orthonormal,1} with 1 state(s):
 ```
 
 ---
-## Addition and Subtraction
+# Addition and Subtraction
 ---
 
 States can be also be added and subtracted:
@@ -54,7 +54,7 @@ Two key observations can be made here:
 2. States do not automatically normalize themselves under operations like addition, which leads us to the next section...
 
 ---
-## Normalization
+# Normalization
 ---
 
 In general, QuDirac objects *do not automatically normalize themselves*.
@@ -100,7 +100,7 @@ julia> norm(1/√2 * (ket(0) + ket(1)))
 ```
 
 ---
-## Getting a State's Dual
+# Getting a State's Dual
 ---
 
 One can use the `ctranspose` function to construct the dual of a given state:
@@ -118,10 +118,10 @@ julia> k'' == k
 true
 ```
 
-For efficiency's sake, Bras are *views* onto their Kets, not copies (see [Views vs. Copies in QuDirac](view_copy.md)).
+For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra in any way will result in the mutation of the underlying Ket (one can explicitly make a copy via the `copy` function).
 
 ---
-## Tensor Product
+# Tensor Product
 ---
 
 One can take a tensor product of states simply by multiplying them:
@@ -159,7 +159,7 @@ Ket{Orthonormal,6} with 1 state(s):
 ```
 
 ---
-## Inner Product
+# Inner Product
 ---
 
 Similarly to the tensor product, the inner product can be taken simply by multiplying Bras with Kets:
@@ -176,7 +176,7 @@ julia> bra(0,0) * k
 ```
 
 ---
-## Acting a Bra on a specific Ket factor
+# Acting a Bra on a specific Ket factor
 ---
 
 It is sometimes useful to take the inner product between a Bra and a *specific factor* of a Ket.

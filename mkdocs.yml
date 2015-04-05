@@ -2,15 +2,13 @@ site_name: QuDirac.jl
 repo_url: https://github.com/JuliaQuantum/QuDirac.jl
 pages:
 - ['index.md', 'Introduction']
-- ['constructing_states.md', 'User Guide', '1. Constructing Single States']
-- ['state_math.md', 'User Guide', '2. Math with States']
-- ['op_math.md', 'User Guide', '3. Math with Operators']
-- ['labels_and_coeffs.md', 'User Guide', '4. Labels and coefficients']
-- ['func_op_def.md', 'User Guide', '5. Functionally Defining Operators']
-- ['inner_products.md', 'User Guide', '6. Working with Inner Products']
-- ['d_str.md', 'User Guide', '7. Natural expression input using @d_str']
-- ['view_copy.md', 'User Guide', '8. Views vs. Copies in QuDirac']
-- ['filtering_functions.md', 'API', 'Filtering functions']
-- ['mapping_functions.md', 'API', 'Mapping functions']
+- ['constructing_states.md', 'User Guide', 'Constructing Single States']
+- ['state_math.md', 'User Guide', 'Math with States']
+- ['op_math.md', 'User Guide', 'Math with Operators']
+- ['labels_and_coeffs.md', 'User Guide', 'Labels and coefficients']
+- ['func_op_def.md', 'User Guide', 'Functionally Defining Operators']
+- ['inner_products.md', 'User Guide', 'Working with Inner Products']
+- ['d_str.md', 'User Guide', 'Natural expression input using @d_str']
+- ['api.md', 'User Guide', 'API']
 
 theme: readthedocs

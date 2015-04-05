@@ -115,18 +115,16 @@ Base.ctranspose(b::Bra) = b.kt
 #########
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
 
-function inner{A,B,N}(br::Bra{A,N}, kt::Ket{B,N})
+function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
     result = 0
-    P = typejoin(A,B)
     for (b,c) in dict(br), (k,v) in dict(kt)
         result += c'*v*inner_rule(P,b,k)
     end
     return result  
 end
 
-function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::DiracState{A}, b::DiracState{B})
+function ortho_inner{P<:Orthonormal}(a::DiracState{P}, b::DiracState{P})
     result = 0
-    P = typejoin(A,B)
     for label in keys(dict(b))
         if haskey(a, label)
             result += a[label]*b[label]*inner_rule(P,label,label)
@@ -135,7 +133,7 @@ function ortho_inner{A<:Orthonormal,B<:Orthonormal}(a::DiracState{A}, b::DiracSt
     return result
 end
 
-function inner{A<:Orthonormal,B<:Orthonormal,N}(br::Bra{A,N}, kt::Ket{B,N})
+function inner{P<:Orthonormal,N}(br::Bra{P,N}, kt::Ket{P,N})
     if length(br) < length(kt)
         return ortho_inner(kt, br)
     else
@@ -150,7 +148,7 @@ Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
 ##########
 act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
-function act_on{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
+function act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i)
     if i==1
         return inner(br, kt)
     else
@@ -158,9 +156,8 @@ function act_on{A,B}(br::Bra{A,1}, kt::Ket{B,1}, i)
     end
 end
 
-function act_on{A,B,N}(br::Bra{A,1}, kt::Ket{B,N}, i)
+function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
     result = StateDict()
-    P = typejoin(A,B)
     for (b,c) in dict(br), (k,v) in dict(kt)
         add_to_dict!(result, 
                      except(k,i),
@@ -258,8 +255,8 @@ export ket,
     maplabels,
     mapcoeffs,
     xsubspace,
-    switch,
     permute,
+    switch,
     switch!,
     permute!,
     filternz!,
@@ -267,6 +264,5 @@ export ket,
     purity,
     wavefunc,
     labels,
-    coeffs,
     act_on,
     inner_eval

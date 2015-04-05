@@ -7,7 +7,7 @@ QuDirac supports the functional construction of operators that can be defined in
 Where `| a ⟩` and `| b ⟩` are single basis states (i.e. not superpositions).
 
 ---
-## Constructing operators by defining their action on a basis
+# Constructing operators by defining their action on a basis
 ---
 
 Operators are often defined by their actions on individual Kets. The quintessential example is the lowering operator, defined
@@ -17,7 +17,7 @@ on Kets as:
 â | n ⟩ = √n | n - 1 ⟩
 ``` 
 
-To define an operator in this manner using QuDirac, we can use the constructor for `GenericOp`, 
+To define an operator in this manner using QuDirac, we can use the `func_op` method, 
 which takes a function, a Ket, and a factor index as arguments. 
 
 Let's say we have a simple Ket `k`:
@@ -37,7 +37,7 @@ Now we can define our lowering operator in `k`'s basis:
 ```
 julia> f(label) = (sqrt(label), label-1)
 
-julia> â = GenericOp(f, k, 1)
+julia> â = func_op(f, k, 1)
 GenericOp{Orthonormal,1} with 4 operator(s):
   1.0 | 0 ⟩⟨ 1 |
   2.0 | 3 ⟩⟨ 4 |
@@ -81,7 +81,7 @@ Ket{Orthonormal,1} with 1 state(s):
 ```
 
 ---
-## Functionally defining operators on single factors
+# Functionally defining operators on single factors
 ---
 
 In the previous example, we passed in `1` to the `GenericOp` constructor to indicate that our function `f`
@@ -108,7 +108,7 @@ Ket{Orthonormal,3} with 125 state(s):
 ...and we can reuse `f` as well, but define the operator on the second factor by passing in `2`:
 
 ```
-julia> â₂ = GenericOp(f, k3, 2)
+julia> â₂ = func_op(f, k3, 2)
 GenericOp{Orthonormal,3} with 100 operator(s):
   1.4142135623730951 | 3,1,0 ⟩⟨ 3,2,0 |
   1.0 | 3,0,3 ⟩⟨ 3,1,3 |
@@ -138,7 +138,7 @@ Ket{Orthonormal,3} with 1 state(s):
 ```
 
 ---
-## Functionally defining operators on all factors
+# Functionally defining operators on all factors
 ---
 
 If you wish to functionally define an operator on all factors of the basis, you may easily do so by omitting the factor index as an argument:
@@ -157,7 +157,7 @@ Ket{Orthonormal,3} with 10 state(s):
   2 | 2,3,4 ⟩
   7 | 7,8,9 ⟩
 
-julia> p23 = GenericOp(label -> (1, switch(label, 2, 3)), k)
+julia> p132 = func_op(label -> (1, switch(label, 2, 3)), k)
 GenericOp{Orthonormal,3} with 10 operator(s):
   1 | 6,8,7 ⟩⟨ 6,7,8 |
   1 | 4,6,5 ⟩⟨ 4,5,6 |
@@ -180,7 +180,7 @@ the API section).
 Acting it on `k`:
 
 ```
-julia> p23 * k
+julia> p132 * k
 Ket{Orthonormal,3} with 10 state(s):
   4 | 4,6,5 ⟩
   9 | 9,11,10 ⟩

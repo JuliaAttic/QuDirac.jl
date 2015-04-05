@@ -1,4 +1,4 @@
-## Outer Product of Two States
+# Outer Product of Two States
 ---
 
 The simplest way to construct a QuDirac operator is to take the outer product of two states:
@@ -10,43 +10,51 @@ Ket{Orthonormal,2} with 2 state(s):
   0.7071067811865475 | 0,0 ⟩
 
 julia> k*k' # | k ⟩⟨ k |
-Projector{Orthonormal,2} with 4 operator(s):
+OuterProduct{Orthonormal,2} with 4 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 ```
 
-Specifically, an outer product of two states will yield an instance of the `Projector` type, as can be seen above. 
-
-The `Projector` type is a lazy representation of the outer product of two states - it simply stores a reference to 
-the two factor states, and uses the state information to behave like an operator. Thus, the `Projector` type acts as 
-a *view* onto the factor states (see [Views vs. Copies in QuDirac](view_copy.md)). 
+Specifically, an outer product of two states will yield an instance of the `OuterProduct` type, as can be seen above. 
 
 Outer products are not the only way to construct operators - certain kinds of operators can be constructed simply by 
 defining their action on basis Kets (see [Functionally Defining Operators](func_op_def.md)).
 
 ---
-## Scalar Multiplication
+# `OuterProduct` vs. `GenericOp`
+---
+
+There are two main types of operators in QuDirac: the `OuterProduct` type, and the `GenericOp` type. Most functions on operators are defined for both types, but they behave differently in a few ways.
+
+The `OuterProduct` type is a lazy representation of the outer product of two states - it simply stores a reference to 
+the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
+a *view* onto the factor states. This allows quick, memory-efficient construction of density operators and the like.
+
+Besides simple scaling functions (e.g. `scale!`, `normalize!`), mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `GenericOp` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view.
+
+---
+# Scalar Multiplication
 ---
 
 Like states, operators can be multiplied by a scalar: 
 
 ```
 julia> op = ket('a') * bra('b')
-Projector{Orthonormal,1} with 1 operator(s):
+OuterProduct{Orthonormal,1} with 1 operator(s):
   1 | 'a' ⟩⟨ 'b' |
 
 julia> im * op
-Projector{Orthonormal,1} with 1 operator(s):
+OuterProduct{Orthonormal,1} with 1 operator(s):
   0 + 1im | 'a' ⟩⟨ 'b' |
 
 julia> op/2
-Projector{Orthonormal,1} with 1 operator(s):
+OuterProduct{Orthonormal,1} with 1 operator(s):
   0.5 | 'a' ⟩⟨ 'b' |
 ```
 ---
-## Addition and Subtraction
+# Addition and Subtraction
 ---
 
 Operators can be added and subtracted just like states:
@@ -62,12 +70,8 @@ GenericOp{Orthonormal,1} with 2 operator(s):
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 ```
 
-Note that addition and subtraction of `Projector`s results in `GenericOp`s. While the former
-simply represents an outer product, the latter can more generally represent a *sum* of operators, 
-and is no longer a view on underlying states.
-
 ---
-## Normalization
+# Normalization
 ---
 
 Similarly to states, the Hilbert–Schmidt norm can be computed on an operator using the `norm` function:
@@ -90,10 +94,10 @@ GenericOp{Orthonormal,1} with 5 operator(s):
 ```
 
 ---
-## Getting an Operator's Adjoint
+# Getting an Operator's Adjoint
 ---
 
-Take the conjugate transpose of an operator, simply use the `ctranspose` function:
+Take the conjugate transpose of an operator, simply call `ctranspose` on it:
 
 ```
 julia> gop #from the earlier example
@@ -108,13 +112,13 @@ DualOp{Orthonormal,1} with 2 operator(s):
 ```
 
 Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of a `GenericOp` is a `DualOp`.
-The `DualOp` type is a *view* on the original (see [Views vs. Copies in QuDirac](view_copy.md)). 
+The `DualOp` type is a *view* on the original operator, so mutating a `DualOp` will mutate the underlying `GenericOp` (one can explicitly make a copy via the `copy` function). 
 
-It's worth mentioning that the dual of a `Projector` is simply a `Projector`, and is still a view on 
+It's worth mentioning that the dual of a `OuterProduct` is simply a `OuterProduct`, and is still a view on 
 the original factor states.
 
 ---
-## Inner Product
+# Inner Product
 ---
 
 Taking the inner product between operators and states is 
@@ -122,7 +126,7 @@ performed using the `*` function:
 
 ```
 julia> k = 1/√2 * (ket(0,0) - ket(1,1)); op = k*k'
-Projector{Orthonormal,2} with 4 operator(s):
+OuterProduct{Orthonormal,2} with 4 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
@@ -137,7 +141,7 @@ julia> bra(0,0) * op * ket(1,1)
 -0.4999999999999999
 
 julia> op * (ket(1,1) * bra(0,0))
-Projector{Orthonormal,2} with 2 operator(s):
+OuterProduct{Orthonormal,2} with 2 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 ```
@@ -152,35 +156,12 @@ julia> k'*op*k
 0.9999999999999997
 ```
 
----
-## Tensor Product
----
-
-Unlike states, one does not take the tensor product of operators using `*`; that function is
-already used for inner products. Thus, one must use the `tensor` function:
-
-```
-julia> tensor(op,op,op,op) # op from previous example
-Projector{Orthonormal,8} with 256 operator(s):
-  0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 0,0,0,0,0,0,0,0 |
-  -0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
-  0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 1,1,1,1,1,1,1,1 |
-  -0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 1,1,0,0,1,1,1,1 |
-  -0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 0,0,0,0,0,0,0,0 |
-  0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
-  -0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 1,1,1,1,1,1,1,1 |
-  ⁞
-
-julia> tensor(op, ket('a')*bra('b'))
-Projector{Orthonormal,3} with 4 operator(s):
-  -0.4999999999999999 | 0,0,'a' ⟩⟨ 1,1,'b' |
-  0.4999999999999999 | 0,0,'a' ⟩⟨ 0,0,'b' |
-  0.4999999999999999 | 1,1,'a' ⟩⟨ 1,1,'b' |
-  -0.4999999999999999 | 1,1,'a' ⟩⟨ 0,0,'b' |
-```
+Like states, operator inner products have support for both lazy and custom evaluation rules.
+See the [Working with Inner Products](inner_products.md) section for information
+regarding these features.
 
 ---
-## Acting an operator on a specific Ket factor
+# Acting an operator on a specific Ket factor
 ---
 
 One can use the `act_on` function to apply an operator to a specific factor of a Ket:
@@ -205,12 +186,35 @@ Ket{Orthonormal,3} with 2 state(s):
   1.4142135623730951 | 1,1,3 ⟩
 ```
 
-Like states, operator inner products have support for both lazy and custom evaluation rules.
-See the [Working with Inner Products](inner_products.md) section for information
-regarding these features.
+---
+# Tensor Product
+---
+
+Unlike states, one does not take the tensor product of operators using `*`; that function is
+already used for inner products. Thus, one must use the `tensor` function:
+
+```
+julia> tensor(op,op,op,op) # op from previous example
+OuterProduct{Orthonormal,8} with 256 operator(s):
+  0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 0,0,0,0,0,0,0,0 |
+  -0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
+  0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 1,1,1,1,1,1,1,1 |
+  -0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 1,1,0,0,1,1,1,1 |
+  -0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 0,0,0,0,0,0,0,0 |
+  0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
+  -0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 1,1,1,1,1,1,1,1 |
+  ⁞
+
+julia> tensor(op, ket('a')*bra('b'))
+OuterProduct{Orthonormal,3} with 4 operator(s):
+  -0.4999999999999999 | 0,0,'a' ⟩⟨ 1,1,'b' |
+  0.4999999999999999 | 0,0,'a' ⟩⟨ 0,0,'b' |
+  0.4999999999999999 | 1,1,'a' ⟩⟨ 1,1,'b' |
+  -0.4999999999999999 | 1,1,'a' ⟩⟨ 0,0,'b' |
+```
 
 ---
-## Trace and Partial Trace
+# Trace and Partial Trace
 ---
 
 To take the trace of an operator, simply use the `trace` function:
@@ -238,7 +242,7 @@ Ket{Orthonormal,2} with 2 state(s):
   0.7071067811865475 | 'b','a' ⟩
 
 julia> dense = bell * bell'
-Projector{Orthonormal,2} with 4 operator(s):
+OuterProduct{Orthonormal,2} with 4 operator(s):
   0.4999999999999999 | 'a','b' ⟩⟨ 'a','b' |
   0.4999999999999999 | 'a','b' ⟩⟨ 'b','a' |
   0.4999999999999999 | 'b','a' ⟩⟨ 'a','b' |
@@ -252,3 +256,5 @@ GenericOp{Orthonormal,1} with 2 operator(s):
 julia> purity(ans) # get the purity of the previous result
 0.4999999999999998
 ```
+
+As you can see, the second argument to `ptrace` is the index of the factor to be traced over.

@@ -8,7 +8,7 @@ quantum mechanics computations.
 
 Below are some toy examples; actual documentation is coming soon! 
 
-#### State types (`Ket`,`Bra`) and Operator types (`GenericOp`,`Projector`)
+#### State types (`Ket`,`Bra`) and Operator types (`GenericOp`,`OuterProduct`)
 
 ```julia
 julia> bell = 1/√2 * (ket(0,0) + ket(1,1))
@@ -22,7 +22,7 @@ Bra{Orthonormal,2} with 2 state(s):
   0.7071067811865475 ⟨ 0,0 |
 
 julia> op = bell * bell'
-Projector{Orthonormal,2} with 4 operator(s):
+OuterProduct{Orthonormal,2} with 4 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   0.4999999999999999 | 0,0 ⟩⟨ 1,1 |

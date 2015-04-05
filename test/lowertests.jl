@@ -1,7 +1,7 @@
 k = sum(i->i * ket(i), 1:5)
 
 lower(label) = (sqrt(label), label-1)
-a = GenericOp(lower, k, 1)
+a = func_op(lower, k, 1)
 
 @assert a == sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5)
 
@@ -17,6 +17,6 @@ filternz!(delete!(hik, {6}))
 
 k3 = k^3
 
-a_2 = GenericOp(lower, k3, 2)
+a_2 = func_op(lower, k3, 2)
 
 @assert a_2 * k3 == act_on(a, k3, 2)

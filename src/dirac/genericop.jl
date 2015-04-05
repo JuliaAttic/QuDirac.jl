@@ -55,7 +55,20 @@ fact(opc::DualOp) = fact(opc.op)
 ################
 # Constructors #
 ################
-function GenericOp{P,N}(f::Function, kt::Ket{P,N})
+function GenericOp{P,N}(kt::Ket{P,N}, br::Bra{P,N})
+    result = OpDict()
+    for (k,kc) in dict(kt)
+        for (b,bc) in dict(br)
+            newc = kc * bc'
+            if newc != 0
+                result[OpLabel(k,b)] = newc
+            end
+        end
+    end
+    return GenericOp(P, result, fact(kt))
+end
+
+function func_op{P,N}(f::Function, kt::Ket{P,N})
     result = OpDict()
     for label in labels(kt)
         (c, new_label) = f(label)
@@ -70,7 +83,7 @@ function GenericOp{P,N}(f::Function, kt::Ket{P,N})
     return GenericOp(P,result,fact(kt))
 end
 
-function GenericOp{P}(f::Function, kt::Ket{P}, i)
+function func_op{P}(f::Function, kt::Ket{P}, i)
     result = OpDict()
     for label in labels(kt)
         (c, new_i) = f(label[i])
@@ -79,19 +92,6 @@ function GenericOp{P}(f::Function, kt::Ket{P}, i)
         end
     end
     return GenericOp(P,result,fact(kt))
-end
-
-function GenericOp{A,B,N}(kt::Ket{A,N}, br::Bra{B,N})
-    result = OpDict()
-    for (k,kc) in dict(kt)
-        for (b,bc) in dict(br)
-            newc = kc * bc'
-            if newc != 0
-                result[OpLabel(k,b)] = newc
-            end
-        end
-    end
-    return GenericOp(typejoin(A,B), result, fact(kt))
 end
 
 Base.copy(op::GeneralOp) = typeof(op)(copy(dict(op)), fact(op))
@@ -191,9 +191,8 @@ Base.ctranspose(opc::DualOp) = opc.op
 #########
 # inner #
 #########
-function inner{A,B,N}(br::Bra{A,N}, op::GenericOp{B,N})
+function inner{P,N}(br::Bra{P,N}, op::GenericOp{P,N})
     result = StateDict()
-    P = typejoin(A,B)
     for (label,v) in dict(op)
         coeff = 0
         for (b,c) in dict(br)
@@ -201,12 +200,11 @@ function inner{A,B,N}(br::Bra{A,N}, op::GenericOp{B,N})
         end
         add_to_dict!(result, brlabel(label), coeff')
     end
-    return Bra(typejoin(A,B), result, fact(op))
+    return Bra(P, result, fact(op))
 end
 
-function inner{A,B,N}(op::GenericOp{A,N}, kt::Ket{B,N})
+function inner{P,N}(op::GenericOp{P,N}, kt::Ket{P,N})
     result = StateDict()
-    P = typejoin(A,B)
     for (label,c) in dict(op)
         coeff = 0
         for (k,v) in dict(kt)
@@ -217,9 +215,8 @@ function inner{A,B,N}(op::GenericOp{A,N}, kt::Ket{B,N})
     return Ket(P, result, fact(op))
 end
 
-function inner{A,B,N}(a::GenericOp{A,N}, b::GenericOp{B,N})
+function inner{P,N}(a::GenericOp{P,N}, b::GenericOp{P,N})
     result = OpDict()
-    P = typejoin(A,B)
     for (label1,v) in dict(a), (label2,c) in dict(b)
         add_to_dict!(result,
                      OpLabel(ktlabel(label1),brlabel(label2)),
@@ -228,9 +225,8 @@ function inner{A,B,N}(a::GenericOp{A,N}, b::GenericOp{B,N})
     return GenericOp(P, result, fact(a))
 end
 
-function inner{A,B,N}(a::GenericOp{A,N}, b::DualOp{B,N})
+function inner{P,N}(a::GenericOp{P,N}, b::DualOp{P,N})
     result = OpDict()
-    P = typejoin(A,B)
     for (label1,v) in dict(a), (label2,c) in dict(b)
         add_to_dict!(result,
                      OpLabel(ktlabel(label1),ktlabel(label2)),
@@ -239,9 +235,8 @@ function inner{A,B,N}(a::GenericOp{A,N}, b::DualOp{B,N})
     return GenericOp(P, result, fact(b))
 end
 
-function inner{A,B,N}(a::DualOp{A,N}, b::GenericOp{B,N})
+function inner{P,N}(a::DualOp{P,N}, b::GenericOp{P,N})
     result = OpDict()
-    P = typejoin(A,B)
     for (label1,v) in dict(a), (label2,c) in dict(b)
         add_to_dict!(result,
                      OpLabel(brlabel(label1),brlabel(label2)),
@@ -264,10 +259,10 @@ Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 act_on(op::GeneralOp, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
 
 # clear up ambiguity warnings
-act_on{A,B}(op::GenericOp{A,1}, kt::Ket{B,1}, i) = invoke(act_on, (GeneralOp{A,1}, Ket{B,1}, Any), op, kt, i)
-act_on{A,B}(op::DualOp{A,1}, kt::Ket{B,1}, i) = invoke(act_on, (GeneralOp{A,1}, Ket{B,1}, Any), op, kt, i)
+act_on{P}(op::GenericOp{P,1}, kt::Ket{P,1}, i) = invoke(act_on, (GeneralOp{P,1}, Ket{P,1}, Any), op, kt, i)
+act_on{P}(op::DualOp{P,1}, kt::Ket{P,1}, i) = invoke(act_on, (GeneralOp{P,1}, Ket{P,1}, Any), op, kt, i)
 
-function act_on{A,B}(op::GeneralOp{A,1}, kt::Ket{B,1}, i)
+function act_on{P}(op::GeneralOp{P,1}, kt::Ket{P,1}, i)
     if i==1
         return inner(op, kt)
     else
@@ -275,9 +270,8 @@ function act_on{A,B}(op::GeneralOp{A,1}, kt::Ket{B,1}, i)
     end
 end
 
-function act_on{A,B,N}(op::GenericOp{A,1}, kt::Ket{B,N}, i)
+function act_on{P,N}(op::GenericOp{P,1}, kt::Ket{P,N}, i)
     result = StateDict()
-    P = typejoin(A,B)
     for (label, c) in dict(op), (k,v) in dict(kt)
         add_to_dict!(result,
                      vcat(k[1:i-1], ktlabel(label), k[i+1:end]),
@@ -286,9 +280,8 @@ function act_on{A,B,N}(op::GenericOp{A,1}, kt::Ket{B,N}, i)
     return Ket(P, result, Factors{N}())
 end
 
-function act_on{A,B,N}(op::DualOp{A,1}, kt::Ket{B,N}, i)
+function act_on{P,N}(op::DualOp{P,1}, kt::Ket{P,N}, i)
     result = StateDict()
-    P = typejoin(A,B)
     for (label, c) in dict(op), (k,v) in dict(kt)
         add_to_dict!(result,
                      vcat(k[1:i-1], brlabel(label), k[i+1:end]),
@@ -436,9 +429,9 @@ export GenericOp,
     filternz!,
     purity,
     labels,
-    coeffs,
     OpLabel,
     ktlabel,
     brlabel,
     act_on,
-    inner_eval
+    inner_eval,
+    func_op

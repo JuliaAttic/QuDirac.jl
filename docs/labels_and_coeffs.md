@@ -1,4 +1,4 @@
-## QuDirac objects as data structures
+# QuDirac objects as data structures
 ---
 
 Under the hood, QuDirac's Kets, Bras, and operator types use dictionaries to map labels to coefficients.
@@ -11,7 +11,7 @@ There are few important things to keep in mind when working with these structure
 - Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are "unordered". In other words, iteration through a QuDirac object's labels is not guaranteed to be in any particular order.
 
 ---
-##  Accessing/Assigning coefficients
+#  Accessing/Assigning coefficients
 ---
 
 **States**
@@ -86,13 +86,13 @@ julia> k[0] += 1 # faster than the above, but mutates k
 TODO
 
 ---
-##  Using the `get`/`haskey` functions
+#  Using the `get`/`haskey` functions
 ---
 
 TODO
 
 ---
-##  Label and coefficient iterators
+#  Label and coefficient iterators
 ---
 
 TODO
