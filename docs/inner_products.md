@@ -82,7 +82,7 @@ To create an instance of a Ket or Bra with a specific inner product type, you ca
 pass that type as the first argument to the `ket` and `bra` functions:
 
 ```
-julia> ket(AbstractInner, 1,2)
+julia> ket(AbstractInner, 1, 2)
 Ket{AbstractInner,2} with 1 state(s):
   1 | 1,2 ⟩
 ```
