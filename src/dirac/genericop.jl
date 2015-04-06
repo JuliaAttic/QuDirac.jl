@@ -2,8 +2,8 @@
 # OpLabel #
 ###########
 type OpLabel
-    ktlabel::Vector{Any}
-    brlabel::Vector{Any}
+    ktlabel::Vector
+    brlabel::Vector
 end
 
 ktlabel(label::OpLabel) = label.ktlabel
@@ -141,9 +141,10 @@ Base.haskey(op::GenericOp, label::OpLabel) = haskey(dict(op), label)
 Base.haskey(opc::DualOp, label::OpLabel) = haskey(opc.op, reverse(label))
 Base.haskey(op::GeneralOp, k::Array, b::Array) = haskey(op, OpLabel(k,b))
 
-Base.get(op::GenericOp, label::OpLabel, default) = get(dict(op), label, default)
-Base.get(opc::DualOp, label::OpLabel, default) = haskey(opc, label) ? opc[label] : default
-Base.get(op::GeneralOp, k::Array, b::Array, default) = get(op, OpLabel(k,b))
+Base.get(op::GenericOp, label::OpLabel, default=0) = get(dict(op), label, default)
+Base.get(opc::DualOp, label::OpLabel, default=0) = haskey(opc, label) ? opc[label] : default
+Base.get(op::GeneralOp, k::Array, b::Array, default=0) = get(op, OpLabel(k,b), default)
+Base.get(op::GeneralOp, k, b, default=0) = get(op, OpLabel(collect(k),collect(b)), default)
 
 Base.delete!(op::GenericOp, label::OpLabel) = (delete!(dict(op), label); return op)
 Base.delete!(opc::DualOp, label::OpLabel) = delete!(opc.op, reverse(label))

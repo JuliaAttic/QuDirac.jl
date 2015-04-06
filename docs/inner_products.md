@@ -87,7 +87,6 @@ Ket{AbstractInner,2} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
-
 ---
 # Custom inner product types
 ---

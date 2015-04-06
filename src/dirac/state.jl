@@ -1,7 +1,7 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict Dict{Vector{Any},Number}
+typealias StateDict Dict{Vector,Number}
 
 type Ket{P,N} <: DiracState{P,N}
     dict::StateDict
@@ -12,7 +12,7 @@ end
 
 Ket{P,N}(::Type{P}, dict::StateDict, fact::Factors{N}) = Ket{P,N}(dict,fact)
 
-ket{P<:AbstractInner,N}(::Type{P}, label::NTuple{N}) = Ket(P,single_dict(StateDict(), collect(label), 1), Factors{N}())
+ket{P<:AbstractInner,N}(::Type{P}, label::NTuple{N}) = Ket(P, single_dict(StateDict(), collect(label), 1), Factors{N}())
 ket{P<:AbstractInner}(::Type{P}, items...) = ket(P,items)
 ket(items...) = ket(DEFAULT_INNER, items)
 
@@ -67,8 +67,11 @@ Base.setindex!{P,N}(s::DiracState{P,N}, c, label::NTuple{N}) =  _setindex!(s, c,
 Base.setindex!{P,N}(s::DiracState{P,N}, c, i...) = setindex!(s,c,i)
 
 Base.haskey(s::DiracState, label::Array) = haskey(dict(s), label)
-Base.get(k::Ket, label::Array, default) = get(dict(k), label, default)
-Base.get(b::Bra, label::Array, default) = haskey(b, label) ? b[label] : default
+
+Base.get(k::Ket, label::Array, default=0) = get(dict(k), label, default)
+Base.get(b::Bra, label::Array, default=0) = haskey(b, label) ? b[label] : default
+Base.get(k::Ket, label, default=0) = get(k, collect(label), default)
+Base.get(b::Bra, label, default=0) = get(b, collect(label), default)
 
 Base.delete!(s::DiracState, label::Array) = (delete!(dict(s), label); return s)
 

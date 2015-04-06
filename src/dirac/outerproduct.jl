@@ -1,6 +1,6 @@
-#############
+################
 # OuterProduct #
-#############
+################
 type OuterProduct{P,N} <: DiracOp{P,N}
     scalar::Number
     kt::Ket{P,N}
@@ -32,22 +32,23 @@ Base.getindex(op::OuterProduct, label::OpLabel) = op[ktlabel(label), brlabel(lab
 Base.getindex(op::OuterProduct, k, b) = op[[k],[b]]
 
 # would be great if the below worked with normal indexing
-# notation (e.g. op[k,:]) but slice notation is apparently
+# notation (e.g. op[k,:]) but the Colon is apparently
 # special and doesn't dispatch directly to getindex...
 # Base.getindex(op::OuterProduct, k, ::Colon) = (op.scalar * op.kt[k]) * op.br
 # Base.getindex(op::OuterProduct, ::Colon, b) = (op.scalar * op.br[b]) * op.kt
 # Base.getindex(op::OuterProduct, ::Colon, ::Colon) = convert(GenericOp, op)
 
-getbra(op::OuterProduct, k::Array) = (op.scalar * op.kt[k]) * op.br
-getket(op::OuterProduct, b::Array) = (op.scalar * op.br[b]) * op.kt
+getbra(op::OuterProduct, k::Array) = (op.scalar * get(op.kt,k)) * op.br
+getket(op::OuterProduct, b::Array) = (op.scalar * get(op.br,b)) * op.kt
 
 Base.haskey(op::OuterProduct, k::Array, b::Array) = hasket(op,k) && hasbra(op, b)
 Base.haskey(op::OuterProduct, label::OpLabel) = haskey(op, ktlabel(label), brlabel(label))
 hasket(op::OuterProduct, label::Array) = haskey(op.kt, label)
 hasbra(op::OuterProduct, label::Array) = haskey(op.br, label)
 
-Base.get(op::OuterProduct, label::OpLabel, default) = get(op, ktlabel(label), brlabel(label), default)
-Base.get(op::OuterProduct, k::Array, b::Array, default) = haskey(op, k, b) ? op[k,b] : default
+Base.get(op::OuterProduct, k::Array, b::Array, default=0) = haskey(op, k, b) ? op[k,b] : default
+Base.get(op::OuterProduct, k, b, default=0) = get(op, collect(k), collect(b), default)
+Base.get(op::OuterProduct, label::OpLabel, default=0) = get(op, ktlabel(label), brlabel(label), default)
 
 label_from_pair(pair) = OpLabel(pair[1],pair[2])
 labels(op::OuterProduct) = imap(label_from_pair, product(labels(op.kt), labels(op.br)))
