@@ -1,7 +1,7 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict Dict{Vector,Number}
+typealias StateDict Dict{Vector{Any},Number}
 
 type Ket{P,N} <: DiracState{P,N}
     dict::StateDict
@@ -207,9 +207,9 @@ QuBase.normalize!(s::DiracState) = scale!(1/norm(s), s)
 nfactors{P,N}(::DiracState{P,N}) = N
 xsubspace(s::DiracState, x) = similar(s, filter((k,v)->isx(k,x), dict(s)))
 switch(s::DiracState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
-permute(s::DiracState, perm) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
+permute(s::DiracState, perm::Vector) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
 switch!(s::DiracState, i, j) = (mapkeys!(label->switch(label,i,j), dict(s)); return s)
-Base.permute!(s::DiracState, perm::AbstractVector) = (mapkeys!(label->permute(label,perm), dict(s)); return s)
+Base.permute!(s::DiracState, perm::Vector) = (mapkeys!(label->permute(label,perm), dict(s)); return s)
 
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))

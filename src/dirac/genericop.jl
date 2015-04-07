@@ -2,8 +2,8 @@
 # OpLabel #
 ###########
 type OpLabel
-    ktlabel::Vector
-    brlabel::Vector
+    ktlabel::Vector{Any}
+    brlabel::Vector{Any}
     function OpLabel(k, b)
         if length(k) == length(b)
             return new(k, b)

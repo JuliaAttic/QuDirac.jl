@@ -6,8 +6,8 @@
 # Dirac notation - a br-kt product.
 immutable InnerProduct{P<:AbstractInner} <: DiracScalar
     ptype::P
-    brlabel::Vector
-    ktlabel::Vector
+    brlabel::Vector{Any}
+    ktlabel::Vector{Any}
 end
 
 InnerProduct{P<:AbstractInner}(p::P, b::Array, k::Array) = InnerProduct{P}(p, b, k)

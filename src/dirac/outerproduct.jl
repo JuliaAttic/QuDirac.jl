@@ -31,7 +31,7 @@ Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
 Base.getindex(op::OuterProduct, k::Array, b::Array) = op.scalar * op.kt[k] * op.br[b]
 Base.getindex(op::OuterProduct, label::OpLabel) = op[ktlabel(label), brlabel(label)]
-Base.getindex(op::OuterProduct, k, b) = op[[k],[b]]
+Base.getindex(op::OuterProduct, k, b) = op[collect(k),collect(b)]
 
 # would be great if the below worked with normal indexing
 # notation (e.g. op[k,:]) but the Colon is apparently
