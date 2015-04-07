@@ -60,7 +60,7 @@ function tensorstate!(result, a, b)
     for kvs in product(a, b)
         setindex!(result,
                   kvs[1][2]*kvs[2][2],
-                  vcat(kvs[1][1], kvs[2][1]))
+                  join_tup(kvs[1][1], kvs[2][1]))
     end
     return result
 end
@@ -69,8 +69,8 @@ function tensorop!(result, a, b)
     for kvs in product(a, b)
         setindex!(result, 
                   kvs[1][2] * kvs[2][2],
-                  OpLabel(vcat(ktlabel(kvs[1][1]), ktlabel(kvs[2][1])), 
-                          vcat(brlabel(kvs[1][1]), brlabel(kvs[2][1]))))
+                  (join_tup(first(kvs[1][1]), first(kvs[2][1])), 
+                   join_tup(second(kvs[1][1]), second(kvs[2][1]))))
     end
     return result
 end

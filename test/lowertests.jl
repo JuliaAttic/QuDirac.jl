@@ -5,10 +5,10 @@ a = func_op(lower, k, 1)
 
 @assert a == sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5)
 
-lowk = map((label,v) -> ({label[1]-1}, v*sqrt(label[1])), k)
+lowk = map((label,v) -> (tuple(label[1]-1), v*sqrt(label[1])), k)
 
-hik = map((label,v) -> ({label[1]+1}, v*sqrt(label[1]+1)), k)
-filternz!(delete!(hik, {6}))
+hik = map((label,v) -> (tuple(label[1]+1), v*sqrt(label[1]+1)), k)
+filternz!(delete!(hik, 6))
 
 @assert lowk == a*k
 @assert hik == a'*k

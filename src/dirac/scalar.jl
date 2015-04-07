@@ -6,12 +6,12 @@
 # Dirac notation - a br-kt product.
 immutable InnerProduct{P<:AbstractInner} <: DiracScalar
     ptype::P
-    brlabel::Vector
-    ktlabel::Vector
+    brlabel::Tuple
+    ktlabel::Tuple
 end
 
-InnerProduct{P<:AbstractInner}(p::P, b::Array, k::Array) = InnerProduct{P}(p, b, k)
-InnerProduct(p::AbstractInner, b, k) = InnerProduct(p, collect(b), collect(k))
+InnerProduct{P<:AbstractInner}(p::P, b::Tuple, k::Tuple) = InnerProduct{P}(p, b, k)
+InnerProduct(p::AbstractInner, b, k) = InnerProduct(p, tuple(b), tuple(k))
 
 ######################
 # Accessor Functions #

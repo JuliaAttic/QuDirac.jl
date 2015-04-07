@@ -1,19 +1,18 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict Dict{Vector,Number}
+typealias StateDict{N} Dict{NTuple{N},Number}
 
 type Ket{P,N} <: DiracState{P,N}
-    dict::StateDict
     ptype::P
-    fact::Factors{N}
-    Ket(dict, ptype, fact) = new(dict, ptype, fact)
-    Ket(dict, ptype, ::Factors{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
+    dict::StateDict{N}
+    Ket(ptype, dict) = new(ptype, dict)
+    Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
 end
 
-Ket{P,N}(dict::StateDict, ptype::P, fact::Factors{N}) = Ket{P,N}(dict,ptype,fact)
+Ket{P,N}(ptype::P, dict::StateDict{N}) = Ket{P,N}(ptype,dict)
 
-ket{N}(ptype::AbstractInner, label::NTuple{N}) = Ket(single_dict(StateDict(), collect(label), 1), ptype, Factors{N}())
+ket{N}(ptype::AbstractInner, label::NTuple{N}) = Ket(ptype, single_dict(StateDict{N}(), label, 1))
 ket(ptype::AbstractInner, items...) = ket(ptype, items)
 
 macro default_inner(ptype)
@@ -41,17 +40,14 @@ dict(b::Bra) = dict(b.kt)
 ptype(k::Ket) = k.ptype
 ptype(b::Bra) = ptype(b.kt)
 
-fact(k::Ket) = k.fact
-fact(b::Bra) = fact(b.kt)
-
 #######################
 # Dict-Like Functions #
 #######################
-Base.copy(kt::Ket) = Ket(copy(dict(s)), ptype(s), fact(s))
+Base.copy(kt::Ket) = Ket(ptype(s), copy(dict(s)))
 Base.copy(br::Bra) = Bra(copy(br.ket))
 
-Base.similar(kt::Ket, d::StateDict=similar(dict(kt)); P=ptype(kt), N=nfactors(kt)) = Ket(d, P, Factors{N}())
-Base.similar(br::Bra, d::StateDict=similar(dict(br)); P=ptype(br), N=nfactors(br)) = Bra(d, P, Factors{N}())
+Base.similar(kt::Ket, d::StateDict=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
+Base.similar(br::Bra, d::StateDict=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(a) == dict(b)
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
@@ -59,33 +55,23 @@ Base.hash(s::DiracState) = hash(dict(s), hash(typeof(s)))
 
 Base.length(s::DiracState) = length(dict(s))
 
-Base.getindex(k::Ket, label::Array) = dict(k)[label]
-Base.getindex(b::Bra, label::Array) = b.kt[label]'
-Base.getindex(s::DiracState, i...) = s[collect(i)]
+Base.getindex(k::Ket, label::Tuple) = getindex(dict(k), label)
+Base.getindex(b::Bra, label::Tuple) = b.kt[label]'
+Base.getindex(s::DiracState, i...) = s[i]
 
-_setindex!(k::Ket, c, label::Array) = setindex!(dict(k), c, label)
-_setindex!(b::Bra, c, label::Array) = setindex!(b.kt, c', label)
+Base.setindex!(k::Ket, c, label::Tuple) = setindex!(dict(k), c, label)
+Base.setindex!(b::Bra, c, label::Tuple) = setindex!(dict(b), c', label)
+Base.setindex!(s::DiracState, c, i...) = setindex!(s,c,i)
 
-function Base.setindex!{P,N}(s::DiracState{P,N}, c, label::Array)
-    if length(label) == N
-        return _setindex!(s, c, label)
-    else
-        throw(BoundsError())
-    end
-end
+Base.haskey(s::DiracState, label) = haskey(dict(s), label)
 
-Base.setindex!{P,N}(::DiracState{P,N}, c, ::Tuple) =  throw(BoundsError())
-Base.setindex!{P,N}(s::DiracState{P,N}, c, label::NTuple{N}) =  _setindex!(s, c, collect(label))
-Base.setindex!{P,N}(s::DiracState{P,N}, c, i...) = setindex!(s,c,i)
+Base.get(k::Ket, label::Tuple, default=0) = get(dict(k), label, default)
+Base.get(b::Bra, label::Tuple, default=0) = haskey(b, label) ? b[label] : default
+Base.get(k::Ket, label, default=0) = get(k, tuple(label), default)
+Base.get(b::Bra, label, default=0) = get(b, tuple(label), default)
 
-Base.haskey(s::DiracState, label::Array) = haskey(dict(s), label)
-
-Base.get(k::Ket, label::Array, default=0) = get(dict(k), label, default)
-Base.get(b::Bra, label::Array, default=0) = haskey(b, label) ? b[label] : default
-Base.get(k::Ket, label, default=0) = get(k, collect(label), default)
-Base.get(b::Bra, label, default=0) = get(b, collect(label), default)
-
-Base.delete!(s::DiracState, label::Array) = (delete!(dict(s), label); return s)
+Base.delete!(s::DiracState, label::Tuple) = (delete!(dict(s), label); return s)
+Base.delete!(s::DiracState, label) = delete!(s, tuple(label))
 
 labels(s::DiracState) = keys(dict(s))
 QuBase.coeffs(kt::Ket) = values(dict(kt))
@@ -146,14 +132,14 @@ function act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i)
 end
 
 function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
-    result = StateDict()
+    result = StateDict{N-1}()
     prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
         add_to_dict!(result, 
                      except(k,i),
                      c'*v*inner_rule(prodtype,b[1],k[i]))
     end
-    return Ket(result, prodtype, decr(fact(kt)))
+    return Ket(prodtype, result)
 end 
 
 ###########
@@ -188,7 +174,7 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(tensorstate!(StateDict(), dict(a), dict(b)), ptype(b), fact(a)+fact(b))
+QuBase.tensor{P,A,B}(a::Ket{P,A}, b::Ket{P,B}) = Ket(ptype(b), tensorstate!(StateDict{A+B}(), dict(a), dict(b)))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
@@ -207,9 +193,9 @@ QuBase.normalize!(s::DiracState) = scale!(1/norm(s), s)
 nfactors{P,N}(::DiracState{P,N}) = N
 xsubspace(s::DiracState, x) = similar(s, filter((k,v)->isx(k,x), dict(s)))
 switch(s::DiracState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
-permute(s::DiracState, perm) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
+permute(s::DiracState, perm::Vector) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
 switch!(s::DiracState, i, j) = (mapkeys!(label->switch(label,i,j), dict(s)); return s)
-Base.permute!(s::DiracState, perm::AbstractVector) = (mapkeys!(label->permute(label,perm), dict(s)); return s)
+Base.permute!(s::DiracState, perm::Vector) = (mapkeys!(label->permute(label,perm), dict(s)); return s)
 
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
