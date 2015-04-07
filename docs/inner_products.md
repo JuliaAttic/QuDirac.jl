@@ -11,7 +11,7 @@ immutable UndefinedInner <: AbstractInner end
 Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above look like the following:
 
 ```
-inner_rule(p::AbstractInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
+inner_rule(p::UndefinedInner, b, k) = InnerProduct(p, b, k) # lazy evaluation of inner product
 inner_rule(::Orthonormal, b, k) = b == k ? 1 : 0
 ```
 
