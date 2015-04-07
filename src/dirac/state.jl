@@ -43,7 +43,9 @@ fact(b::Bra) = fact(b.kt)
 # Constructors #
 ################
 Base.copy(s::DiracState) = typeof(s)(copy(dict(s)), ptype(s), fact(s))
-Base.similar(s::DiracState, d::StateDict=similar(dict(s))) = typeof(s)(d, ptype(s), fact(s))
+
+Base.similar(kt::Ket, d::StateDict=similar(dict(kt)); pt=ptype(kt), fa=fact(kt)) = Ket(d, pt, fa)
+Base.similar(br::Bra, d::StateDict=similar(dict(br)); pt=ptype(br), fa=fact(br)) = Bra(d, pt, fa)
 
 #######################
 # Dict-Like Functions #
@@ -95,20 +97,67 @@ Base.filter!(f::Function, br::Bra) = (filter!((k,v)->f(k,v'), dict(br)); return 
 Base.filter(f::Function, kt::Ket) = similar(kt, filter(f, dict(kt)))
 Base.filter(f::Function, br::Bra) = similar(br, filter((k,v)->f(k,v'), dict(br)))
 
-labelcheck(label::Array, N) = length(label) == N ? label : throw(BoundsError())
-ktprune(kv,N) = length(kv[1]) == N ? kv : throw(BoundsError())
-brprune(kv,N) = (labelcheck(kv[1], N), kv[2]')
+function load_entry!(d, N, label::Array, v)
+    if length(label) == N 
+        d[label] = v
+    else
+        throw(BoundsError())
+    end
+end
 
-Base.map{P,N}(f::Function, kt::Ket{P,N}) = similar(kt, mapkv((k,v)->ktprune(f(k,v),N), dict(kt)))
-Base.map{P,N}(f::Function, br::Bra{P,N}) = similar(br, mapkv((k,v)->brprune(f(k,v'),N), dict(br)))
+function replace_label!(d, N, old_label::Array, new_label::Array, v)
+    if length(new_label) == N 
+        delete!(d, old_label)  
+        d[new_label] = v
+    else
+        throw(BoundsError())
+    end
+end
+
+nguess_pair(f, s::DiracState) = length(f(first(dict(s)))[1])
+nguess_label(f, s::DiracState) = length(f(first(keys(dict(s)))))
+
+function mapload!(f, result, br::Bra, nguess)
+    for (label,v) in dict(br)
+        (new_label, new_v) = f(label, v')
+        load_entry!(result, nguess, new_label, new_v')
+    end
+    return result
+end
+
+function mapload!(f, result, kt::Ket, nguess)
+    for (label,v) in dict(kt)
+        (new_label, new_v) = f(label, v)
+        load_entry!(result, nguess, new_label, new_v)
+    end
+    return result
+end
+
+function Base.map(f::Function, s::DiracState)
+    result = mapload!(f, StateDict(), s, nguess_pair(f, s)) 
+    return similar(s, result; fa=Factors{nguess}())
+end
 
 mapcoeffs!(f::Function, k::Ket) = (mapvals!(f, dict(k)); return k)
 mapcoeffs!(f::Function, b::Bra) = (mapvals!(v->f(v')', dict(b)); return b)
 mapcoeffs(f::Function, kt::Ket) = similar(kt, mapvals(f, dict(kt)))
 mapcoeffs(f::Function, br::Bra) = similar(br, mapvals(v->f(v')', dict(br)))
 
-maplabels!{P,N}(f::Function, s::DiracState{P,N}) = (mapkeys!(label->labelcheck(f(label), N), dict(s)); return s)
-maplabels{P,N}(f::Function, s::DiracState{P,N}) = similar(s, mapkeys(label->labelcheck(f(label), N), dict(s)))
+function maplabels!(f::Function, s::DiracState)
+    for (old_label,v) in s.dict
+        replace_label!(s.dict, N, old_label, f(old_label), v)
+    end
+    return s
+end
+
+function maplabels(f::Function, s::DiracState)
+    nguess = nguess_label(f, s)
+    result = StateDict()
+    for (label,v) in dict(s)
+        load_entry!(result, nguess, f(label), v)
+    end
+    return similar(s, result; fa=Factors{nguess}())
+end
 
 function wavefunc(f::Function, kt::Ket)
     return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(kt))
