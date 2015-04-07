@@ -56,15 +56,6 @@ label_from_pair(pair) = OpLabel(pair[1],pair[2])
 labels(op::OuterProduct) = imap(label_from_pair, product(labels(op.kt), labels(op.br)))
 QuBase.coeffs(op::OuterProduct) = imap(v->op.scalar*prod(v), product(coeffs(op.kt), coeffs(op.br)))
 
-##################################################
-# Function-passing functions (filter, map, etc.) #
-##################################################
-Base.filter(f::Function, op::OuterProduct) = filter(f, convert(GenericOp, op))
-Base.map(f::Function, op::OuterProduct) = map(f, convert(GenericOp, op))
-
-mapcoeffs(f::Function, op::OuterProduct) = mapcoeffs(f, convert(GenericOp, op))
-maplabels(f::Function, op::OuterProduct) = maplabels(f, convert(GenericOp, op))
-
 ##############
 # ctranspose #
 ##############
@@ -202,8 +193,6 @@ export getbra,
     getket,
     hasket,
     hasbra,
-    mapcoeffs,
-    maplabels,
     ptrace,
     purity,
     labels,

@@ -4,12 +4,28 @@
 type OpLabel
     ktlabel::Vector
     brlabel::Vector
+    function OpLabel(k, b)
+        if length(k) == length(b)
+            return new(k, b)
+        else
+            throw(BoundsError())
+        end
+    end
 end
 
 ktlabel(label::OpLabel) = label.ktlabel
 brlabel(label::OpLabel) = label.brlabel
 
-Base.reverse(label::OpLabel) = OpLabel(brlabel(label), ktlabel(label))
+Base.length(label::OpLabel) = length(ktlabel(label))
+
+function Base.reverse!(label::OpLabel)
+    tmp = label.brlabel
+    label.brlabel = label.ktlabel
+    label.ktlabel = tmp
+    return label
+end
+
+Base.reverse(label::OpLabel) = OpLabel(brlabel(label),ktlabel(label))
 Base.(:(==))(a::OpLabel, b::OpLabel) = ktlabel(a)==ktlabel(b) && brlabel(a)==brlabel(b)
 Base.hash(label::OpLabel) = hash(ktlabel(label), hash(brlabel(label)))
 
@@ -32,8 +48,6 @@ GenericOp{P,N}(dict, ptype::P, fact::Factors{N}) = GenericOp{P,N}(dict, ptype, f
 
 type DualOp{P,N} <: GeneralOp{P,N}
     op::GenericOp{P,N}
-    DualOp(op::GenericOp{P,N}) = new(op)
-    DualOp(items...) = new(GenericOp{P,N}(items...))
 end
 
 DualOp{P,N}(op::GenericOp{P,N}) = DualOp{P,N}(op)
@@ -46,15 +60,6 @@ Base.convert{P,N}(::Type{GenericOp{P,N}}, opc::DualOp{P,N}) = convert(GenericOp,
 Base.promote_rule(::Type{GenericOp}, ::Type{DualOp}) = GenericOp
 Base.promote_rule{P}(::Type{GenericOp{P}}, ::Type{DualOp{P}}) = GenericOp{P}
 Base.promote_rule{P,N}(::Type{GenericOp{P,N}}, ::Type{DualOp{P,N}}) = GenericOp{P,N}
-
-dict(op::GenericOp) = op.dict
-dict(opc::DualOp) = dict(opc.op)
-
-ptype(op::GenericOp) = op.ptype
-ptype(opc::DualOp) = ptype(opc.op)
-
-fact(op::GenericOp) = op.fact
-fact(opc::DualOp) = fact(opc.op)
 
 ################
 # Constructors #
@@ -98,12 +103,27 @@ function func_op(f::Function, kt::Ket, i)
     return GenericOp(result, ptype(kt), fact(kt))
 end
 
-Base.copy(op::GeneralOp) = typeof(op)(copy(dict(op)), ptype(op), fact(op))
-Base.similar(op::GeneralOp, d=similar(dict(op))) = typeof(op)(d, ptype(op), fact(op))
+######################
+# Accessor functions #
+######################
+dict(op::GenericOp) = op.dict
+dict(opc::DualOp) = dict(opc.op)
+
+ptype(op::GenericOp) = op.ptype
+ptype(opc::DualOp) = ptype(opc.op)
+
+fact(op::GenericOp) = op.fact
+fact(opc::DualOp) = fact(opc.op)
 
 #######################
 # Dict-Like Functions #
 #######################
+Base.copy(op::GenericOp) = GenericOp(copy(dict(op)), ptype(op), fact(op))
+Base.copy(opc::DualOp) = DualOp(copy(opc.op))
+
+Base.similar(op::GenericOp, d::OpDict=similar(dict(kt)); P=ptype(op), N=nfactors(op)) = GenericOp(d, P, Factors{N}())
+Base.similar(opc::DualOp, d::OpDict=similar(dict(br)); P=ptype(opc), N=nfactors(opc)) = DualOp(d, P, Factors{N}())
+
 Base.(:(==)){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = dict(a) == dict(b)
 Base.(:(==)){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = a.op == b.op
 Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
@@ -124,7 +144,7 @@ _setindex!(op::GenericOp, c, k, b) = _setindex!(op, c, OpLabel(k, b))
 _setindex!(opc::DualOp, c, k, b) = _setindex!(opc.op, c', OpLabel(b, k))
 
 function Base.setindex!{P,N}(op::GeneralOp{P,N}, c, label::OpLabel)
-    if length(ktlabel(label)) == N && length(brlabel(label)) == N
+    if length(label) == N
         return _setindex!(op, c, label)
     else
         throw(BoundsError())
@@ -132,7 +152,7 @@ function Base.setindex!{P,N}(op::GeneralOp{P,N}, c, label::OpLabel)
 end
 
 function Base.setindex!{P,N}(op::GeneralOp{P,N}, c, k::Array, b::Array)
-    if length(k) == N && length(b) == N
+    if  N == length(k) == length(b)        
         return _setindex!(op, c, k, b)
     else
         throw(BoundsError())
@@ -158,32 +178,6 @@ labels(op::GenericOp) = keys(dict(op))
 labels(opc::DualOp) = imap(reverse, labels(opc.op))
 QuBase.coeffs(op::GenericOp) = values(dict(op))
 QuBase.coeffs(opc::DualOp) = imap(conj, coeffs(opc.op))
-
-##################################################
-# Function-passing functions (filter, map, etc.) #
-##################################################
-Base.filter!(f::Function, op::GenericOp) = (filter!(f, dict(op)); return op)
-Base.filter!(f::Function, opc::DualOp) = (filter!((k,v)->f(reverse(k),v'), dict(opc)); return opc)
-
-Base.filter(f::Function, op::GenericOp) = similar(op, filter(f, dict(op)))
-Base.filter(f::Function, opc::DualOp) = similar(opc, filter((k,v)->f(reverse(k),v'), dict(opc)))
-
-labelcheck(label::OpLabel, N) = length(ktlabel(label)) == length(brlabel(label)) == N ? label : throw(BoundsError())
-opprune(kv,N) = length(ktlabel(kv[1])) == length(brlabel(kv[1])) == N ? kv : throw(BoundsError())
-dualprune(kv,N) = (labelcheck(reverse(kv[1]),N),kv[2]')
-
-Base.map{P,N}(f::Function, op::GenericOp{P,N}) = similar(op, mapkv((k,v)->opprune(f(k,v),N), dict(op)))
-Base.map{P,N}(f::Function, opc::DualOp{P,N}) = similar(opc, mapkv((k,v)->dualprune(f(reverse(k),v'),N), dict(opc)))
-
-mapcoeffs!(f::Function, op::GenericOp) = (mapvals!(f, dict(op)); return op)
-mapcoeffs!(f::Function, opc::DualOp) = (mapvals!(v->f(v')', dict(opc)); return opc)
-mapcoeffs(f::Function, op::GenericOp) = similar(op, mapvals(f, dict(op)))
-mapcoeffs(f::Function, opc::DualOp) = similar(opc, mapvals(v->f(v')', dict(opc)))
-
-maplabels!{P,N}(f::Function, op::GenericOp{P,N}) = (mapkeys!(k->labelcheck(f(k), N), dict(op)); return op)
-maplabels!{P,N}(f::Function, opc::DualOp{P,N}) = (mapkeys!(k->reverse(labelcheck(f(reverse(k)),N)), dict(opc)); return opc)
-maplabels{P,N}(f::Function, op::GenericOp{P,N}) = similar(op, mapkeys(k->labelcheck(f(k),N), dict(op)))
-maplabels{P,N}(f::Function, opc::DualOp{P,N}) = similar(opc, mapkeys(k->reverse(labelcheck(f(reverse(k)),N)), dict(opc)))
 
 #############
 # ctranpose #

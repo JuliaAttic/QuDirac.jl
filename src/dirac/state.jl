@@ -19,8 +19,6 @@ ket(items...) = ket(DEFAULT_INNER, items)
 
 type Bra{P,N} <: DiracState{P,N}
     kt::Ket{P,N}
-    Bra(kt::Ket{P,N}) = new(kt)
-    Bra(items...) = new(Ket{P,N}(items...))
 end
 
 Bra{P,N}(kt::Ket{P,N}) = Bra{P,N}(kt)
@@ -39,17 +37,15 @@ ptype(b::Bra) = ptype(b.kt)
 fact(k::Ket) = k.fact
 fact(b::Bra) = fact(b.kt)
 
-################
-# Constructors #
-################
-Base.copy(s::DiracState) = typeof(s)(copy(dict(s)), ptype(s), fact(s))
-
-Base.similar(kt::Ket, d::StateDict=similar(dict(kt)); pt=ptype(kt), fa=fact(kt)) = Ket(d, pt, fa)
-Base.similar(br::Bra, d::StateDict=similar(dict(br)); pt=ptype(br), fa=fact(br)) = Bra(d, pt, fa)
-
 #######################
 # Dict-Like Functions #
 #######################
+Base.copy(kt::Ket) = Ket(copy(dict(s)), ptype(s), fact(s))
+Base.copy(br::Bra) = Bra(copy(br.ket))
+
+Base.similar(kt::Ket, d::StateDict=similar(dict(kt)); P=ptype(kt), N=nfactors(kt)) = Ket(d, P, Factors{N}())
+Base.similar(br::Bra, d::StateDict=similar(dict(br)); P=ptype(br), N=nfactors(br)) = Bra(d, P, Factors{N}())
+
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(a) == dict(b)
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.hash(s::DiracState) = hash(dict(s), hash(typeof(s)))
@@ -87,81 +83,6 @@ Base.delete!(s::DiracState, label::Array) = (delete!(dict(s), label); return s)
 labels(s::DiracState) = keys(dict(s))
 QuBase.coeffs(kt::Ket) = values(dict(kt))
 QuBase.coeffs(br::Bra) = imap(ctranspose, coeffs(br.kt))
-
-##################################################
-# Function-passing functions (filter, map, etc.) #
-##################################################
-Base.filter!(f::Function, kt::Ket) = (filter!(f, dict(kt)); return kt)
-Base.filter!(f::Function, br::Bra) = (filter!((k,v)->f(k,v'), dict(br)); return br)
-
-Base.filter(f::Function, kt::Ket) = similar(kt, filter(f, dict(kt)))
-Base.filter(f::Function, br::Bra) = similar(br, filter((k,v)->f(k,v'), dict(br)))
-
-function load_entry!(d, N, label::Array, v)
-    if length(label) == N 
-        d[label] = v
-    else
-        throw(BoundsError())
-    end
-end
-
-function replace_label!(d, N, old_label::Array, new_label::Array, v)
-    if length(new_label) == N 
-        delete!(d, old_label)  
-        d[new_label] = v
-    else
-        throw(BoundsError())
-    end
-end
-
-nguess_pair(f, s::DiracState) = length(f(first(dict(s)))[1])
-nguess_label(f, s::DiracState) = length(f(first(keys(dict(s)))))
-
-function mapload!(f, result, br::Bra, nguess)
-    for (label,v) in dict(br)
-        (new_label, new_v) = f(label, v')
-        load_entry!(result, nguess, new_label, new_v')
-    end
-    return result
-end
-
-function mapload!(f, result, kt::Ket, nguess)
-    for (label,v) in dict(kt)
-        (new_label, new_v) = f(label, v)
-        load_entry!(result, nguess, new_label, new_v)
-    end
-    return result
-end
-
-function Base.map(f::Function, s::DiracState)
-    result = mapload!(f, StateDict(), s, nguess_pair(f, s)) 
-    return similar(s, result; fa=Factors{nguess}())
-end
-
-mapcoeffs!(f::Function, k::Ket) = (mapvals!(f, dict(k)); return k)
-mapcoeffs!(f::Function, b::Bra) = (mapvals!(v->f(v')', dict(b)); return b)
-mapcoeffs(f::Function, kt::Ket) = similar(kt, mapvals(f, dict(kt)))
-mapcoeffs(f::Function, br::Bra) = similar(br, mapvals(v->f(v')', dict(br)))
-
-function maplabels!(f::Function, s::DiracState)
-    for (old_label,v) in s.dict
-        replace_label!(s.dict, N, old_label, f(old_label), v)
-    end
-    return s
-end
-
-function maplabels(f::Function, s::DiracState)
-    nguess = nguess_label(f, s)
-    result = StateDict()
-    for (label,v) in dict(s)
-        load_entry!(result, nguess, f(label), v)
-    end
-    return similar(s, result; fa=Factors{nguess}())
-end
-
-function wavefunc(f::Function, kt::Ket)
-    return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(kt))
-end
 
 ##############
 # ctranspose #
@@ -286,6 +207,10 @@ Base.permute!(s::DiracState, perm::AbstractVector) = (mapkeys!(label->permute(la
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 
+function wavefunc(f::Function, kt::Ket)
+    return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(kt))
+end
+
 # should always be pure, of course,
 # but makes a good sanity check function
 purity(kt::Ket) = purity(kt*kt')
@@ -312,10 +237,6 @@ Base.repr(s::DiracState) = dirac_repr(s)
 export ket,
     bra,
     nfactors,
-    maplabels!,
-    mapcoeffs!,
-    maplabels,
-    mapcoeffs,
     xsubspace,
     permute,
     switch,

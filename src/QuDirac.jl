@@ -19,9 +19,9 @@ module QuDirac
     immutable UndefinedInner <: AbstractInner end 
     immutable Orthonormal <: AbstractInner end
     
-    abstract AbstractDirac
-    abstract DiracOp{P<:AbstractInner,N} <: AbstractDirac
-    abstract DiracState{P<:AbstractInner,N} <: AbstractDirac
+    abstract AbstractDirac{P,N}
+    abstract DiracOp{P<:AbstractInner,N} <: AbstractDirac{P,N}
+    abstract DiracState{P<:AbstractInner,N} <: AbstractDirac{P,N}
 
     abstract DiracScalar <: Number
 
@@ -56,8 +56,9 @@ module QuDirac
     include("dirac/genericop.jl")
     include("dirac/outerproduct.jl")
 
-    include("helperfuncs/miscfuncs.jl")
-    include("helperfuncs/dictfuncs.jl")
+    include("miscfuncs.jl")
+    include("dictfuncs.jl")
+    include("mapfuncs.jl")
     
     ########
     # @drc #
