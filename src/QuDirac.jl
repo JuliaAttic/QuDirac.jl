@@ -15,7 +15,9 @@ module QuDirac
     # Abstract Types #
     ##################
     abstract AbstractInner
-    abstract Orthonormal <: AbstractInner
+    
+    immutable UndefinedInner <: AbstractInner end 
+    immutable Orthonormal <: AbstractInner end
     
     abstract AbstractDirac
     abstract DiracOp{P<:AbstractInner,N} <: AbstractDirac
@@ -28,10 +30,10 @@ module QuDirac
     #############
     QuBase.tensor() = error("Cannot call tensor function without arguments")
 
-    global DEFAULT_INNER = Orthonormal
+    global DEFAULT_INNER = Orthonormal()
 
-    function set_default_inner{P<:AbstractInner}(::Type{P})
-        global DEFAULT_INNER = P
+    function set_default_inner(new_type::AbstractInner)
+        global DEFAULT_INNER = new_type
     end
 
     ###########
@@ -43,6 +45,8 @@ module QuDirac
 
     Base.copy{N}(::Factors{N}) = Factors{N}()
     Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
+    Base.(:-){A,B}(::Factors{A}, ::Factors{B}) = Factors{A-B}()
+    decr{N}(::Factors{N}) = Factors{N-1}()
 
     ######################
     # Include Statements #
@@ -71,6 +75,7 @@ module QuDirac
     end
 
     export AbstractInner,
+        UndefinedInner,
         Orthonormal,
         @d_str,
         AbstractDirac,

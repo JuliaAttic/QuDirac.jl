@@ -5,15 +5,16 @@ typealias StateDict Dict{Vector,Number}
 
 type Ket{P,N} <: DiracState{P,N}
     dict::StateDict
+    ptype::P
     fact::Factors{N}
-    Ket(dict,fact) = new(dict,fact)
-    Ket(dict,::Factors{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
+    Ket(dict, ptype, fact) = new(dict, ptype, fact)
+    Ket(dict, ptype, ::Factors{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
 end
 
-Ket{P,N}(::Type{P}, dict::StateDict, fact::Factors{N}) = Ket{P,N}(dict,fact)
+Ket{P,N}(dict::StateDict, ptype::P, fact::Factors{N}) = Ket{P,N}(dict,ptype,fact)
 
-ket{P<:AbstractInner,N}(::Type{P}, label::NTuple{N}) = Ket(P, single_dict(StateDict(), collect(label), 1), Factors{N}())
-ket{P<:AbstractInner}(::Type{P}, items...) = ket(P,items)
+ket{N}(ptype::AbstractInner, label::NTuple{N}) = Ket(single_dict(StateDict(), collect(label), 1), ptype, Factors{N}())
+ket(ptype::AbstractInner, items...) = ket(ptype, items)
 ket(items...) = ket(DEFAULT_INNER, items)
 
 type Bra{P,N} <: DiracState{P,N}
@@ -26,8 +27,14 @@ Bra{P,N}(kt::Ket{P,N}) = Bra{P,N}(kt)
 Bra(items...) = Bra(Ket(items...))
 bra(items...) = Bra(ket(items...))
 
+######################
+# Accessor functions #
+######################
 dict(k::Ket) = k.dict
 dict(b::Bra) = dict(b.kt)
+
+ptype(k::Ket) = k.ptype
+ptype(b::Bra) = ptype(b.kt)
 
 fact(k::Ket) = k.fact
 fact(b::Bra) = fact(b.kt)
@@ -35,8 +42,8 @@ fact(b::Bra) = fact(b.kt)
 ################
 # Constructors #
 ################
-Base.copy(s::DiracState) = typeof(s)(copy(dict(s)), fact(s))
-Base.similar(s::DiracState, d::StateDict=similar(dict(s))) = typeof(s)(d, fact(s))
+Base.copy(s::DiracState) = typeof(s)(copy(dict(s)), ptype(s), fact(s))
+Base.similar(s::DiracState, d::StateDict=similar(dict(s))) = typeof(s)(d, ptype(s), fact(s))
 
 #######################
 # Dict-Like Functions #
@@ -120,23 +127,25 @@ inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfact
 
 function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
     result = 0
+    prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        result += c'*v*inner_rule(P,b,k)
+        result += c'*v*inner_rule(prodtype,b,k)
     end
     return result  
 end
 
-function ortho_inner{P<:Orthonormal}(a::DiracState{P}, b::DiracState{P})
+function ortho_inner(a::DiracState{Orthonormal}, b::DiracState{Orthonormal})
     result = 0
+    prodtype = ptype(a)
     for label in keys(dict(b))
         if haskey(a, label)
-            result += a[label]*b[label]*inner_rule(P,label,label)
+            result += a[label]*b[label]*inner_rule(prodtype,label,label)
         end
     end
     return result
 end
 
-function inner{P<:Orthonormal,N}(br::Bra{P,N}, kt::Ket{P,N})
+function inner{N}(br::Bra{Orthonormal,N}, kt::Ket{Orthonormal,N})
     if length(br) < length(kt)
         return ortho_inner(kt, br)
     else
@@ -161,12 +170,13 @@ end
 
 function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
     result = StateDict()
+    prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
         add_to_dict!(result, 
                      except(k,i),
-                     c'*v*inner_rule(P,b[1],k[i]))
+                     c'*v*inner_rule(prodtype,b[1],k[i]))
     end
-    return Ket(P, result, Factors{N-1}())
+    return Ket(result, prodtype, decr(fact(kt)))
 end 
 
 ###########
@@ -201,7 +211,7 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(P,tensorstate!(StateDict(), dict(a), dict(b)), fact(a)+fact(b))
+QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(tensorstate!(StateDict(), dict(a), dict(b)), ptype(b), fact(a)+fact(b))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)

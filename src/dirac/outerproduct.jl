@@ -7,9 +7,11 @@ type OuterProduct{P,N} <: DiracOp{P,N}
     br::Bra{P,N}
 end
 
-OuterProduct{P,N}(::Type{P}, scalar, kt::Ket{P,N}, br::Bra{P,N}) = OuterProduct{P,N}(scalar, kt, br)
 
-Base.copy{P}(op::OuterProduct{P}) = OuterProduct(P, copy(op.scalar), copy(op.kt), copy(op.br))
+fact(op::OuterProduct) = fact(op.kt)
+ptype(op::OuterProduct) = ptype(op.kt)
+
+Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
 
 Base.convert(::Type{GenericOp}, op::OuterProduct) = scale!(op.scalar, GenericOp(op.kt, op.br))
 Base.convert{P}(::Type{GenericOp{P}}, op::OuterProduct{P}) = convert(GenericOp, op)
@@ -66,7 +68,7 @@ maplabels(f::Function, op::OuterProduct) = maplabels(f, convert(GenericOp, op))
 ##############
 # ctranspose #
 ##############
-Base.ctranspose{P}(op::OuterProduct{P}) = OuterProduct(P, op.scalar', op.br', op.kt')
+Base.ctranspose(op::OuterProduct) = OuterProduct(op.scalar', op.br', op.kt')
 
 #########
 # inner #
@@ -118,7 +120,7 @@ end
 #########
 # Trace #
 #########
-function Base.trace{O<:Orthonormal}(op::OuterProduct{O})
+function Base.trace(op::OuterProduct{Orthonormal})
     result = 0
     for k in labels(op.kt), b in labels(op.br)
         if b==k
@@ -128,10 +130,11 @@ function Base.trace{O<:Orthonormal}(op::OuterProduct{O})
     return result
 end
 
-function Base.trace{P}(op::OuterProduct{P})
+function Base.trace(op::OuterProduct)
     result = 0
+    prodtype = ptype(op)
     for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
-        result += v*c'*inner_rule(P, i, k) * inner_rule(P, b, i)
+        result += v*c'*inner_rule(prodtype, i, k) * inner_rule(prodtype, b, i)
     end
     return op.scalar * result
 end
@@ -142,7 +145,7 @@ end
 ptrace{P}(op::OuterProduct{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
 ptrace(op::OuterProduct, over) = ptrace_proj(op, over)
 
-function ptrace_proj{O<:Orthonormal,N}(op::OuterProduct{O,N}, over)
+function ptrace_proj(op::OuterProduct{Orthonormal}, over)
     result = OpDict()
     for k in labels(op.kt), b in labels(op.br)
         if k[over] == b[over]
@@ -151,18 +154,19 @@ function ptrace_proj{O<:Orthonormal,N}(op::OuterProduct{O,N}, over)
                          op[k,b])
         end
     end
-    return GenericOp(O,result,Factors{N-1}())
+    return GenericOp(result, ptype(op), decr(fact(op)))
 end
 
 function ptrace_proj{P,N}(op::OuterProduct{P,N}, over)
     result = OpDict()
+    prodtype = ptype(op)
     for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
         add_to_dict!(result,
                      OpLabel(except(k, over), except(b, over)),
-                     op.scalar*v*c'*inner_rule(P, i[over], k[over])
-                     *inner_rule(P, b[over], i[over]))
+                     op.scalar*v*c'*inner_rule(prodtype, i[over], k[over])
+                     *inner_rule(prodtype, b[over], i[over]))
     end
-    return GenericOp(P,result,Factors{N-1}())
+    return GenericOp(result, ptype(op), decr(fact(op)))
 end
 
 ########################

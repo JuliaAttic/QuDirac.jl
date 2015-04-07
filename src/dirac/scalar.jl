@@ -5,11 +5,13 @@
 # represents an abstract scalar formulated in
 # Dirac notation - a br-kt product.
 immutable InnerProduct{P<:AbstractInner} <: DiracScalar
+    ptype::P
     brlabel::Vector
     ktlabel::Vector
-    InnerProduct(b::Array, k::Array) = new(b,k)
-    InnerProduct(b, k) = InnerProduct{P}([b],[k])
 end
+
+InnerProduct{P<:AbstractInner}(p::P, b::Array, k::Array) = InnerProduct{P}(p, b, k)
+InnerProduct(p::AbstractInner, b, k) = InnerProduct(p, collect(b), collect(k))
 
 ######################
 # Accessor Functions #
@@ -20,8 +22,8 @@ ktlabel(i::InnerProduct) = i.ktlabel
 ##############
 # inner_rule #
 ##############
-inner_rule{P<:AbstractInner}(::Type{P}, b, k) = ScalarExpr(InnerProduct{P}(b, k))
-inner_rule{O<:Orthonormal}(::Type{O}, b, k) = b == k ? 1 : 0
+inner_rule(p::AbstractInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
+inner_rule(::Orthonormal, b, k) = b == k ? 1 : 0
 
 ######################
 # Printing Functions #
@@ -32,11 +34,13 @@ Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 ###########################
 # Mathematical Operations #
 ###########################
-Base.(:(==))(a::InnerProduct, b::InnerProduct) = brlabel(a) == brlabel(b) && ktlabel(a) == ktlabel(b) 
+Base.(:(==))(a::InnerProduct, b::InnerProduct) = a.ptype == b.ptype && 
+                                                 brlabel(a) == brlabel(b) &&
+                                                 ktlabel(a) == ktlabel(b) 
 Base.(:(==))(::InnerProduct, ::Number) = false
 Base.(:(==))(::Number, ::InnerProduct) = false
 
-Base.conj{P}(i::InnerProduct{P}) = InnerProduct{P}(getktlabel(i), getbrlabel(i))
+Base.conj(i::InnerProduct) = InnerProduct(i.ptype, getktlabel(i), getbrlabel(i))
 
 ##############
 # ScalarExpr #
@@ -80,7 +84,7 @@ Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 ##############
 # inner_eval #
 ##############
-inner_eval{P}(i::InnerProduct{P}) = inner_rule(P, brlabel(i), ktlabel(i))
+inner_eval(i::InnerProduct) = inner_rule(i.ptype, brlabel(i), ktlabel(i))
 inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
 inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))
 inner_eval(n::Number) = n
