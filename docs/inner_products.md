@@ -61,11 +61,10 @@ Ket{UndefinedInner,2} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
-If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `set_default_inner` function:
+If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `@default_inner` macro:
 
 ```
-julia> QuDirac.set_default_inner(UndefinedInner())
-UndefinedInner()
+julia> @default_inner UndefinedInner;
 
 julia> ket(1,2)
 Ket{UndefinedInner,2} with 1 state(s):

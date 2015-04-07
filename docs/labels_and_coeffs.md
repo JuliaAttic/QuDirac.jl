@@ -237,5 +237,8 @@ julia> get(k, ['a', 'b', 'c'], "Not here")
 
 One can iterate through the labels or coefficients of a QuDirac object using the `labels` and `coeffs` functions:
 
+---
+#  Mapping and filtering functions
+---
 
 

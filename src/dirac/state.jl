@@ -15,7 +15,14 @@ Ket{P,N}(dict::StateDict, ptype::P, fact::Factors{N}) = Ket{P,N}(dict,ptype,fact
 
 ket{N}(ptype::AbstractInner, label::NTuple{N}) = Ket(single_dict(StateDict(), collect(label), 1), ptype, Factors{N}())
 ket(ptype::AbstractInner, items...) = ket(ptype, items)
-ket(items...) = ket(DEFAULT_INNER, items)
+
+macro default_inner(ptype)
+    @eval begin
+        ket(items...) = ket(($ptype)(), items)
+    end
+end
+
+@default_inner Orthonormal
 
 type Bra{P,N} <: DiracState{P,N}
     kt::Ket{P,N}
@@ -248,4 +255,5 @@ export ket,
     wavefunc,
     labels,
     act_on,
+    @default_inner,
     inner_eval

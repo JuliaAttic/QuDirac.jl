@@ -30,12 +30,6 @@ module QuDirac
     #############
     QuBase.tensor() = error("Cannot call tensor function without arguments")
 
-    global DEFAULT_INNER = Orthonormal()
-
-    function set_default_inner(new_type::AbstractInner)
-        global DEFAULT_INNER = new_type
-    end
-
     ###########
     # Factors #
     ###########
