@@ -40,6 +40,7 @@ end
 function dirac_showcompact(io::IO, dirac)
     pad = " "
     maxlen = 4
+    i = 1
     for label in take(keys(dict(dirac)), maxlen)
         print(io, labelrepr(dirac, label, pad))
         i += 1
