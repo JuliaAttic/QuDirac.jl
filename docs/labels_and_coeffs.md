@@ -64,8 +64,8 @@ Ket{Orthonormal,1} with 3 state(s):
   0.4364357804719848 | 1 ⟩
 ```
 
-Note that performing a `setindex!` operation on a state is faster than constructing new states for the sake of addition/subtraction,
-but is a mutation of the orginal state:
+Performing a `setindex!` operation on a state is faster than constructing new states 
+for the sake of addition/subtraction, but is a mutation of the orginal state:
 
 ```
 julia> k + ket(0) # this requires constructing a new instance of | 0 ⟩
@@ -83,7 +83,8 @@ julia> k[0] += 1 # faster than the above, but mutates k
 
 ---
 
-Operator coefficients are accessed in the same manner as state coefficients, except two labels are required; one for the basis Ket, and another for the basis Bra:
+Operator coefficients are accessed in the same manner as state coefficients, 
+except two labels are required; one for the basis Ket, and another for the basis Bra:
 
 ```
 julia> k = sum(i->i*ket(i), 1:10); op = k*k'
@@ -192,19 +193,17 @@ elapsed time: 0.000877927 seconds (331232 bytes allocated)
 #  Using the `get` function
 ---
 
-Note that trying to access a coefficient using a label not present in the Ket/Bra/operator will 
-result in an error:
+If a label is not explictly present in a QuDirac object, then calling `getindex` with that label results in an error: 
 
 ```
 julia> k
-Ket{Orthonormal,3} with 125 state(s):
+Ket{Orthonormal,3} with 6 state(s):
   4 | 1,4,1 ⟩
   48 | 3,4,4 ⟩
   20 | 1,5,4 ⟩
   45 | 5,3,3 ⟩
   6 | 2,3,1 ⟩
   25 | 1,5,5 ⟩
-  ⁞
 
 julia> k['a', 'b', 'c']
 ERROR: key not found: Char[a,b,c]
@@ -212,20 +211,16 @@ ERROR: key not found: Char[a,b,c]
  in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:52
 ```
 
-In some sense, if a basis state is not "present" in the Ket, the coefficient for that state could be said to be zero.
-
-As such, QuDirac overloads base Julia's `get` method for safely accessing states that may or may not be present in the specified QuDirac object. 
-
-By default, `get` will return a `0` if the passed in label is not found, and the result of `getindex` if it is found:
+QuDirac overloads Julia's `get` method in order to provide more flexibility in the above scenario. By default, `get` is defined to return a `0` instead of an error if the label it's given isn't found:
 
 ```
 julia> get(k, ['a', 'b', 'c'])
 0
 
-julia> get(k, [2, 3, 4])
-24
+julia> get(k, [1,5,5])
+25
 
-julia> get(k, [2,3,4]) == k[2,3,4]
+julia> get(k, [1,5,5]) == k[1,5,5]
 true
 ```
 

@@ -148,15 +148,7 @@ Ket{Orthonormal,2} with 18 state(s):
   ⁞
 ```
 
-Note that in the above, we used Julia's [`sum`](http://julia.readthedocs.org/en/latest/stdlib/collections/?highlight=sum#Base.sum) function to quickly construct superpositions of states where the coefficients were a function of the labels (and scaled proportionally in the final normalized product). 
-
-Similarly to `sum`, the `prod` function can be used to quickly construct product states given an iterable of labels:
-
-```
-julia> prod(ket, 'a':'f')
-Ket{Orthonormal,6} with 1 state(s):
-  1 | 'a','b','c','d','e','f' ⟩
-```
+In the above, we used Julia's [`sum`](http://julia.readthedocs.org/en/latest/stdlib/collections/?highlight=sum#Base.sum) function to quickly construct superpositions of states where the coefficients were a function of the labels (and scaled proportionally in the final normalized product). 
 
 ---
 # Inner Product

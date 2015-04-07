@@ -171,7 +171,7 @@ GenericOp{Orthonormal,3} with 10 operator(s):
   1 | 7,9,8 ⟩⟨ 7,8,9 |
 ```
 
-*Note: The `label` argument above is a `Vector{Any}`. See the [Labels and coefficients](labels_and_coeffs.md) section for details.*
+*Note: The `label` argument above is a `Vector`. See the [Labels and coefficients](labels_and_coeffs.md) section for details.*
 
 As you can see, the above operator simply switches the second and third factors of 
 the basis labels (the `switch` function is provided by QuDirac, and can be found in

@@ -39,10 +39,10 @@ GenericOp{Orthonormal,1} with 2 operator(s):
 Abstract inner product example:
 
 ```julia
-julia> QuDirac.set_default_inner(AbstractInner);
+julia> QuDirac.set_default_inner(UndefinedInner());
 
 julia> k = 1/√2 * (ket('a') + ket('b'))
-Ket{AbstractInner,1} with 2 state(s):
+Ket{UndefinedInner,1} with 2 state(s):
   0.7071067811865475 | 'b' ⟩
   0.7071067811865475 | 'a' ⟩
 
@@ -53,12 +53,12 @@ julia> bra('a') * k
 Custom inner product example:
 
 ```julia
-julia> abstract MyInner <: AbstractInner
+julia> immutable MyInner <: AbstractInner end
 
-julia> QuDirac.inner_rule{T<:MyInner}(::Type{T}, ktlabel, brlabel) = sqrt(ktlabel[1]+brlabel[1])
+julia> QuDirac.inner_rule{T<:MyInner}(::MyInner, ktlabel, brlabel) = sqrt(ktlabel[1]+brlabel[1])
 inner_rule (generic function with 3 methods)
 
-julia> QuDirac.set_default_inner(MyInner);
+julia> QuDirac.set_default_inner(MyInner());
 
 julia> bra(π) * ket(e) # eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
 2.420717761749361
@@ -104,7 +104,7 @@ Ket{Orthonormal,1} with 1 state(s):
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 0.7071067811865475
 
-julia> QuDirac.set_default_inner(AbstractInner);
+julia> QuDirac.set_default_inner(UndefinedInner());
 
 julia> d" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 'a','b' | 1,1 ⟩ + ⟨ 'a','b' | 0,0 ⟩) / 1.4142135623730951)
