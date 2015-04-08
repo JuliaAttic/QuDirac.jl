@@ -7,17 +7,13 @@
 Multiplying a state by a scalar modifies the coefficient appropriately:
 
 ```
-julia> k = sum(i -> i*ket(i), 1:3)
-Ket{KroneckerDelta,1} with 3 state(s):
-  3 | 3 ⟩
-  2 | 2 ⟩
-  1 | 1 ⟩
+julia> k = (1+3.4im) * ket(0)
+Ket{KroneckerDelta,1} with 1 state(s):
+  1.0 + 3.4im | 0 ⟩
 
-julia> normalize!(k)
-Ket{KroneckerDelta,1} with 3 state(s):
-  0.8017837257372732 | 3 ⟩
-  0.5345224838248488 | 2 ⟩
-  0.2672612419124244 | 1 ⟩
+julia> k/2
+Ket{KroneckerDelta,1} with 1 state(s):
+  0.5 + 1.7im | 0 ⟩
 ```
 
 ---
@@ -66,15 +62,17 @@ In general, QuDirac objects *do not automatically normalize themselves*.
 We can normalize a state in-place by using the `normalize!` function:
 
 ```
-julia> k = 3*ket(0) + 2*ket(1)
-Ket{KroneckerDelta,1} with 2 state(s):
-  1 | 0 ⟩
+julia> k = sum(i -> i*ket(i), 1:3)
+Ket{KroneckerDelta,1} with 3 state(s):
+  3 | 3 ⟩
+  2 | 2 ⟩
   1 | 1 ⟩
 
 julia> normalize!(k)
-Ket{KroneckerDelta,1} with 2 state(s):
-  0.7071067811865476 | 0 ⟩
-  0.7071067811865476 | 1 ⟩
+Ket{KroneckerDelta,1} with 3 state(s):
+  0.8017837257372732 | 3 ⟩
+  0.5345224838248488 | 2 ⟩
+  0.2672612419124244 | 1 ⟩
 ```
 
 The `normalize` function (without the trailing "!") is also provided, which normalizes a copy of the state instead of modifying the original:
