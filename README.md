@@ -79,7 +79,7 @@ Ket{Orthonormal,1} with 5 state(s):
 
 julia> f(label) = (sqrt(label), label-1)
 
-julia> â = GenericOp(f, k, 1)
+julia> â = func_op(f, k, 1)
 GenericOp{Orthonormal,1} with 4 operator(s):
   1.0 | 0 ⟩⟨ 1 |
   2.0 | 3 ⟩⟨ 4 |
