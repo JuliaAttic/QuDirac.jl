@@ -248,7 +248,7 @@ OuterProduct{Orthonormal,2} with 4 operator(s):
   0.4999999999999999 | 'b','a' ⟩⟨ 'a','b' |
   0.4999999999999999 | 'b','a' ⟩⟨ 'b','a' |
 
-julia> ptrace(dense,1)
+julia> ptrace(dense,1) # trace over the 1st subsystem
 GenericOp{Orthonormal,1} with 2 operator(s):
   0.4999999999999999 | 'b' ⟩⟨ 'b' |
   0.4999999999999999 | 'a' ⟩⟨ 'a' |
@@ -257,4 +257,3 @@ julia> purity(ans) # get the purity of the previous result
 0.4999999999999998
 ```
 
-As you can see, the second argument to `ptrace` is the index of the factor to be traced over.

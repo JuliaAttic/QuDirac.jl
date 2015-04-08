@@ -107,12 +107,15 @@ Base.setindex!(op::GeneralOp, c, k, b) = setindex!(op, c, StateLabel(k), StateLa
 
 Base.haskey(op::GenericOp, label::OuterLabel) = haskey(dict(op), label)
 Base.haskey(opc::DualOp, label::OuterLabel) = haskey(opc.op, reverse(label))
+Base.haskey(op::GeneralOp, k, b) = haskey(op, OuterLabel(k, b))
 
 Base.get(op::GenericOp, label::OuterLabel, default=0) = get(dict(op), label, default)
 Base.get(opc::DualOp, label::OuterLabel, default=0) = haskey(opc, label) ? opc[label] : default
+Base.get(op::GeneralOp, k, b, default=0) = get(op, OuterLabel(k, b), default)
 
 Base.delete!(op::GenericOp, label::OuterLabel) = (delete!(dict(op), label); return op)
 Base.delete!(opc::DualOp, label::OuterLabel) = delete!(opc.op, reverse(label))
+Base.delete!(op::GeneralOp, k, b) = delete!(op, OuterLabel(k, b))
 
 labels(op::GenericOp) = keys(dict(op))
 labels(opc::DualOp) = imap(reverse, labels(opc.op))

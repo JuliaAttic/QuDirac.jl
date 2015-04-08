@@ -1,13 +1,13 @@
 # QuDirac objects as data structures
 ---
 
-Under the hood, QuDirac's Kets, Bras, and operator types use dictionaries to map labels to coefficients.
+Under the hood, QuDirac's Kets, Bras, and operator types use `Dict`s to map labels to coefficients.
 
 There are few important things to keep in mind when working with these structures:
 
 - All coefficients are restricted to be a subtype of `Number`.
-- All state labels are of type `Vector`.
-- All operator labels are of type `OpLabel`, a composite type that holds a pair of state labels
+- All state labels are of type `StateLabel`.
+- All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra)
 - Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are "unordered". In other words, iteration through a QuDirac object's labels and coefficients is not guaranteed to be in any particular order.
 
 ---
@@ -110,7 +110,7 @@ OuterProduct{Orthonormal,3} with 1000000 operator(s):
   254016 | 8,9,7 ⟩⟨ 8,9,7 |
   ⁞
 
-julia> op[[8,1,10],[2,1,2]]
+julia> op[(8,1,10),(2,1,2)]
 320
 ```
 
@@ -120,7 +120,7 @@ Assigning coefficients, however, only works with `GenericOp`s (due to the
 `OuterProduct` type simply being a view on its underlying state factors):
 
 ```
-julia> op[[8,1,10],[2,1,2]] = 1
+julia> op[(8,1,10),(2,1,2)] = 1
 ERROR: `setindex!` has no method matching setindex!(::OuterProduct{Orthonormal,3}, ::Int64, ::Array{Int64,1}, ::Array{Int64,1})
 
 julia> gop = convert(GenericOp, op)
@@ -133,10 +133,10 @@ GenericOp{Orthonormal,3} with 1000000 operator(s):
   80640 | 7,8,6 ⟩⟨ 4,6,10 |
   ⁞
 
-julia> gop[[8,1,10],[2,1,2]] = 1
+julia> gop[(8,1,10),(2,1,2)] = 1
 1
 
-julia> gop[[8,1,10],[2,1,2]]
+julia> gop[(8,1,10),(2,1,2)]
 1
 ```
 
@@ -147,7 +147,7 @@ These functions are equivalent to taking the inner product of an operator
 and a specific basis Ket/Bra, but is generally :
 
 ```
-julia> getket(op, {2,5,4})
+julia> getket(op, (2,5,4))
 Ket{Orthonormal,3} with 1000 state(s):
   3200 | 8,1,10 ⟩
   20160 | 8,9,7 ⟩
@@ -157,14 +157,14 @@ Ket{Orthonormal,3} with 1000 state(s):
   1600 | 1,10,4 ⟩
   ⁞
 
-julia> getket(op, [2,5,4]) == op*ket(2,5,4)
+julia> getket(op, (2,5,4)) == op*ket(2,5,4)
 true
 ```
 
 Likewise with `getbra`:
 
 ```
-julia> getbra(op, [2,5,4])
+julia> getbra(op, (2,5,4))
 Bra{Orthonormal,3} with 1000 state(s):
   3200 ⟨ 8,1,10 |
   20160 ⟨ 8,9,7 |
@@ -174,20 +174,13 @@ Bra{Orthonormal,3} with 1000 state(s):
   1600 ⟨ 1,10,4 |
   ⁞
 
-julia> getbra(op, [2,5,4]) == bra(2,5,4)*op
+julia> getbra(op, (2,5,4)) == bra(2,5,4)*op
 true
 ```
 
 Why have these methods at all if we can already take inner products? Well, these methods are 
-generally more efficient than simply taking the inner product: 
-
-```
-julia> @time op * ket(2,5,4);
-elapsed time: 0.001857005 seconds (622152 bytes allocated)
-
-julia> @time getket(op, [2,5,4]);
-elapsed time: 0.000877927 seconds (331232 bytes allocated)
-```
+generally more efficient than calculating the inner product if the result you're looking
+for is the action on a basis state.
 
 ---
 #  Using the `get` function
@@ -196,38 +189,39 @@ elapsed time: 0.000877927 seconds (331232 bytes allocated)
 If a label is not explictly present in a QuDirac object, then calling `getindex` with that label results in an error: 
 
 ```
-julia> k
-Ket{Orthonormal,3} with 6 state(s):
-  4 | 1,4,1 ⟩
-  48 | 3,4,4 ⟩
-  20 | 1,5,4 ⟩
-  45 | 5,3,3 ⟩
-  6 | 2,3,1 ⟩
-  25 | 1,5,5 ⟩
+julia> k = sum(i-> i * ket(i), 1:3)^3
+Ket{Orthonormal,3} with 27 state(s):
+  12 | 2,2,3 ⟩
+  27 | 3,3,3 ⟩
+  4 | 1,2,2 ⟩
+  6 | 2,1,3 ⟩
+  3 | 1,3,1 ⟩
+  18 | 2,3,3 ⟩
+  ⁞
 
 julia> k['a', 'b', 'c']
-ERROR: key not found: Char[a,b,c]
- in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:50
- in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:52
+ERROR: key not found: StateLabel{3}(('a','b','c'),0x504c9a1142755a02)
+ in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:58
+ in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:61
 ```
 
 QuDirac overloads Julia's `get` method in order to provide more flexibility in the above scenario. By default, `get` is defined to return a `0` instead of an error if the label it's given isn't found:
 
 ```
-julia> get(k, ['a', 'b', 'c'])
+julia> get(k, ('a', 'b', 'c'))
 0
 
-julia> get(k, [1,5,5])
-25
+julia> get(k, (2,3,3))
+18
 
-julia> get(k, [1,5,5]) == k[1,5,5]
+julia> get(k, (2,3,3)) == k[2,3,3]
 true
 ```
 
 One can pass in an extra argument to `get` that replaces `0` as the default return value: 
 
 ```
-julia> get(k, ['a', 'b', 'c'], "Not here")
+julia> get(k, ('a', 'b', 'c'), "Not here")
 "Not here"
 ```
 

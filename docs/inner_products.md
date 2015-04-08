@@ -8,7 +8,7 @@ abstract AbstractInner
 immutable Orthonormal <: AbstractInner end
 immutable UndefinedInner <: AbstractInner end
 ```
-Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above look like the following:
+Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
 
 ```
 inner_rule(p::UndefinedInner, b, k) = InnerProduct(p, b, k) # lazy evaluation of inner product
@@ -21,7 +21,7 @@ The arguments to `inner_rule` are, in order:
 2. `b` -> The Bra label of the inner product being evaluated.
 3. `k` -> The Ket label of the inner product being evaluated.
 
-The type of `b`/`k` can be a `Vector` (a whole label) or single element of a `Vector` (a specific factor's label).
+The type of `b`/`k` can be a `StateLabel` or a single factor element of a `StateLabel`.
 
 Most examples in this documentation show the `Orthonormal` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
 

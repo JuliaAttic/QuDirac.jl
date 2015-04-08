@@ -57,18 +57,23 @@ Base.length(s::DiracState) = length(dict(s))
 
 Base.getindex(k::Ket, label::StateLabel) = getindex(dict(k), label)
 Base.getindex(b::Bra, label::StateLabel) = b.kt[label]'
+Base.getindex(s::DiracState, tup::Tuple) = s[StateLabel(tup)]
 Base.getindex(s::DiracState, i...) = s[StateLabel(i)]
 
 Base.setindex!(k::Ket, c, label::StateLabel) = setindex!(dict(k), c, label)
 Base.setindex!(b::Bra, c, label::StateLabel) = setindex!(dict(b), c', label)
-Base.setindex!(s::DiracState, c, i...) = setindex!(s,c,StateLabel(i))
+Base.setindex!(s::DiracState, c, tup::Tuple) = setindex!(s, c, StateLabel(tup))
+Base.setindex!(s::DiracState, c, i...) = setindex!(s, c, StateLabel(i))
 
 Base.haskey(s::DiracState, label::StateLabel) = haskey(dict(s), label)
+Base.haskey(s::DiracState, label) = haskey(s, StateLabel(label))
 
 Base.get(k::Ket, label::StateLabel, default=0) = get(dict(k), label, default)
 Base.get(b::Bra, label::StateLabel, default=0) = haskey(b, label) ? b[label] : default
+Base.get(s::DiracState, label, default=0) = get(s, StateLabel(label), default)
 
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
+Base.delete!(s::DiracState, label) = delete!(s, StateLabel(label))
 
 labels(s::DiracState) = keys(dict(s))
 QuBase.coeffs(kt::Ket) = values(dict(kt))
