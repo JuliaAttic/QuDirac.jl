@@ -169,17 +169,7 @@ GenericOp{Orthonormal,3} with 10 operator(s):
   1 | 10,12,11 ⟩⟨ 10,11,12 |
   1 | 3,5,4 ⟩⟨ 3,4,5 |
   1 | 7,9,8 ⟩⟨ 7,8,9 |
-```
 
-*Note: The `label` argument above is a `Vector`. See the [Labels and coefficients](labels_and_coeffs.md) section for details.*
-
-As you can see, the above operator simply switches the second and third factors of 
-the basis labels (the `switch` function is provided by QuDirac, and can be found in
-the API section).
-
-Acting it on `k`:
-
-```
 julia> p132 * k
 Ket{Orthonormal,3} with 10 state(s):
   4 | 4,6,5 ⟩
@@ -194,3 +184,8 @@ Ket{Orthonormal,3} with 10 state(s):
   3 | 3,5,4 ⟩
 ```
 
+*Note: The label argument for the function passed into `func_op` is of type `StateLabel`. See the [Labels and coefficients](labels_and_coeffs.md) section for details.*
+
+As you can see, the above operator simply switches the second and third factors of 
+the basis labels (the `switch` function is provided by QuDirac, and can be found in
+the API section).
