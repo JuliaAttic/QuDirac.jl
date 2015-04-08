@@ -200,7 +200,7 @@ Ket{KroneckerDelta,3} with 27 state(s):
   ⁞
 
 julia> k['a', 'b', 'c']
-ERROR: key not found: StateLabel{3}(('a','b','c'),0x504c9a1142755a02)
+ERROR: key not found: StateLabel{3}('a','b','c')
  in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:58
  in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:61
 ```

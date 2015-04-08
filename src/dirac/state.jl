@@ -216,7 +216,6 @@ inner_eval(s::DiracState) = mapcoeffs(inner_eval,s)
 ######################
 # Printing Functions #
 ######################
-labelstr(label) = join(map(repr, label), ',')
 ktstr(label) = "| $(labelstr(label)) $rang"
 brstr(label) = "$lang $(labelstr(label)) |"
 

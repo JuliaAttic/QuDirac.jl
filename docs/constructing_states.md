@@ -1,4 +1,4 @@
-*Note: Throughout this documentation, I'll refer to `ket` (lowercase) and Ket (uppercase). "Ket" refers to a type, while `ket` refers to a convenience constructor for that type. The same goes for `bra` and Bra.*
+*Note: Throughout this documentation, I'll refer to `ket` (lowercase) and Ket (uppercase). "Ket" refers to a type, while `ket` refers to a convenience constructor for a Ket with a single basis state. The same goes for `bra` and Bra.*
 
 ---
 # Constructing Single Kets

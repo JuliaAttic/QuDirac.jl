@@ -35,6 +35,10 @@ Base.map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, s.label
 
 QuBase.tensor(s::StateLabel...) = StateLabel(apply(tuple, s...))
 
+labelstr(label::StateLabel) = join(map(repr, label), ',')
+Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s.label) * ")"
+Base.show(io::IO, s::StateLabel) = print(io, repr(s))
+
 ##############
 # OuterLabel #
 ##############
@@ -46,6 +50,7 @@ immutable OuterLabel{N}
     OuterLabel(k::StateLabel{N}, b::StateLabel{N}, h::Uint64) = new(k, b, h)
 end
 
+OuterLabel(::StateLabel, ::StateLabel) = error("OuterLabel can only be constructed if both StateLabels have the same number of factors")
 OuterLabel{N}(k::StateLabel{N}, b::StateLabel{N}) = OuterLabel{N}(k, b)
 OuterLabel(k, b) = OuterLabel(StateLabel(k), StateLabel(b))
 
@@ -62,6 +67,9 @@ Base.length{N}(::OuterLabel{N}) = N
 
 Base.reverse(o::OuterLabel) = OuterLabel(o.b, o.k)
 QuBase.tensor(o1::OuterLabel, o2::OuterLabel) = OuterLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
+
+Base.repr(o::OuterLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
+Base.show(io::IO, o::OuterLabel) = print(io, repr(o))
 
 ####################
 # Helper Functions #
