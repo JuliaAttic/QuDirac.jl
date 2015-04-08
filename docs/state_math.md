@@ -73,33 +73,12 @@ Ket{KroneckerDelta,1} with 3 state(s):
   0.8017837257372732 | 3 ⟩
   0.5345224838248488 | 2 ⟩
   0.2672612419124244 | 1 ⟩
+
+julia> norm(k)
+1.0
 ```
 
-The `normalize` function (without the trailing "!") is also provided, which normalizes a copy of the state instead of modifying the original:
-
-```
-julia> k = ket(0) + ket(1)
-Ket{KroneckerDelta,1} with 2 state(s):
-  1 | 0 ⟩
-  1 | 1 ⟩
-
-julia> normalize(k)
-Ket{KroneckerDelta,1} with 2 state(s):
-  0.7071067811865475 | 0 ⟩
-  0.7071067811865475 | 1 ⟩
-
-julia> k
-Ket{KroneckerDelta,1} with 2 state(s):
-  1 | 0 ⟩
-  1 | 1 ⟩
-```
-
-You can check the norm of a state using the `norm` function:
-
-```
-julia> norm(1/√2 * (ket(0) + ket(1)))
-0.9999999999999999
-```
+The `normalize` function (without the trailing "!") is also provided, which normalizes a copy of the state instead of modifying the original.
 
 ---
 # Getting a State's Dual
@@ -120,7 +99,7 @@ julia> k'' == k
 true
 ```
 
-For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra in any way will result in the mutation of the underlying Ket (one can explicitly make a copy via the `copy` function).
+For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra in any way will result in the mutation of the underlying Ket. If you would like a copy of a state instead, you can explicitly construct one via the `copy` function.
 
 ---
 # Tensor Product
@@ -148,9 +127,7 @@ Ket{KroneckerDelta,2} with 18 state(s):
   -0.07636035483212125 | 2,-1 ⟩
   0.019090088708030313 | 1,1 ⟩
   ⁞
-```
-
-In the above, we used Julia's [`sum`](http://julia.readthedocs.org/en/latest/stdlib/collections/?highlight=sum#Base.sum) function to quickly construct superpositions of states where the coefficients were a function of the labels (and scaled proportionally in the final normalized product). 
+``` 
 
 ---
 # Inner Product
@@ -223,6 +200,4 @@ Ket{KroneckerDelta,1} with 2 state(s):
   0.6324555320336758 | 1 ⟩
 ```
 
-As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `KroneckerDelta` in `Ket{KroneckerDelta,1}`), and you may notice that the `bra`/`ket` functions construct states with product type `KroneckerDelta` by default. QuDirac also has support for arbitrary, lazily evaluated inner products when states aren't simply orthonormal. To learn more, see the [Working with Inner Products](inner_products.md) section.
-
-
+As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `KroneckerDelta` in `Ket{KroneckerDelta,1}`). QuDirac also has support for both custom and lazily evaluated inner products as well. To learn more, see the [Working with Inner Products](inner_products.md) section.
