@@ -17,7 +17,7 @@ module QuDirac
     abstract AbstractInner
     
     immutable UndefinedInner <: AbstractInner end 
-    immutable Orthonormal <: AbstractInner end
+    immutable KroneckerDelta <: AbstractInner end
     
     abstract AbstractDirac{P,N}
     abstract DiracOp{P<:AbstractInner,N} <: AbstractDirac{P,N}
@@ -61,7 +61,7 @@ module QuDirac
 
     export AbstractInner,
         UndefinedInner,
-        Orthonormal,
+        KroneckerDelta,
         @d_str,
         AbstractDirac,
         DiracState,

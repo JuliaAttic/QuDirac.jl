@@ -21,7 +21,7 @@ macro default_inner(ptype)
     end
 end
 
-@default_inner Orthonormal
+@default_inner KroneckerDelta
 
 type Bra{P,N} <: DiracState{P,N}
     kt::Ket{P,N}
@@ -99,7 +99,7 @@ function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
     return result  
 end
 
-function ortho_inner(a::DiracState{Orthonormal}, b::DiracState{Orthonormal})
+function ortho_inner(a::DiracState{KroneckerDelta}, b::DiracState{KroneckerDelta})
     result = 0
     for label in keys(dict(b))
         if haskey(a, label)
@@ -109,7 +109,7 @@ function ortho_inner(a::DiracState{Orthonormal}, b::DiracState{Orthonormal})
     return result
 end
 
-function inner{N}(br::Bra{Orthonormal,N}, kt::Ket{Orthonormal,N})
+function inner{N}(br::Bra{KroneckerDelta,N}, kt::Ket{KroneckerDelta,N})
     if length(br) < length(kt)
         return ortho_inner(kt, br)
     else

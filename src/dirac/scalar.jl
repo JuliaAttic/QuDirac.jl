@@ -27,7 +27,7 @@ Base.conj(i::InnerProduct) = InnerProduct(i.ptype, klabel(i), blabel(i))
 # inner_rule #
 ##############
 inner_rule(p::AbstractInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
-inner_rule(::Orthonormal, b, k) = b == k ? 1 : 0
+inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 
 ##############
 # ScalarExpr #

@@ -12,24 +12,24 @@ Below are some toy examples; actual documentation is coming soon!
 
 ```julia
 julia> bell = 1/√2 * (ket(0,0) + ket(1,1))
-Ket{Orthonormal,2} with 2 state(s):
+Ket{KroneckerDelta,2} with 2 state(s):
   0.7071067811865475 | 1,1 ⟩
   0.7071067811865475 | 0,0 ⟩
 
 julia> bell'
-Bra{Orthonormal,2} with 2 state(s):
+Bra{KroneckerDelta,2} with 2 state(s):
   0.7071067811865475 ⟨ 1,1 |
   0.7071067811865475 ⟨ 0,0 |
 
 julia> op = bell * bell'
-OuterProduct{Orthonormal,2} with 4 operator(s):
+OuterProduct{KroneckerDelta,2} with 4 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 
 julia> ptrace(op, 1)
-GenericOp{Orthonormal,1} with 2 operator(s):
+GenericOp{KroneckerDelta,1} with 2 operator(s):
   0.4999999999999999 | 0 ⟩⟨ 0 |
   0.4999999999999999 | 1 ⟩⟨ 1 |
 ```
@@ -70,7 +70,7 @@ Functional generation of a lowering operator:
 
 ```julia
 julia> k = normalize!(sum(ket, 0:4))
-Ket{Orthonormal,1} with 5 state(s):
+Ket{KroneckerDelta,1} with 5 state(s):
   0.4472135954999579 | 0 ⟩
   0.4472135954999579 | 2 ⟩
   0.4472135954999579 | 3 ⟩
@@ -80,21 +80,21 @@ Ket{Orthonormal,1} with 5 state(s):
 julia> f(label) = (sqrt(label), label-1)
 
 julia> â = func_op(f, k, 1)
-GenericOp{Orthonormal,1} with 4 operator(s):
+GenericOp{KroneckerDelta,1} with 4 operator(s):
   1.0 | 0 ⟩⟨ 1 |
   2.0 | 3 ⟩⟨ 4 |
   1.7320508075688772 | 2 ⟩⟨ 3 |
   1.4142135623730951 | 1 ⟩⟨ 2 |
 
 julia> â*k
-Ket{Orthonormal,1} with 4 state(s):
+Ket{KroneckerDelta,1} with 4 state(s):
   0.4472135954999579 | 0 ⟩
   0.8944271909999159 | 3 ⟩
   0.7745966692414833 | 2 ⟩
   0.6324555320336759 | 1 ⟩
 
 julia> â*ket(4)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   2.0 | 3 ⟩
 ```
 

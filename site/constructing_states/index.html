@@ -155,21 +155,21 @@
 <hr />
 <p>To begin, let's make a single state using the <code>ket</code> function:</p>
 <pre><code>julia&gt; ket(0)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | 0 ⟩
 </code></pre>
 
 <p>As you can see, the <code>ket</code> function takes labels (in this case, a single zero) as arguments. In QuDirac, anything can be used as a Ket label - primitives, strings, composite types, and even other QuDirac objects. Simply pass the desired label in as we did <code>0</code> above:</p>
 <pre><code>julia&gt; ket(&quot;:)&quot;)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | &quot;:)&quot; ⟩
 
 julia&gt; ket(:a)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | :a ⟩
 
 julia&gt; ket([1,2,3])
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | [1,2,3] ⟩
 </code></pre>
 
@@ -178,7 +178,7 @@ Ket{Orthonormal,1} with 1 state(s):
 <hr />
 <p>Bras can be constructed the same way using the <code>bra</code> function:</p>
 <pre><code>julia&gt; bra(0)
-Bra{Orthonormal,1} with 1 state(s):
+Bra{KroneckerDelta,1} with 1 state(s):
   1 ⟨ 0 |
 </code></pre>
 
@@ -188,17 +188,17 @@ Bra{Orthonormal,1} with 1 state(s):
 <hr />
 <p>The number of labels passed to the <code>ket</code>/<code>bra</code> functions determines how many factors there are in the basis of the resulting state. For example, to construct <code>| 0 ⟩ ⊗| 0 ⟩ ⊗ | 0 ⟩</code> we can simply do the following:</p>
 <pre><code>julia&gt; k = ket(0,0,0)
-Ket{Orthonormal,3} with 1 state(s):
+Ket{KroneckerDelta,3} with 1 state(s):
   1 | 0,0,0 ⟩
 
 julia&gt; nfactors(k)
 3
 </code></pre>
 
-<p>The number of factors is encoded in the type information of a state (e.g. the <code>3</code> in <code>Ket{Orthonormal, 3}</code> above) and can be retrieved using the <code>nfactors</code> function.</p>
+<p>The number of factors is encoded in the type information of a state (e.g. the <code>3</code> in <code>Ket{KroneckerDelta, 3}</code> above) and can be retrieved using the <code>nfactors</code> function.</p>
 <p>Just as with single labels, one is free to use labels of any type for multi-factor states:</p>
 <pre><code>julia&gt; k = ket(0, &quot;:)&quot;, :a, [1,2,3])
-Ket{Orthonormal,4} with 1 state(s):
+Ket{KroneckerDelta,4} with 1 state(s):
   1 | 0,&quot;:)&quot;,:a,[1,2,3] ⟩
 
 julia&gt; nfactors(k)

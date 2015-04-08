@@ -9,7 +9,7 @@ To begin, let's make a single state using the `ket` function:
 
 ```
 julia> ket(0)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | 0 ⟩
 ```
 
@@ -17,15 +17,15 @@ As you can see, the `ket` function takes labels (in this case, a single zero) as
 
 ```
 julia> ket(":)")
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | ":)" ⟩
 
 julia> ket(:a)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | :a ⟩
 
 julia> ket([1,2,3])
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   1 | [1,2,3] ⟩
 ```
 
@@ -37,7 +37,7 @@ Bras can be constructed the same way using the `bra` function:
 
 ```
 julia> bra(0)
-Bra{Orthonormal,1} with 1 state(s):
+Bra{KroneckerDelta,1} with 1 state(s):
   1 ⟨ 0 |
 ```
 
@@ -53,20 +53,20 @@ The number of labels passed to the `ket`/`bra` functions determines how many fac
 
 ```
 julia> k = ket(0,0,0)
-Ket{Orthonormal,3} with 1 state(s):
+Ket{KroneckerDelta,3} with 1 state(s):
   1 | 0,0,0 ⟩
 
 julia> nfactors(k)
 3
 ```
 
-The number of factors is encoded in the type information of a state (e.g. the `3` in `Ket{Orthonormal, 3}` above) and can be retrieved using the `nfactors` function.
+The number of factors is encoded in the type information of a state (e.g. the `3` in `Ket{KroneckerDelta, 3}` above) and can be retrieved using the `nfactors` function.
 
 Just as with single labels, one is free to use labels of any type for multi-factor states:
 
 ```
 julia> k = ket(0, ":)", :a, [1,2,3])
-Ket{Orthonormal,4} with 1 state(s):
+Ket{KroneckerDelta,4} with 1 state(s):
   1 | 0,":)",:a,[1,2,3] ⟩
 
 julia> nfactors(k)

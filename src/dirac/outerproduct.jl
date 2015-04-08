@@ -104,7 +104,7 @@ end
 #########
 # Trace #
 #########
-function Base.trace(op::OuterProduct{Orthonormal})
+function Base.trace(op::OuterProduct{KroneckerDelta})
     result = 0
     for k in labels(op.kt), b in labels(op.br)
         if b == k
@@ -129,7 +129,7 @@ end
 ptrace{P}(op::OuterProduct{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
 ptrace(op::OuterProduct, over) = ptrace_proj(op, over)
 
-function ptrace_proj{N}(op::OuterProduct{Orthonormal,N}, over)
+function ptrace_proj{N}(op::OuterProduct{KroneckerDelta,N}, over)
     result = OpDict{N-1}()
     for k in labels(op.kt), b in labels(op.br)
         if k[over] == b[over]

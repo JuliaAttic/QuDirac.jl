@@ -176,12 +176,12 @@
 <hr />
 <p>The simplest way to construct a QuDirac operator is to take the outer product of two states:</p>
 <pre><code>julia&gt; k = 1/√2 * (ket(0,0) - ket(1,1))
-Ket{Orthonormal,2} with 2 state(s):
+Ket{KroneckerDelta,2} with 2 state(s):
   -0.7071067811865475 | 1,1 ⟩
   0.7071067811865475 | 0,0 ⟩
 
 julia&gt; k*k' # | k ⟩⟨ k |
-Projector{Orthonormal,2} with 4 operator(s):
+Projector{KroneckerDelta,2} with 4 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
@@ -200,15 +200,15 @@ the two factor states, and behaves accordingly. Thus, the <code>Projector</code>
 <hr />
 <p>Like states, operators can be multiplied by a scalar: </p>
 <pre><code>julia&gt; op = ket('a') * bra('b')
-Projector{Orthonormal,1} with 1 operator(s):
+Projector{KroneckerDelta,1} with 1 operator(s):
   1 | 'a' ⟩⟨ 'b' |
 
 julia&gt; im * op
-Projector{Orthonormal,1} with 1 operator(s):
+Projector{KroneckerDelta,1} with 1 operator(s):
   0 + 1im | 'a' ⟩⟨ 'b' |
 
 julia&gt; op/2
-Projector{Orthonormal,1} with 1 operator(s):
+Projector{KroneckerDelta,1} with 1 operator(s):
   0.5 | 'a' ⟩⟨ 'b' |
 </code></pre>
 
@@ -217,11 +217,11 @@ Projector{Orthonormal,1} with 1 operator(s):
 <hr />
 <p>Operators can be added and subtracted just like states:</p>
 <pre><code>julia&gt; op + op
-GenericOp{Orthonormal,1} with 1 operator(s):
+GenericOp{KroneckerDelta,1} with 1 operator(s):
   2 | 'a' ⟩⟨ 'b' |
 
 julia&gt; gop = 1/√2 * (op - (ket(0) * bra(1)))
-GenericOp{Orthonormal,1} with 2 operator(s):
+GenericOp{KroneckerDelta,1} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 </code></pre>
@@ -239,7 +239,7 @@ and is no longer a view. </p>
 
 <p>Of course, <code>normalize</code>/<code>normalize!</code> are provided for operators:</p>
 <pre><code>julia&gt; normalize!(sum(i -&gt; ket(i) * bra(i^2), 1:5))
-GenericOp{Orthonormal,1} with 5 operator(s):
+GenericOp{KroneckerDelta,1} with 5 operator(s):
   0.4472135954999579 | 1 ⟩⟨ 1 |
   0.4472135954999579 | 4 ⟩⟨ 16 |
   0.4472135954999579 | 5 ⟩⟨ 25 |

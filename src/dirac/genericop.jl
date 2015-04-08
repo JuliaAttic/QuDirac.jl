@@ -292,7 +292,7 @@ QuBase.normalize!(op::DiracOp) = scale!(1/norm(op), op)
 #########
 # Trace #
 #########
-function Base.trace(op::GenericOp{Orthonormal})
+function Base.trace(op::GenericOp{KroneckerDelta})
     result = 0
     for o in labels(op)
         if klabel(o)==blabel(o)
@@ -319,7 +319,7 @@ Base.trace(opc::DualOp) = trace(opc.op)'
 ptrace{P}(op::GeneralOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
 ptrace(op::GeneralOp, over) = ptrace_op(op, over)
 
-function ptrace_op{N}(op::GeneralOp{Orthonormal,N}, over)
+function ptrace_op{N}(op::GeneralOp{KroneckerDelta,N}, over)
     result = OpDict{N-1}()
     for o in labels(op)
         if klabel(o)[over] == blabel(o)[over]

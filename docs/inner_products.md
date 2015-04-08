@@ -5,14 +5,14 @@ Every QuDirac state or operator has a type parameter `P<:AbstractInner` which de
 
 ```
 abstract AbstractInner
-immutable Orthonormal <: AbstractInner end
+immutable KroneckerDelta <: AbstractInner end
 immutable UndefinedInner <: AbstractInner end
 ```
 Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
 
 ```
 inner_rule(p::UndefinedInner, b, k) = InnerProduct(p, b, k) # lazy evaluation of inner product
-inner_rule(::Orthonormal, b, k) = b == k ? 1 : 0
+inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 ```
 
 The arguments to `inner_rule` are, in order:
@@ -23,7 +23,7 @@ The arguments to `inner_rule` are, in order:
 
 The type of `b`/`k` can be a `StateLabel` or a single factor element of a `StateLabel`.
 
-Most examples in this documentation show the `Orthonormal` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
+Most examples in this documentation show the `KroneckerDelta` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
 
 ```
 julia> k
@@ -71,7 +71,7 @@ Ket{UndefinedInner,2} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
-As you've probably noticed from previous examples, the out-of-the-box default inner product type is `Orthonormal`.
+As you've probably noticed from previous examples, the out-of-the-box default inner product type is `KroneckerDelta`.
 
 ---
 # Custom inner product types

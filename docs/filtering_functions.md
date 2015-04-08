@@ -12,7 +12,7 @@ Example:
 julia> s = normalize!(sum(ket, 0:4)^3);
 
 julia> filter((label, c)->label[2]==2, s) # extract labels where the second factor is labeled "2" 
-Ket{Orthonormal,3} with 25 state(s):
+Ket{KroneckerDelta,3} with 25 state(s):
   0.08944271909999159 | 4,2,0 ⟩
   0.08944271909999159 | 1,2,2 ⟩
   0.08944271909999159 | 3,2,3 ⟩
@@ -31,7 +31,7 @@ Example:
 
 ```julia
 julia> xsubspace(s, 10)
-Ket{Orthonormal,3} with 6 state(s):
+Ket{KroneckerDelta,3} with 6 state(s):
   0.08944271909999159 | 4,4,2 ⟩
   0.08944271909999159 | 4,3,3 ⟩
   0.08944271909999159 | 3,4,3 ⟩
@@ -44,7 +44,7 @@ For example's sake, this is equivalent to calling:
 
 ```
 julia> filter((label,c)->sum(label)==10, s)
-Ket{Orthonormal,3} with 6 state(s):
+Ket{KroneckerDelta,3} with 6 state(s):
   0.08944271909999159 | 4,4,2 ⟩
   0.08944271909999159 | 4,3,3 ⟩
   0.08944271909999159 | 3,4,3 ⟩
@@ -63,7 +63,7 @@ Example:
 
 ```
 julia> k = sum(ket, 0:4); k[2] = 0; normalize!(k)
-Ket{Orthonormal,1} with 5 state(s):
+Ket{KroneckerDelta,1} with 5 state(s):
   0.5 | 0 ⟩
   0.0 | 2 ⟩
   0.5 | 3 ⟩
@@ -71,7 +71,7 @@ Ket{Orthonormal,1} with 5 state(s):
   0.5 | 1 ⟩
 
 julia> filternz(k^3)
-Ket{Orthonormal,3} with 64 state(s):
+Ket{KroneckerDelta,3} with 64 state(s):
   0.125 | 1,4,1 ⟩
   0.125 | 3,4,4 ⟩
   0.125 | 3,3,1 ⟩

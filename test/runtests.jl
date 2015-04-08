@@ -7,7 +7,7 @@ include("constest.jl")
 include("abstractinnertests.jl")
 include("generaltests.jl")
 
-@default_inner Orthonormal
+@default_inner KroneckerDelta
 
 include("constest.jl")
 include("orthotests.jl")

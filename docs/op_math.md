@@ -1,29 +1,4 @@
-# Outer Product of Two States
----
-
-The simplest way to construct a QuDirac operator is to take the outer product of two states:
-
-```
-julia> k = 1/√2 * (ket(0,0) - ket(1,1))
-Ket{Orthonormal,2} with 2 state(s):
-  -0.7071067811865475 | 1,1 ⟩
-  0.7071067811865475 | 0,0 ⟩
-
-julia> k*k' # | k ⟩⟨ k |
-OuterProduct{Orthonormal,2} with 4 operator(s):
-  0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
-  -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
-  -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
-  0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
-```
-
-Specifically, an outer product of two states will yield an instance of the `OuterProduct` type, as can be seen above. 
-
-Outer products are not the only way to construct operators - certain kinds of operators can be constructed simply by 
-defining their action on basis Kets (see [Functionally Defining Operators](func_op_def.md)).
-
----
-# `OuterProduct` vs. `GenericOp`
+# Intro to QuDirac's Operators
 ---
 
 There are two main types of operators in QuDirac: the `OuterProduct` type, and the `GenericOp` type. Most functions on operators are defined for both types, but they behave differently in a few ways.
@@ -35,6 +10,28 @@ a *view* onto the factor states. This allows quick, memory-efficient constructio
 Besides simple scaling functions (e.g. `scale!`, `normalize!`), mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `GenericOp` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view.
 
 ---
+# Outer Product of Two States
+---
+
+The simplest way to construct a QuDirac operator is to take the outer product of two states:
+
+```
+julia> k = 1/√2 * (ket(0,0) - ket(1,1))
+Ket{KroneckerDelta,2} with 2 state(s):
+  -0.7071067811865475 | 1,1 ⟩
+  0.7071067811865475 | 0,0 ⟩
+
+julia> k*k'
+OuterProduct{KroneckerDelta,2} with 4 operator(s):
+  0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
+  -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
+  -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
+  0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
+```
+
+Specifically, an outer product of two states will yield an instance of the `OuterProduct` type, as can be seen above. 
+
+---
 # Scalar Multiplication
 ---
 
@@ -42,15 +39,15 @@ Like states, operators can be multiplied by a scalar:
 
 ```
 julia> op = ket('a') * bra('b')
-OuterProduct{Orthonormal,1} with 1 operator(s):
+OuterProduct{KroneckerDelta,1} with 1 operator(s):
   1 | 'a' ⟩⟨ 'b' |
 
 julia> im * op
-OuterProduct{Orthonormal,1} with 1 operator(s):
+OuterProduct{KroneckerDelta,1} with 1 operator(s):
   0 + 1im | 'a' ⟩⟨ 'b' |
 
 julia> op/2
-OuterProduct{Orthonormal,1} with 1 operator(s):
+OuterProduct{KroneckerDelta,1} with 1 operator(s):
   0.5 | 'a' ⟩⟨ 'b' |
 ```
 ---
@@ -61,11 +58,11 @@ Operators can be added and subtracted just like states:
 
 ```
 julia> op + op
-GenericOp{Orthonormal,1} with 1 operator(s):
+GenericOp{KroneckerDelta,1} with 1 operator(s):
   2 | 'a' ⟩⟨ 'b' |
 
 julia> gop = 1/√2 * (op - (ket(0) * bra(1)))
-GenericOp{Orthonormal,1} with 2 operator(s):
+GenericOp{KroneckerDelta,1} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 ```
@@ -85,7 +82,7 @@ Of course, the `normalize` and `normalize!` functions are provided for operators
 
 ```
 julia> normalize!(sum(i -> ket(i) * bra(i^2), 1:5))
-GenericOp{Orthonormal,1} with 5 operator(s):
+GenericOp{KroneckerDelta,1} with 5 operator(s):
   0.4472135954999579 | 1 ⟩⟨ 1 |
   0.4472135954999579 | 4 ⟩⟨ 16 |
   0.4472135954999579 | 5 ⟩⟨ 25 |
@@ -101,12 +98,12 @@ Take the conjugate transpose of an operator, simply call `ctranspose` on it:
 
 ```
 julia> gop #from the earlier example
-GenericOp{Orthonormal,1} with 2 operator(s):
+GenericOp{KroneckerDelta,1} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 
 julia> gop'
-DualOp{Orthonormal,1} with 2 operator(s):
+DualOp{KroneckerDelta,1} with 2 operator(s):
   0.7071067811865475 | 'b' ⟩⟨ 'a' |
   -0.7071067811865475 | 1 ⟩⟨ 0 |
 ```
@@ -114,8 +111,7 @@ DualOp{Orthonormal,1} with 2 operator(s):
 Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of a `GenericOp` is a `DualOp`.
 The `DualOp` type is a *view* on the original operator, so mutating a `DualOp` will mutate the underlying `GenericOp` (one can explicitly make a copy via the `copy` function). 
 
-It's worth mentioning that the dual of a `OuterProduct` is simply a `OuterProduct`, and is still a view on 
-the original factor states.
+The dual of a `OuterProduct` is simply a `OuterProduct`, and is still a view on the original factor states.
 
 ---
 # Inner Product
@@ -126,14 +122,14 @@ performed using the `*` function:
 
 ```
 julia> k = 1/√2 * (ket(0,0) - ket(1,1)); op = k*k'
-OuterProduct{Orthonormal,2} with 4 operator(s):
+OuterProduct{KroneckerDelta,2} with 4 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 
 julia> op * ket(1,1)
-Ket{Orthonormal,2} with 2 state(s):
+Ket{KroneckerDelta,2} with 2 state(s):
   0.4999999999999999 | 1,1 ⟩
   -0.4999999999999999 | 0,0 ⟩
 
@@ -141,7 +137,7 @@ julia> bra(0,0) * op * ket(1,1)
 -0.4999999999999999
 
 julia> op * (ket(1,1) * bra(0,0))
-OuterProduct{Orthonormal,2} with 2 operator(s):
+OuterProduct{KroneckerDelta,2} with 2 operator(s):
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 ```
@@ -168,7 +164,7 @@ One can use the `act_on` function to apply an operator to a specific factor of a
 
 ```
 julia> a = sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5) # lowering operator
-GenericOp{Orthonormal,1} with 5 operator(s):
+GenericOp{KroneckerDelta,1} with 5 operator(s):
   1.0 | 0 ⟩⟨ 1 |
   2.0 | 3 ⟩⟨ 4 |
   2.23606797749979 | 4 ⟩⟨ 5 |
@@ -176,12 +172,12 @@ GenericOp{Orthonormal,1} with 5 operator(s):
   1.4142135623730951 | 1 ⟩⟨ 2 |
 
 julia> k = ket(1,2,3) + 2*ket(3,5,1)
-Ket{Orthonormal,3} with 2 state(s):
+Ket{KroneckerDelta,3} with 2 state(s):
   2 | 3,5,1 ⟩
   1 | 1,2,3 ⟩
 
 julia> act_on(a, k, 2)
-Ket{Orthonormal,3} with 2 state(s):
+Ket{KroneckerDelta,3} with 2 state(s):
   4.47213595499958 | 3,4,1 ⟩
   1.4142135623730951 | 1,1,3 ⟩
 ```
@@ -195,7 +191,7 @@ already used for inner products. Thus, one must use the `tensor` function:
 
 ```
 julia> tensor(op,op,op,op) # op from previous example
-OuterProduct{Orthonormal,8} with 256 operator(s):
+OuterProduct{KroneckerDelta,8} with 256 operator(s):
   0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 0,0,0,0,0,0,0,0 |
   -0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
   0.06249999999999996 | 0,0,0,0,0,0,0,0 ⟩⟨ 1,1,1,1,1,1,1,1 |
@@ -206,7 +202,7 @@ OuterProduct{Orthonormal,8} with 256 operator(s):
   ⁞
 
 julia> tensor(op, ket('a')*bra('b'))
-OuterProduct{Orthonormal,3} with 4 operator(s):
+OuterProduct{KroneckerDelta,3} with 4 operator(s):
   -0.4999999999999999 | 0,0,'a' ⟩⟨ 1,1,'b' |
   0.4999999999999999 | 0,0,'a' ⟩⟨ 0,0,'b' |
   0.4999999999999999 | 1,1,'a' ⟩⟨ 1,1,'b' |
@@ -221,7 +217,7 @@ To take the trace of an operator, simply use the `trace` function:
 
 ```
 julia> k = normalize!(sum(ket, 0:5))
-Ket{Orthonormal,1} with 6 state(s):
+Ket{KroneckerDelta,1} with 6 state(s):
   0.4082482904638631 | 0 ⟩
   0.4082482904638631 | 2 ⟩
   0.4082482904638631 | 3 ⟩
@@ -237,19 +233,19 @@ The partial trace of an operator can be taken using the `ptrace` function:
 
 ```
 julia> bell = 1/√2 * (ket('b','a') + ket('a','b'))
-Ket{Orthonormal,2} with 2 state(s):
+Ket{KroneckerDelta,2} with 2 state(s):
   0.7071067811865475 | 'a','b' ⟩
   0.7071067811865475 | 'b','a' ⟩
 
 julia> dense = bell * bell'
-OuterProduct{Orthonormal,2} with 4 operator(s):
+OuterProduct{KroneckerDelta,2} with 4 operator(s):
   0.4999999999999999 | 'a','b' ⟩⟨ 'a','b' |
   0.4999999999999999 | 'a','b' ⟩⟨ 'b','a' |
   0.4999999999999999 | 'b','a' ⟩⟨ 'a','b' |
   0.4999999999999999 | 'b','a' ⟩⟨ 'b','a' |
 
 julia> ptrace(dense,1) # trace over the 1st subsystem
-GenericOp{Orthonormal,1} with 2 operator(s):
+GenericOp{KroneckerDelta,1} with 2 operator(s):
   0.4999999999999999 | 'b' ⟩⟨ 'b' |
   0.4999999999999999 | 'a' ⟩⟨ 'a' |
 

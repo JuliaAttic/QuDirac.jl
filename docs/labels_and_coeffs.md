@@ -22,7 +22,7 @@ Julia's `getindex` function has been overloaded to allow coefficients of a state
 
 ```
 julia> k = normalize!(sum(i->i*ket(i), 1:3))
-Ket{Orthonormal,1} with 3 state(s):
+Ket{KroneckerDelta,1} with 3 state(s):
   0.5345224838248488 | 2 ⟩
   0.8017837257372732 | 3 ⟩
   0.2672612419124244 | 1 ⟩
@@ -36,7 +36,7 @@ The coefficients of product states are accessed in the same fashion:
 
 ```
 julia> k4 = k^4
-Ket{Orthonormal,4} with 81 state(s):
+Ket{KroneckerDelta,4} with 81 state(s):
   0.06122448979591838 | 3,2,2,1 ⟩
   0.03061224489795919 | 1,2,1,3 ⟩
   0.18367346938775514 | 3,3,2,2 ⟩
@@ -54,11 +54,11 @@ One can also peform `setindex!` operations on a state:
 
 ```
 julia> k = 0*ket(0)
-Ket{Orthonormal,1} with 1 state(s):
+Ket{KroneckerDelta,1} with 1 state(s):
   0 | 0 ⟩
 
 julia> k[0] = 1; k[1] = 1/2; k[2] = 1/4; normalize!(k)
-Ket{Orthonormal,1} with 3 state(s):
+Ket{KroneckerDelta,1} with 3 state(s):
   0.8728715609439696 | 0 ⟩
   0.2182178902359924 | 2 ⟩
   0.4364357804719848 | 1 ⟩
@@ -69,7 +69,7 @@ for the sake of addition/subtraction, but is a mutation of the orginal state:
 
 ```
 julia> k + ket(0) # this requires constructing a new instance of | 0 ⟩
-Ket{Orthonormal,1} with 3 state(s):
+Ket{KroneckerDelta,1} with 3 state(s):
   1.8728715609439694 | 0 ⟩
   0.2182178902359924 | 2 ⟩
   0.4364357804719848 | 1 ⟩
@@ -88,7 +88,7 @@ except two labels are required; one for the basis Ket, and another for the basis
 
 ```
 julia> k = sum(i->i*ket(i), 1:10); op = k*k'
-OuterProduct{Orthonormal,1} with 100 operator(s):
+OuterProduct{KroneckerDelta,1} with 100 operator(s):
   36 | 6 ⟩⟨ 6 |
   12 | 6 ⟩⟨ 2 |
   18 | 6 ⟩⟨ 3 |
@@ -101,7 +101,7 @@ julia> op[6,8]
 48
 
 julia> op = tensor(op,op,op)
-OuterProduct{Orthonormal,3} with 1000000 operator(s):
+OuterProduct{KroneckerDelta,3} with 1000000 operator(s):
   6400 | 8,1,10 ⟩⟨ 8,1,10 |
   40320 | 8,1,10 ⟩⟨ 8,9,7 |
   320 | 8,1,10 ⟩⟨ 2,1,2 |
@@ -121,10 +121,10 @@ Assigning coefficients, however, only works with `GenericOp`s (due to the
 
 ```
 julia> op[(8,1,10),(2,1,2)] = 1
-ERROR: `setindex!` has no method matching setindex!(::OuterProduct{Orthonormal,3}, ::Int64, ::Array{Int64,1}, ::Array{Int64,1})
+ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3}, ::Int64, ::Array{Int64,1}, ::Array{Int64,1})
 
 julia> gop = convert(GenericOp, op)
-GenericOp{Orthonormal,3} with 1000000 operator(s):
+GenericOp{KroneckerDelta,3} with 1000000 operator(s):
   33600 | 4,7,4 ⟩⟨ 10,5,6 |
   9720 | 9,9,1 ⟩⟨ 5,3,8 |
   5292 | 4,3,1 ⟩⟨ 9,7,7 |
@@ -148,7 +148,7 @@ and a specific basis Ket/Bra, but is generally :
 
 ```
 julia> getket(op, (2,5,4))
-Ket{Orthonormal,3} with 1000 state(s):
+Ket{KroneckerDelta,3} with 1000 state(s):
   3200 | 8,1,10 ⟩
   20160 | 8,9,7 ⟩
   160 | 2,1,2 ⟩
@@ -165,7 +165,7 @@ Likewise with `getbra`:
 
 ```
 julia> getbra(op, (2,5,4))
-Bra{Orthonormal,3} with 1000 state(s):
+Bra{KroneckerDelta,3} with 1000 state(s):
   3200 ⟨ 8,1,10 |
   20160 ⟨ 8,9,7 |
   160 ⟨ 2,1,2 |
@@ -190,7 +190,7 @@ If a label is not explictly present in a QuDirac object, then calling `getindex`
 
 ```
 julia> k = sum(i-> i * ket(i), 1:3)^3
-Ket{Orthonormal,3} with 27 state(s):
+Ket{KroneckerDelta,3} with 27 state(s):
   12 | 2,2,3 ⟩
   27 | 3,3,3 ⟩
   4 | 1,2,2 ⟩
