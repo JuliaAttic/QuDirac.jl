@@ -1,15 +1,3 @@
-# Intro to QuDirac's Operators
----
-
-There are two main types of operators in QuDirac: the `OuterProduct` type, and the `GenericOp` type. Most functions on operators are defined for both types, but they behave differently in a few ways.
-
-The `OuterProduct` type is a lazy representation of the outer product of two states - it simply stores a reference to 
-the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
-a *view* onto the factor states. This allows quick, memory-efficient construction of density operators and the like.
-
-Besides simple scaling functions (e.g. `scale!`, `normalize!`), mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `GenericOp` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view.
-
----
 # Outer Product of Two States
 ---
 
@@ -30,6 +18,12 @@ OuterProduct{KroneckerDelta,2} with 4 operator(s):
 ```
 
 Specifically, an outer product of two states will yield an instance of the `OuterProduct` type, as can be seen above. 
+
+The `OuterProduct` type is a lazy representation of the outer product of two states - it simply stores a reference to 
+the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
+a *view* onto the factor states. This allows quick, memory-efficient construction of density operators and the like.
+
+With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `GenericOp` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view. 
 
 ---
 # Scalar Multiplication
@@ -67,28 +61,28 @@ GenericOp{KroneckerDelta,1} with 2 operator(s):
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 ```
 
+As you can see, generic sums of operators are represented using the `GenericOp` type rather than the `OuterProduct` type.
+
 ---
 # Normalization
 ---
 
-Similarly to states, the Hilbert–Schmidt norm can be computed on an operator using the `norm` function:
+Similarly to states, one can normalize operators using the `normalize` and `normalize!` functions:
 
 ```
-julia> norm(gop) # using gop from the previous example
+julia> op = normalize!(sum(i -> ket(i) * bra(i^2), 1:5))
+GenericOp{KroneckerDelta,1} with 5 operator(s):
+  0.4472135954999579 | 5 ⟩⟨ 25 |
+  0.4472135954999579 | 3 ⟩⟨ 9 |
+  0.4472135954999579 | 4 ⟩⟨ 16 |
+  0.4472135954999579 | 1 ⟩⟨ 1 |
+  0.4472135954999579 | 2 ⟩⟨ 4 |
+
+julia> norm(op)
 0.9999999999999999
 ```
 
-Of course, the `normalize` and `normalize!` functions are provided for operators:
-
-```
-julia> normalize!(sum(i -> ket(i) * bra(i^2), 1:5))
-GenericOp{KroneckerDelta,1} with 5 operator(s):
-  0.4472135954999579 | 1 ⟩⟨ 1 |
-  0.4472135954999579 | 4 ⟩⟨ 16 |
-  0.4472135954999579 | 5 ⟩⟨ 25 |
-  0.4472135954999579 | 2 ⟩⟨ 4 |
-  0.4472135954999579 | 3 ⟩⟨ 9 |
-```
+For QuDirac operators, the `norm` function specifically computes the [Frobenius norm](http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm).
 
 ---
 # Getting an Operator's Adjoint
@@ -117,8 +111,7 @@ The dual of a `OuterProduct` is simply a `OuterProduct`, and is still a view on 
 # Inner Product
 ---
 
-Taking the inner product between operators and states is 
-performed using the `*` function:
+Use the `*` function to take the inner product of states/operators: 
 
 ```
 julia> k = 1/√2 * (ket(0,0) - ket(1,1)); op = k*k'
@@ -142,7 +135,7 @@ OuterProduct{KroneckerDelta,2} with 2 operator(s):
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
 ```
 
-Expectation values are obtained in this manner:
+Thus, expectation values are naturally obtained in this manner:
 
 ```
 julia> bra(1,1)*op*ket(1,1)
