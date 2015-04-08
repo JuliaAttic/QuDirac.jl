@@ -7,8 +7,6 @@ type OuterProduct{P,N} <: DiracOp{P,N}
     br::Bra{P,N}
 end
 
-
-fact(op::OuterProduct) = fact(op.kt)
 ptype(op::OuterProduct) = ptype(op.kt)
 
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
@@ -29,9 +27,8 @@ Base.(:(==)){P}(a::OuterProduct{P}, b::OuterProduct{P}) = a.scalar == b.scalar &
 Base.hash(op::OuterProduct) = hash(op.scalar, hash(op.kt, hash(op.br)))
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
-Base.getindex(op::OuterProduct, k::Array, b::Array) = op.scalar * op.kt[k] * op.br[b]
-Base.getindex(op::OuterProduct, label::OpLabel) = op[ktlabel(label), brlabel(label)]
-Base.getindex(op::OuterProduct, k, b) = op[collect(k),collect(b)]
+Base.getindex(op::OuterProduct, k, b) = op.scalar * op.kt[k] * op.br[b]
+Base.getindex(op::OuterProduct, o::OuterLabel) = op[klabel(o), blabel(o)]
 
 # would be great if the below worked with normal indexing
 # notation (e.g. op[k,:]) but the Colon is apparently
@@ -40,20 +37,16 @@ Base.getindex(op::OuterProduct, k, b) = op[collect(k),collect(b)]
 # Base.getindex(op::OuterProduct, ::Colon, b) = (op.scalar * op.br[b]) * op.kt
 # Base.getindex(op::OuterProduct, ::Colon, ::Colon) = convert(GenericOp, op)
 
-getbra(op::OuterProduct, k::Array) = (op.scalar * get(op.kt,k)) * op.br
-getket(op::OuterProduct, b::Array) = (op.scalar * get(op.br,b)) * op.kt
+getbra(op::OuterProduct, k) = (op.scalar * get(op.kt,k)) * op.br
+getket(op::OuterProduct, b) = (op.scalar * get(op.br,b)) * op.kt
 
-Base.haskey(op::OuterProduct, k::Array, b::Array) = hasket(op,k) && hasbra(op, b)
-Base.haskey(op::OuterProduct, label::OpLabel) = haskey(op, ktlabel(label), brlabel(label))
-hasket(op::OuterProduct, label::Array) = haskey(op.kt, label)
-hasbra(op::OuterProduct, label::Array) = haskey(op.br, label)
+Base.haskey(op::OuterProduct, k, b) = hasket(op, k) && hasbra(op, b)
+Base.haskey(op::OuterProduct, o::OuterLabel) = haskey(op, klabel(o), blabel(o))
 
-Base.get(op::OuterProduct, k::Array, b::Array, default=0) = haskey(op, k, b) ? op[k,b] : default
-Base.get(op::OuterProduct, k, b, default=0) = get(op, collect(k), collect(b), default)
-Base.get(op::OuterProduct, label::OpLabel, default=0) = get(op, ktlabel(label), brlabel(label), default)
+Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
+Base.get(op::OuterProduct, o::OuterLabel, default=0) = get(op, klabel(o), blabel(o), default)
 
-label_from_pair(pair) = OpLabel(pair[1],pair[2])
-labels(op::OuterProduct) = imap(label_from_pair, product(labels(op.kt), labels(op.br)))
+labels(op::OuterProduct) = imap(o->OuterLabel(o[1], o[2]), product(labels(op.kt), labels(op.br)))
 QuBase.coeffs(op::OuterProduct) = imap(v->op.scalar*prod(v), product(coeffs(op.kt), coeffs(op.br)))
 
 ##############
@@ -114,7 +107,7 @@ end
 function Base.trace(op::OuterProduct{Orthonormal})
     result = 0
     for k in labels(op.kt), b in labels(op.br)
-        if b==k
+        if b == k
             result += op[k,b]
         end
     end
@@ -136,28 +129,28 @@ end
 ptrace{P}(op::OuterProduct{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
 ptrace(op::OuterProduct, over) = ptrace_proj(op, over)
 
-function ptrace_proj(op::OuterProduct{Orthonormal}, over)
-    result = OpDict()
+function ptrace_proj{N}(op::OuterProduct{Orthonormal,N}, over)
+    result = OpDict{N-1}()
     for k in labels(op.kt), b in labels(op.br)
         if k[over] == b[over]
             add_to_dict!(result,
-                         OpLabel(except(k, over), except(b, over)),
+                         OuterLabel(except(k, over), except(b, over)),
                          op[k,b])
         end
     end
-    return GenericOp(result, ptype(op), decr(fact(op)))
+    return GenericOp(ptype(op), result)
 end
 
 function ptrace_proj{P,N}(op::OuterProduct{P,N}, over)
-    result = OpDict()
+    result = OpDict{N-1}()
     prodtype = ptype(op)
     for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
         add_to_dict!(result,
-                     OpLabel(except(k, over), except(b, over)),
+                     OuterLabel(except(k, over), except(b, over)),
                      op.scalar*v*c'*inner_rule(prodtype, i[over], k[over])
                      *inner_rule(prodtype, b[over], i[over]))
     end
-    return GenericOp(result, ptype(op), decr(fact(op)))
+    return GenericOp(prodtype, result)
 end
 
 ########################

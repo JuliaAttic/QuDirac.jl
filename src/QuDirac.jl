@@ -30,27 +30,17 @@ module QuDirac
     #############
     QuBase.tensor() = error("Cannot call tensor function without arguments")
 
-    ###########
-    # Factors #
-    ###########
-    # could use Val{N} in julia v0.4,
-    # but we're targeting v0.3...
-    immutable Factors{N} end
-
-    Base.copy{N}(::Factors{N}) = Factors{N}()
-    Base.(:+){A,B}(::Factors{A}, ::Factors{B}) = Factors{A+B}()
-    Base.(:-){A,B}(::Factors{A}, ::Factors{B}) = Factors{A-B}()
-    decr{N}(::Factors{N}) = Factors{N-1}()
-
     ######################
     # Include Statements #
     ######################
+    include("labels.jl")
+    
     include("dirac/scalar.jl")
     include("dirac/state.jl")
     include("dirac/genericop.jl")
     include("dirac/outerproduct.jl")
 
-    include("miscfuncs.jl")
+    include("printfuncs.jl")
     include("dictfuncs.jl")
     include("mapfuncs.jl")
     

@@ -2,10 +2,10 @@
 @assert (3-im) * simpk' == ((3+im)*(1+3im)*ket(1))'
 @assert (-im * projop')[1,1] == 0-10im
 
-@assert length(filter((k,v) -> ktlabel(k)==[3], op')) == 3
+@assert length(filter((o,v) -> klabel(o)==StateLabel(3), op')) == 3
 @assert b'*b'*b' == (b^3)'
 @assert (op'*op') == (op*op)'
-@assert maplabels(reverse, mapcoeffs(ctranspose, op)) == op'
+@assert maplabels(reverse, mapcoeffs(ctranspose, op)) == op' == map((k,v)->(reverse(k), v'), op)
 @assert op[2,1] == 8-4im
 @assert (k*k)*(b*b) == tensor(k*b,k*b)
 @assert op+op == 2 * op
@@ -16,7 +16,7 @@
 op_copy = copy(op)
 op_copy[3,0] = 32.03+im
 @assert op_copy[3,0] == 32.03+im
-@assert tensor(op_copy, op_copy')[{3,1},{1,2}] == 120
+@assert tensor(op_copy, op_copy')[(3,1),(1,2)] == 120
 
 @test_approx_eq norm(qubits) 1
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)

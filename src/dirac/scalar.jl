@@ -1,46 +1,33 @@
-################
-# InnerProduct #
-################
-# An InnerProduct is a type that
-# represents an abstract scalar formulated in
-# Dirac notation - a br-kt product.
-immutable InnerProduct{P<:AbstractInner} <: DiracScalar
+##############
+# InnerLabel #
+##############
+immutable InnerProduct{P<:AbstractInner,N} <: DiracScalar
     ptype::P
-    brlabel::Vector{Any}
-    ktlabel::Vector{Any}
+    b::StateLabel{N}
+    k::StateLabel{N}
 end
 
-InnerProduct{P<:AbstractInner}(p::P, b::Array, k::Array) = InnerProduct{P}(p, b, k)
-InnerProduct(p::AbstractInner, b, k) = InnerProduct(p, collect(b), collect(k))
+InnerProduct(ptype, b, k) = InnerProduct(ptype, StateLabel(k), StateLabel(b))
 
-######################
-# Accessor Functions #
-######################
-brlabel(i::InnerProduct) = i.brlabel
-ktlabel(i::InnerProduct) = i.ktlabel
+blabel(i::InnerProduct) = i.b
+klabel(i::InnerProduct) = i.k
+
+Base.repr(i::InnerProduct) = brstr(blabel(i))*ktstr(klabel(i))[2:end]
+Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
+
+Base.(:(==))(a::InnerProduct, b::InnerProduct) = a.ptype == b.ptype && 
+                                             blabel(a) == blabel(b) &&
+                                             klabel(a) == klabel(b) 
+Base.(:(==))(::InnerProduct, ::Number) = false
+Base.(:(==))(::Number, ::InnerProduct) = false
+
+Base.conj(i::InnerProduct) = InnerProduct(i.ptype, klabel(i), blabel(i))
 
 ##############
 # inner_rule #
 ##############
 inner_rule(p::AbstractInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
 inner_rule(::Orthonormal, b, k) = b == k ? 1 : 0
-
-######################
-# Printing Functions #
-######################
-Base.repr(i::InnerProduct) = brstr(brlabel(i))*ktstr(ktlabel(i))[2:end]
-Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
-
-###########################
-# Mathematical Operations #
-###########################
-Base.(:(==))(a::InnerProduct, b::InnerProduct) = a.ptype == b.ptype && 
-                                                 brlabel(a) == brlabel(b) &&
-                                                 ktlabel(a) == ktlabel(b) 
-Base.(:(==))(::InnerProduct, ::Number) = false
-Base.(:(==))(::Number, ::InnerProduct) = false
-
-Base.conj(i::InnerProduct) = InnerProduct(i.ptype, getktlabel(i), getbrlabel(i))
 
 ##############
 # ScalarExpr #
@@ -84,7 +71,7 @@ Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 ##############
 # inner_eval #
 ##############
-inner_eval(i::InnerProduct) = inner_rule(i.ptype, brlabel(i), ktlabel(i))
+inner_eval(i::InnerProduct) = inner_rule(i.ptype, blabel(i), klabel(i))
 inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
 inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))
 inner_eval(n::Number) = n
@@ -101,7 +88,7 @@ function inner_reduce!(ex::Expr)
 end
 
 f_reduce!(f::Function, s::ScalarExpr) = f_reduce!(f, copy(s.ex))
-f_reduce!(f::Function, i::InnerProduct) = f(brlabel(i), ktlabel(i))
+f_reduce!(f::Function, i::InnerProduct) = f(blabel(i), klabel(i))
 f_reduce!(f::Function, n) = n
 
 function f_reduce!(f::Function, ex::Expr)
@@ -306,6 +293,4 @@ end
 
 Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
-export ktlabel,
-    brlabel,
-    inner_eval
+export inner_eval
