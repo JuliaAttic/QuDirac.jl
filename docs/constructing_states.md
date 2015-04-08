@@ -13,7 +13,7 @@ Ket{KroneckerDelta,1} with 1 state(s):
   1 | 0 ⟩
 ```
 
-As you can see, the `ket` function takes labels (in this case, a single zero) as arguments. In QuDirac, anything can be used as a Ket label - primitives, strings, composite types, and even other QuDirac objects. Simply pass the desired label in as we did `0` above:
+As you can see, the `ket` function takes labels (in this case, a single zero) as arguments. In QuDirac, anything can be used as a Ket label - primitives, strings, composite types, etc. Simply pass the desired label in as we did `0` above:
 
 ```
 julia> ket(":)")
@@ -59,8 +59,6 @@ Ket{KroneckerDelta,3} with 1 state(s):
 julia> nfactors(k)
 3
 ```
-
-The number of factors is encoded in the type information of a state (e.g. the `3` in `Ket{KroneckerDelta, 3}` above) and can be retrieved using the `nfactors` function.
 
 Just as with single labels, one is free to use labels of any type for multi-factor states:
 
