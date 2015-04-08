@@ -2,7 +2,7 @@
 @assert (3-im) * simpk' == ((3+im)*(1+3im)*ket(1))'
 @assert (-im * projop')[1,1] == 0-10im
 
-@assert length(filter((label,v) -> label[1]==tuple(3), op')) == 3
+@assert length(filter((o,v) -> klabel(o)==StateLabel(3), op')) == 3
 @assert b'*b'*b' == (b^3)'
 @assert (op'*op') == (op*op)'
 @assert maplabels(reverse, mapcoeffs(ctranspose, op)) == op' == map((k,v)->(reverse(k), v'), op)

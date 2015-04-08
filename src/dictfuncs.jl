@@ -56,21 +56,11 @@ mapkeys(f::Function, d) = mapkeys!(f, similar(d), d)
 ##########
 # tensor #
 ##########
-function tensorstate!(result, a, b)
+function tensordict!(result, a::Dict, b::Dict)
     for kvs in product(a, b)
         setindex!(result,
                   kvs[1][2]*kvs[2][2],
-                  join_tup(kvs[1][1], kvs[2][1]))
-    end
-    return result
-end
-
-function tensorop!(result, a, b)
-    for kvs in product(a, b)
-        setindex!(result, 
-                  kvs[1][2] * kvs[2][2],
-                  (join_tup(first(kvs[1][1]), first(kvs[2][1])), 
-                   join_tup(second(kvs[1][1]), second(kvs[2][1]))))
+                  tensor(kvs[1][1], kvs[2][1]))
     end
     return result
 end

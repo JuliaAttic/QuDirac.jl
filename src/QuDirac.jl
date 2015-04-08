@@ -33,12 +33,14 @@ module QuDirac
     ######################
     # Include Statements #
     ######################
+    include("labels.jl")
+    
     include("dirac/scalar.jl")
     include("dirac/state.jl")
     include("dirac/genericop.jl")
     include("dirac/outerproduct.jl")
 
-    include("miscfuncs.jl")
+    include("printfuncs.jl")
     include("dictfuncs.jl")
     include("mapfuncs.jl")
     

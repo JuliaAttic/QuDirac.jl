@@ -1,7 +1,7 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict{N} Dict{NTuple{N},Number}
+typealias StateDict{N} Dict{StateLabel{N},Number}
 
 type Ket{P,N} <: DiracState{P,N}
     ptype::P
@@ -12,12 +12,12 @@ end
 
 Ket{P,N}(ptype::P, dict::StateDict{N}) = Ket{P,N}(ptype,dict)
 
-ket{N}(ptype::AbstractInner, label::NTuple{N}) = Ket(ptype, single_dict(StateDict{N}(), label, 1))
-ket(ptype::AbstractInner, items...) = ket(ptype, items)
+ket{N}(ptype::AbstractInner, label::StateLabel{N}) = Ket(ptype, single_dict(StateDict{N}(), label, 1))
+ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
 
 macro default_inner(ptype)
     @eval begin
-        ket(items...) = ket(($ptype)(), items)
+        ket(items...) = ket(($ptype)(), StateLabel(items))
     end
 end
 
@@ -46,8 +46,8 @@ ptype(b::Bra) = ptype(b.kt)
 Base.copy(kt::Ket) = Ket(ptype(s), copy(dict(s)))
 Base.copy(br::Bra) = Bra(copy(br.ket))
 
-Base.similar(kt::Ket, d::StateDict=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
-Base.similar(br::Bra, d::StateDict=similar(dict(br)); P=ptype(br)) = Bra(P, d)
+Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
+Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(a) == dict(b)
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
@@ -55,23 +55,20 @@ Base.hash(s::DiracState) = hash(dict(s), hash(typeof(s)))
 
 Base.length(s::DiracState) = length(dict(s))
 
-Base.getindex(k::Ket, label::Tuple) = getindex(dict(k), label)
-Base.getindex(b::Bra, label::Tuple) = b.kt[label]'
-Base.getindex(s::DiracState, i...) = s[i]
+Base.getindex(k::Ket, label::StateLabel) = getindex(dict(k), label)
+Base.getindex(b::Bra, label::StateLabel) = b.kt[label]'
+Base.getindex(s::DiracState, i...) = s[StateLabel(i)]
 
-Base.setindex!(k::Ket, c, label::Tuple) = setindex!(dict(k), c, label)
-Base.setindex!(b::Bra, c, label::Tuple) = setindex!(dict(b), c', label)
-Base.setindex!(s::DiracState, c, i...) = setindex!(s,c,i)
+Base.setindex!(k::Ket, c, label::StateLabel) = setindex!(dict(k), c, label)
+Base.setindex!(b::Bra, c, label::StateLabel) = setindex!(dict(b), c', label)
+Base.setindex!(s::DiracState, c, i...) = setindex!(s,c,StateLabel(i))
 
-Base.haskey(s::DiracState, label) = haskey(dict(s), label)
+Base.haskey(s::DiracState, label::StateLabel) = haskey(dict(s), label)
 
-Base.get(k::Ket, label::Tuple, default=0) = get(dict(k), label, default)
-Base.get(b::Bra, label::Tuple, default=0) = haskey(b, label) ? b[label] : default
-Base.get(k::Ket, label, default=0) = get(k, tuple(label), default)
-Base.get(b::Bra, label, default=0) = get(b, tuple(label), default)
+Base.get(k::Ket, label::StateLabel, default=0) = get(dict(k), label, default)
+Base.get(b::Bra, label::StateLabel, default=0) = haskey(b, label) ? b[label] : default
 
-Base.delete!(s::DiracState, label::Tuple) = (delete!(dict(s), label); return s)
-Base.delete!(s::DiracState, label) = delete!(s, tuple(label))
+Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
 
 labels(s::DiracState) = keys(dict(s))
 QuBase.coeffs(kt::Ket) = values(dict(kt))
@@ -99,10 +96,9 @@ end
 
 function ortho_inner(a::DiracState{Orthonormal}, b::DiracState{Orthonormal})
     result = 0
-    prodtype = ptype(a)
     for label in keys(dict(b))
         if haskey(a, label)
-            result += a[label]*b[label]*inner_rule(prodtype,label,label)
+            result += a[label]*b[label]
         end
     end
     return result
@@ -174,7 +170,7 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-QuBase.tensor{P,A,B}(a::Ket{P,A}, b::Ket{P,B}) = Ket(ptype(b), tensorstate!(StateDict{A+B}(), dict(a), dict(b)))
+QuBase.tensor{P,A,B}(a::Ket{P,A}, b::Ket{P,B}) = Ket(ptype(b), tensordict!(StateDict{A+B}(), dict(a), dict(b)))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
@@ -191,7 +187,7 @@ QuBase.normalize!(s::DiracState) = scale!(1/norm(s), s)
 # Misc. Math Functions #
 ########################
 nfactors{P,N}(::DiracState{P,N}) = N
-xsubspace(s::DiracState, x) = similar(s, filter((k,v)->isx(k,x), dict(s)))
+xsubspace(s::DiracState, x) = similar(s, filter((k,v)->is_sum_x(k,x), dict(s)))
 switch(s::DiracState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
 permute(s::DiracState, perm::Vector) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
 switch!(s::DiracState, i, j) = (mapkeys!(label->switch(label,i,j), dict(s)); return s)

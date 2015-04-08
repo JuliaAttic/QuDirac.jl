@@ -7,8 +7,6 @@ type OuterProduct{P,N} <: DiracOp{P,N}
     br::Bra{P,N}
 end
 
-
-fact(op::OuterProduct) = fact(op.kt)
 ptype(op::OuterProduct) = ptype(op.kt)
 
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
@@ -30,7 +28,7 @@ Base.hash(op::OuterProduct) = hash(op.scalar, hash(op.kt, hash(op.br)))
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
 Base.getindex(op::OuterProduct, k, b) = op.scalar * op.kt[k] * op.br[b]
-Base.getindex(op::OuterProduct, label::(Tuple,Tuple)) = op[label[1], label[2]]
+Base.getindex(op::OuterProduct, o::OuterLabel) = op[klabel(o), blabel(o)]
 
 # would be great if the below worked with normal indexing
 # notation (e.g. op[k,:]) but the Colon is apparently
@@ -43,14 +41,12 @@ getbra(op::OuterProduct, k) = (op.scalar * get(op.kt,k)) * op.br
 getket(op::OuterProduct, b) = (op.scalar * get(op.br,b)) * op.kt
 
 Base.haskey(op::OuterProduct, k, b) = hasket(op, k) && hasbra(op, b)
-Base.haskey(op::OuterProduct, label::(Tuple,Tuple)) = haskey(op, label[1], label[2])
-hasket(op::OuterProduct, label::(Tuple,Tuple)) = haskey(op.kt, label)
-hasbra(op::OuterProduct, label::(Tuple,Tuple)) = haskey(op.br, label)
+Base.haskey(op::OuterProduct, o::OuterLabel) = haskey(op, klabel(o), blabel(o))
 
 Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
-Base.get(op::OuterProduct, label::(Tuple,Tuple), default=0) = get(op, label[1], label[2], default)
+Base.get(op::OuterProduct, o::OuterLabel, default=0) = get(op, klabel(o), blabel(o), default)
 
-labels(op::OuterProduct) = product(labels(op.kt), labels(op.br))
+labels(op::OuterProduct) = imap(o->OuterLabel(o[1], o[2]), product(labels(op.kt), labels(op.br)))
 QuBase.coeffs(op::OuterProduct) = imap(v->op.scalar*prod(v), product(coeffs(op.kt), coeffs(op.br)))
 
 ##############
@@ -111,7 +107,7 @@ end
 function Base.trace(op::OuterProduct{Orthonormal})
     result = 0
     for k in labels(op.kt), b in labels(op.br)
-        if b==k
+        if b == k
             result += op[k,b]
         end
     end
@@ -138,7 +134,7 @@ function ptrace_proj{N}(op::OuterProduct{Orthonormal,N}, over)
     for k in labels(op.kt), b in labels(op.br)
         if k[over] == b[over]
             add_to_dict!(result,
-                         (except(k, over), except(b, over)),
+                         OuterLabel(except(k, over), except(b, over)),
                          op[k,b])
         end
     end
@@ -150,7 +146,7 @@ function ptrace_proj{P,N}(op::OuterProduct{P,N}, over)
     prodtype = ptype(op)
     for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
         add_to_dict!(result,
-                     (except(k, over), except(b, over)),
+                     OuterLabel(except(k, over), except(b, over)),
                      op.scalar*v*c'*inner_rule(prodtype, i[over], k[over])
                      *inner_rule(prodtype, b[over], i[over]))
     end

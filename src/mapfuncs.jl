@@ -101,10 +101,8 @@ function replace_label!(d, old_label, new_label, v)
     return d
 end
 
-nguess_pair(f, d::StateDict) = length(f(first(d)...)[1])
-nguess_pair(f, d::OpDict) = length(f(first(d)...)[1][1])
-nguess_label(f, d::StateDict) = length(f(first(keys(d))))
-nguess_label(f, d::OpDict) = length(f(first(keys(d))[1]))
+nguess_pair(f, d::Dict) = length(f(first(d)...)[1])
+nguess_label(f, d::Dict) = length(f(first(keys(d))))
 
 function mapload!(f, result, obj::AbstractDirac)
     for (label,v) in dict(obj)
