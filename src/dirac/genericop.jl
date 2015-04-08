@@ -367,8 +367,8 @@ inner_eval(op::DiracOp) = mapcoeffs(inner_eval,op)
 ######################
 # Printing Functions #
 ######################
-labelrepr(op::GenericOp, label, pad) = "$pad$(op[label]) $(ktstr(first(label)))$(brstr(second(label)))"
-labelrepr(opc::DualOp, label, pad) = "$pad$(opc[reverse(label)]) $(ktstr(second(label)))$(brstr(first(label)))"
+labelrepr(op::GenericOp, o::OuterLabel, pad) = "$pad$(op[o]) $(ktstr(klabel(o)))$(brstr(blabel(o)))"
+labelrepr(opc::DualOp, o::OuterLabel, pad) = "$pad$(opc[reverse(o)]) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
 
 Base.summary(op::DiracOp) = "$(typeof(op)) with $(length(op)) operator(s)"
 Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
