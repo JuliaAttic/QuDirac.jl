@@ -79,9 +79,9 @@ _**wavefunc**_
 
 _**inner_eval**_
 
-_**QuDirac.inner_rule**_
+_**default_inner**_
 
-_**QuDirac.set_default_inner**_
+_**QuDirac.inner_rule**_
 
 ---
 ## Misc. Functions
@@ -90,3 +90,5 @@ _**QuDirac.set_default_inner**_
 _**switch/switch!**_
 
 _**permute/permute!**_
+
+

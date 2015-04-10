@@ -15,13 +15,11 @@ Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
 ket{N}(ptype::AbstractInner, label::StateLabel{N}) = Ket(ptype, [label => 1])
 ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
 
-macro default_inner(ptype)
-    @eval begin
-        ket(items...) = ket(($ptype)(), StateLabel(items))
-    end
+function default_inner(ptype::AbstractInner)
+    QuDirac.ket(items...) = ket(ptype, StateLabel(items))
 end
 
-@default_inner KroneckerDelta
+default_inner(KroneckerDelta())
 
 type Bra{P,N,T} <: DiracState{P,N,T}
     kt::Ket{P,N,T}
@@ -45,8 +43,8 @@ ptype(b::Bra) = ptype(b.kt)
 #######################
 Base.eltype{P,N,T}(::DiracState{P,N,T}) = T
 
-Base.copy(kt::Ket) = Ket(ptype(s), copy(dict(s)))
-Base.copy(br::Bra) = Bra(copy(br.ket))
+Base.copy(kt::Ket) = Ket(ptype(kt), copy(dict(kt)))
+Base.copy(br::Bra) = Bra(copy(br.kt))
 
 Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
 Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
@@ -246,5 +244,5 @@ export ket,
     wavefunc,
     labels,
     act_on,
-    @default_inner,
+    default_inner,
     inner_eval

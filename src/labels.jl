@@ -8,10 +8,11 @@ immutable StateLabel{N}
     StateLabel(label::NTuple{N}, h::Uint64) = new(label, h)
 end
 
-StateLabel(label::StateLabel) = label
+StateLabel(s::StateLabel) = s
 StateLabel{N}(label::NTuple{N}) = StateLabel{N}(label)
 StateLabel(i...) = StateLabel(i)
 
+nfactors{N}(::Type{StateLabel{N}}) = N
 Base.getindex(s::StateLabel, i) = s.label[i]
 Base.getindex(s::StateLabel, arr::AbstractArray) = s.label[arr]
 

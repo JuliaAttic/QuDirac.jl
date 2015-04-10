@@ -41,28 +41,14 @@ function cons_outer!(result, kt, br)
 end
 
 func_op(f, kt::Ket) = cons_func_op(f, collect(keys(dict(kt))), kt)
+func_op(f, kt::Ket, i) = cons_func_op(f, collect(keys(dict(kt))), kt, i)
 
 function cons_func_op(f, keys, kt)
     pairs = map(f, keys)
-    result = OpDict{eltype(pairs)...}()
+    types = eltype(pairs)
+    result = OpDict{nfactors(types[2]), types[1]}()
     return GenericOp(ptype(kt), load_func_dict!(result, keys, pairs))
 end
-
-function load_func_dict!(result, keys, pairs)
-    for j=1:length(pairs)
-        setfunckv!(result, keys[j], pairs[j][1], pairs[j][2])
-    end
-    return result
-end
-
-function setfunckv!(result, label, c, new_label)
-    if c != 0
-        result[OuterLabel(new_label, label)] = c
-    end
-    return c
-end
-
-func_op(f, kt::Ket, i) = cons_func_op(f, collect(keys(dict(kt))), kt, i)
 
 function cons_func_op{P,N}(f, keys, kt::Ket{P,N}, i)
     pairs = map(label->f(label[i]), keys)
@@ -70,18 +56,19 @@ function cons_func_op{P,N}(f, keys, kt::Ket{P,N}, i)
     return GenericOp(ptype(kt), load_func_dict!(result, keys, pairs, i))
 end
 
-function load_func_dict!(result, keys, pairs, i)
+function load_func_dict!(result, keys, pairs)
     for j=1:length(pairs)
-        setfunckv!(result, keys[j], pairs[j][1], pairs[j][2], i)
+        add_to_dict!(result, OuterLabel(pairs[j][2], keys[j]), pairs[j][1])
     end
     return result
 end
 
-function setfunckv!(result, label, c, new_i, i)
-    if c != 0
-        result[OuterLabel(setindex(label, new_i, i), label)] = c
+function load_func_dict!(result, keys, pairs, i)
+    for j=1:length(pairs)
+        label = keys[j]
+        add_to_dict!(result, OuterLabel(setindex(label, pairs[j][2], i), label), pairs[j][1])
     end
-    return c
+    return result
 end
 
 ######################

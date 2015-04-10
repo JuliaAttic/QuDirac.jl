@@ -11,7 +11,7 @@ immutable UndefinedInner <: AbstractInner end
 Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
 
 ```
-inner_rule(p::UndefinedInner, b, k) = InnerProduct(p, b, k) # lazy evaluation of inner product
+inner_rule(p::UndefinedInner, b, k) = ScalarExpr(InnerProduct(p, b, k)) # lazy evaluation of inner product
 inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 ```
 
@@ -26,12 +26,12 @@ The type of `b`/`k` can be a `StateLabel` or a single factor element of a `State
 Most examples in this documentation show the `KroneckerDelta` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
 
 ```
-julia> k
-Ket{UndefinedInner,1} with 5 state(s):
-  2 | 2 ⟩
-  3 | 3 ⟩
-  5 | 5 ⟩
+julia> k = sum(i->i*ket(i), 1:5)
+Ket{UndefinedInner,1,Int64} with 5 state(s):
   4 | 4 ⟩
+  3 | 3 ⟩
+  2 | 2 ⟩
+  5 | 5 ⟩
   1 | 1 ⟩
 
 julia> k'*k
@@ -57,17 +57,17 @@ pass an instance of the type to the `ket` or `bra` function:
 
 ```
 julia> ket(UndefinedInner(), 1, 2)
-Ket{UndefinedInner,2} with 1 state(s):
+Ket{UndefinedInner,2,Int64} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
-If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `@default_inner` macro:
+If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `default_inner` function:
 
 ```
-julia> @default_inner UndefinedInner;
+julia> default_inner(UndefinedInner());
 
 julia> ket(1,2)
-Ket{UndefinedInner,2} with 1 state(s):
+Ket{UndefinedInner,2,Int64} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
