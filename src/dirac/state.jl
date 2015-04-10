@@ -1,18 +1,18 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict{N} Dict{StateLabel{N},Number}
+typealias StateDict{N,T} Dict{StateLabel{N},T}
 
-type Ket{P,N} <: DiracState{P,N}
+type Ket{P,N,T} <: DiracState{P,N,T}
     ptype::P
-    dict::StateDict{N}
+    dict::StateDict{N,T}
     Ket(ptype, dict) = new(ptype, dict)
     Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
 end
 
-Ket{P,N}(ptype::P, dict::StateDict{N}) = Ket{P,N}(ptype,dict)
+Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
 
-ket{N}(ptype::AbstractInner, label::StateLabel{N}) = Ket(ptype, single_dict(StateDict{N}(), label, 1))
+ket{N}(ptype::AbstractInner, label::StateLabel{N}) = Ket(ptype, [label => 1])
 ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
 
 macro default_inner(ptype)
@@ -23,11 +23,11 @@ end
 
 @default_inner KroneckerDelta
 
-type Bra{P,N} <: DiracState{P,N}
-    kt::Ket{P,N}
+type Bra{P,N,T} <: DiracState{P,N,T}
+    kt::Ket{P,N,T}
 end
 
-Bra{P,N}(kt::Ket{P,N}) = Bra{P,N}(kt)
+Bra{P,N,T}(kt::Ket{P,N,T}) = Bra{P,N,T}(kt)
 Bra(items...) = Bra(Ket(items...))
 bra(items...) = Bra(ket(items...))
 
@@ -43,6 +43,8 @@ ptype(b::Bra) = ptype(b.kt)
 #######################
 # Dict-Like Functions #
 #######################
+Base.eltype{P,N,T}(::DiracState{P,N,T}) = T
+
 Base.copy(kt::Ket) = Ket(ptype(s), copy(dict(s)))
 Base.copy(br::Bra) = Bra(copy(br.ket))
 
@@ -69,7 +71,7 @@ Base.haskey(s::DiracState, label::StateLabel) = haskey(dict(s), label)
 Base.haskey(s::DiracState, label) = haskey(s, StateLabel(label))
 
 Base.get(k::Ket, label::StateLabel, default=0) = get(dict(k), label, default)
-Base.get(b::Bra, label::StateLabel, default=0) = haskey(b, label) ? b[label] : default
+Base.get(b::Bra, label::StateLabel, default=0) = get(dict(b), label, default')'
 Base.get(s::DiracState, label, default=0) = get(s, StateLabel(label), default)
 
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
@@ -122,6 +124,7 @@ Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
 ##########
 # act_on #
 ##########
+
 act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
 function act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i)
@@ -132,16 +135,18 @@ function act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i)
     end
 end
 
-function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
-    result = StateDict{N-1}()
-    prodtype = ptype(kt)
+function act_on{P,N,A,B}(br::Bra{P,1,A}, kt::Ket{P,N,B}, i)
+    prodtype = ptype(br)
+    result = StateDict{N-1, promote_type(A, B, inner_type(prodtype, N-1))}()
+    return Ket(prodtype, act_on_dict!(result, br, kt, i, prodtype))
+end
+
+function act_on_dict!(result, br::Bra, kt::Ket, i, prodtype)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        add_to_dict!(result, 
-                     except(k,i),
-                     c'*v*inner_rule(prodtype,b[1],k[i]))
+        add_to_dict!(result, except(k,i), c'*v*inner_rule(prodtype, b[1], k[i]))
     end
-    return Ket(prodtype, result)
-end 
+    return result
+end
 
 ###########
 # Scaling #
@@ -175,7 +180,7 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-QuBase.tensor{P,A,B}(a::Ket{P,A}, b::Ket{P,B}) = Ket(ptype(b), tensordict!(StateDict{A+B}(), dict(a), dict(b)))
+QuBase.tensor{P,N,M,A,B}(a::Ket{P,N,A}, b::Ket{P,M,B}) = Ket(ptype(b), tensordict!(StateDict{N+M,promote_type(A,B)}(), dict(a), dict(b)))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)

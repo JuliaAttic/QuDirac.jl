@@ -2,7 +2,7 @@ module QuDirac
     
     using QuBase
     using Iterators
-
+    
     ####################
     # String Constants #
     ####################
@@ -19,9 +19,9 @@ module QuDirac
     immutable UndefinedInner <: AbstractInner end 
     immutable KroneckerDelta <: AbstractInner end
     
-    abstract AbstractDirac{P,N}
-    abstract DiracOp{P<:AbstractInner,N} <: AbstractDirac{P,N}
-    abstract DiracState{P<:AbstractInner,N} <: AbstractDirac{P,N}
+    abstract AbstractDirac{P<:AbstractInner,N,T}
+    abstract DiracOp{P,N,T} <: AbstractDirac{P,N,T}
+    abstract DiracState{P,N,T} <: AbstractDirac{P,N,T}
 
     abstract DiracScalar <: Number
 

@@ -29,104 +29,24 @@ mapcoeffs(f::Function, op::OuterProduct) = mapcoeffs(f, convert(GenericOp, op))
 ########################
 # maplabels!/maplabels #
 ########################
-function maplabels!(f::Function, obj::AbstractDirac)
-    for (label,v) in dict(obj)
-        replace_label!(dict(obj), label, f(label), v)
-    end
-    return obj
-end
-
+maplabels!(f::Function, obj::AbstractDirac) = mapkeys!(f, dict(obj))
+maplabels!(f::Function, opc::DualOp) = mapkeys!(label->reverse(f(reverse(label))), dict(opc))
 maplabels!(f::Function, ::OuterProduct) = error("cannot mutate OuterProduct; perhaps you meant to convert it to GenericOp before calling maplabels!")
 
-function maplabels!(f::Function, opc::DualOp)
-    for (label,v) in dict(opc)
-        replace_label!(dict(opc), label, reverse(f(reverse(label))), v)
-    end
-    return opc
-end
-
-function maplabels(f::Function, s::DiracState)
-    nguess = nguess_label(f, dict(s))
-    result = StateDict{nguess}()
-    load_labels!(f, result, s)
-    return similar(s, result)
-end
-
-function maplabels(f::Function, op::GeneralOp)
-    nguess = nguess_label(f, dict(op))
-    result = OpDict{nguess}()
-    load_labels!(f, result, op)
-    return GenericOp(ptype(op), result)
-end
-
+maplabels(f::Function, s::DiracState) = similar(s, mapkeys(f, dict(s)))
+maplabels(f::Function, op::GenericOp) = similar(op, mapkeys(f, dict(op)))
+maplabels(f::Function, opc::DualOp) = GenericOp(ptype(opc), mapkeys(label->f(reverse(label)), dict(op)))
 maplabels(f::Function, op::OuterProduct) = maplabels(f, convert(GenericOp, op))
 
 #######
 # map #
 #######
-function Base.map(f::Function, s::DiracState)
-    nguess = nguess_pair(f, dict(s))
-    result = mapload!(f, StateDict{nguess}(), s) 
-    return similar(s, result)
-end
-
-function Base.map(f::Function, op::GeneralOp)
-    nguess = nguess_pair(f, dict(op))
-    result = mapload!(f, OpDict{nguess}(), op) 
-    return GenericOp(ptype(op), result)
-end
-
+Base.map(f::Function, obj::AbstractDirac) = similar(obj, mapkv(kv->f(kv[1], kv[2]), dict(obj)))
+Base.map(f::Function, br::Bra) = similar(br, mapkv(kv->br_tup(f(kv[1], kv[2]')), dict(d)))
+Base.map(f::Function, opc::DualOp) = GenericOp(ptype(opc), mapkv(kv->f(reverse(kv[1]), kv[2]'), dict(d)))
 Base.map(f::Function, op::OuterProduct) = map(f, convert(GenericOp, op))
 
-################
-# Helper funcs #
-################
-function load_labels!(f, result, obj)
-    for (label, v) in dict(obj)
-        result[f(label)] = v
-    end
-    return result
-end
-
-function load_labels!(f, result, opc::DualOp)
-    for (label,v) in dict(obj)
-        result[f(reverse(label))] = v'
-    end
-    return result
-end
-
-function replace_label!(d, old_label, new_label, v)
-    delete!(d, old_label)  
-    d[new_label] = v
-    return d
-end
-
-nguess_pair(f, d::Dict) = length(f(first(d)...)[1])
-nguess_label(f, d::Dict) = length(f(first(keys(d))))
-
-function mapload!(f, result, obj::AbstractDirac)
-    for (label,v) in dict(obj)
-        (new_label, new_v) = f(label, v)
-        result[new_label] = new_v
-    end
-    return result
-end
-
-function mapload!(f, result, br::Bra)
-    for (label,v) in dict(br)
-        (new_label, new_v) = f(label, v')
-        result[new_label] = new_v'
-    end
-    return result
-end
-
-function mapload!(f, result, opc::DualOp)
-    for (label,v) in dict(op)
-        (new_label, new_v) = f(reverse(label), v')
-        result[new_label] = new_v
-    end
-    return result
-end
+br_tup(tup) = (tup[1], tup[2]')
 
 export maplabels!,
     mapcoeffs!,

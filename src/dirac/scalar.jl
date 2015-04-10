@@ -29,6 +29,10 @@ Base.conj(i::InnerProduct) = InnerProduct(i.ptype, klabel(i), blabel(i))
 inner_rule(p::AbstractInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
 inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 
+inner_type{P}(::P, N) = first(Base.return_types(inner_rule, (P, StateLabel{N}, StateLabel{N})))
+inner_type(::UndefinedInner, N) = ScalarExpr
+inner_type(::KroneckerDelta, N) = Int64
+
 ##############
 # ScalarExpr #
 ##############
@@ -54,6 +58,8 @@ ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
 ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
 
 Base.(:(==))(a::ScalarExpr, b::ScalarExpr) = a.ex == b.ex
+Base.(:(==))(::ScalarExpr, ::Number) = false
+Base.(:(==))(::Number, ::ScalarExpr) = false
 Base.(:(==))(a::InnerProduct, b::ScalarExpr) = ScalarExpr(a) == b
 Base.(:(==))(a::ScalarExpr, b::InnerProduct) = a == ScalarExpr(b)
 
@@ -63,7 +69,7 @@ Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n)
 Base.one(::ScalarExpr) = ScalarExpr(1)
 Base.zero(::ScalarExpr) = ScalarExpr(0)
 
-Base.promote_rule{N<:Number}(::Type{ScalarExpr}, ::Type{N}) = ScalarExpr
+Base.promote_rule{N<:Number}(::Type{ScalarExpr}, ::Type{N}) = Number
 
 Base.length(s::ScalarExpr) = length(s.ex.args)
 Base.getindex(s::ScalarExpr, i) = s.ex.args[i]

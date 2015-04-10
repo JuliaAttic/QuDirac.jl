@@ -12,17 +12,14 @@ ptype(op::OuterProduct) = ptype(op.kt)
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
 
 Base.convert(::Type{GenericOp}, op::OuterProduct) = scale!(op.scalar, GenericOp(op.kt, op.br))
-Base.convert{P}(::Type{GenericOp{P}}, op::OuterProduct{P}) = convert(GenericOp, op)
-Base.convert{P,N}(::Type{GenericOp{P,N}}, op::OuterProduct{P,N}) = convert(GenericOp, op)
-
-Base.promote_rule(::Type{GenericOp}, ::Type{OuterProduct}) = GenericOp
-Base.promote_rule{P}(::Type{GenericOp{P}}, ::Type{OuterProduct{P}}) = GenericOp{P}
-Base.promote_rule{P,N}(::Type{GenericOp{P,N}}, ::Type{OuterProduct{P,N}}) = GenericOp{P,N}
+Base.promote_rule{G<:GenericOp, O<:OuterProduct}(::Type{G}, ::Type{O}) = GenericOp
 
 #######################
 # Dict-Like Functions #
 #######################
-Base.(:(==)){P}(a::OuterProduct{P}, b::OuterProduct{P}) = a.scalar == b.scalar && a.kt == b.kt && a.br == b.br
+Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), eltype(op.br))
+
+Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = a.scalar == b.scalar && a.kt == b.kt && a.br == b.br
 
 Base.hash(op::OuterProduct) = hash(op.scalar, hash(op.kt, hash(op.br)))
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
@@ -126,38 +123,29 @@ end
 #################
 # Partial Trace #
 #################
-ptrace{P}(op::OuterProduct{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-ptrace(op::OuterProduct, over) = ptrace_proj(op, over)
-
-function ptrace_proj{N}(op::OuterProduct{KroneckerDelta,N}, over)
-    result = OpDict{N-1}()
+function ortho_ptrace!(result, op::OuterProduct, over)
     for k in labels(op.kt), b in labels(op.br)
         if k[over] == b[over]
-            add_to_dict!(result,
-                         OuterLabel(except(k, over), except(b, over)),
-                         op[k,b])
+            add_to_dict!(result, OuterLabel(except(k, over), except(b, over)), op[k,b])
         end
     end
-    return GenericOp(ptype(op), result)
+    return result
 end
 
-function ptrace_proj{P,N}(op::OuterProduct{P,N}, over)
-    result = OpDict{N-1}()
+function general_ptrace!(result, op::OuterProduct, over)
     prodtype = ptype(op)
     for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
-        add_to_dict!(result,
+        add_to_dict!(result, 
                      OuterLabel(except(k, over), except(b, over)),
-                     op.scalar*v*c'*inner_rule(prodtype, i[over], k[over])
-                     *inner_rule(prodtype, b[over], i[over]))
+                     op.scalar*v*c'*inner_rule(prodtype, i[over], k[over])*inner_rule(prodtype, b[over], i[over]))        
     end
-    return GenericOp(prodtype, result)
+    return result
 end
 
 ########################
 # Misc. Math Functions #
 ########################
 nfactors{P,N}(::OuterProduct{P,N}) = N
-
 xsubspace(op::OuterProduct,x) = xsubspace(convert(GenericOp, op), x)
 filternz(op::OuterProduct) = filternz(convert(GenericOp, op))
 purity(op::OuterProduct) = trace(op^2)

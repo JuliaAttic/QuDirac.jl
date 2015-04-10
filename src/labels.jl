@@ -35,8 +35,8 @@ Base.map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, s.label
 
 QuBase.tensor(s::StateLabel...) = StateLabel(apply(tuple, s...))
 
-labelstr(label::StateLabel) = join(map(repr, label), ',')
-Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s.label) * ")"
+labelstr(s::StateLabel) = join(map(repr, s.label), ',')
+Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"
 Base.show(io::IO, s::StateLabel) = print(io, repr(s))
 
 ##############
