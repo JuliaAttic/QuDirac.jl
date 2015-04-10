@@ -78,8 +78,8 @@ QuBase.tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scal
 Base.scale!(c::Number, op::OuterProduct) = (op.scalar = c*op.scalar; return op)
 Base.scale!(op::OuterProduct, c::Number) = (op.scalar = op.scalar*c; return op)
 
-Base.scale(c::Number, op::OuterProduct) = scale!(c,copy(op))
-Base.scale(op::OuterProduct, c::Number) = scale!(copy(op),c)
+Base.scale(c::Number, op::OuterProduct) = OuterProduct(c * op.scalar, copy(op.kt), copy(op.br))
+Base.scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt), copy(op.br))
 
 ###########
 # + and - #
