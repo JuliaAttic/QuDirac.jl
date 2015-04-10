@@ -1,6 +1,3 @@
-*Note: All arithmetic on Kets also works on Bras, although we may not explicitly give examples here.*
-
----
 # Scalar multiplication
 ---
 
