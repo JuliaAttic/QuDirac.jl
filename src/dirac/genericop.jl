@@ -310,7 +310,7 @@ Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
 ###########
 # + and - #
 ###########
-Base.(:-)(op::GenericOp) = mapcoeffs(-, op)
+Base.(:-)(op::GenericOp) = scale(-1, op)
 Base.(:-)(opc::DualOp) = DualOp(-opc.op)
 
 Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(b, add_merge(dict(a), dict(b)))
