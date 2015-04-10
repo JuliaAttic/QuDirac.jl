@@ -58,10 +58,10 @@ ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
 ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
 
 Base.(:(==))(a::ScalarExpr, b::ScalarExpr) = a.ex == b.ex
-Base.(:(==))(::ScalarExpr, ::Number) = false
-Base.(:(==))(::Number, ::ScalarExpr) = false
 Base.(:(==))(a::InnerProduct, b::ScalarExpr) = ScalarExpr(a) == b
 Base.(:(==))(a::ScalarExpr, b::InnerProduct) = a == ScalarExpr(b)
+Base.(:(==))(::ScalarExpr, ::Number) = false
+Base.(:(==))(::Number, ::ScalarExpr) = false
 
 Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
 Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))

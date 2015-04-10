@@ -372,6 +372,7 @@ Base.trace(opc::DualOp) = trace(opc.op)'
 # Partial trace #
 #################
 ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
+ptrace(op::DiracOp{KroneckerDelta,1}, over) = over == 1 ? trace(op) : throw(BoundsError()) # redundant def to resolve ambiguity
 ptrace{N}(op::DiracOp{KroneckerDelta,N}, over) = GenericOp(ptype(op), ortho_ptrace!(OpDict{N-1,eltype(op)}(), op, over))
 ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), general_ptrace!(OpDict{N-1,promote_type(eltype(op),inner_type(ptype(op),N))}(), op, over))
 
