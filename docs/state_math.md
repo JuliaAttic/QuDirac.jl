@@ -47,14 +47,14 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
 
 Two key observations can be made here: 
 
-1. The basis states of a Ket are unordered. See the [Working with labels and coefficients](labels_and_coeffs.md) section for more info about Bras and Kets as data structures.
+1. The basis states of a Ket are unordered. See the [Labels and coefficients](labels_and_coeffs.md) section for more info about Bras and Kets as data structures.
 2. States do not automatically normalize themselves under operations like addition, which leads us to the next section...
 
 ---
 # Normalization
 ---
 
-In general, QuDirac objects *do not automatically normalize themselves*.
+In general, QuDirac objects do not automatically normalize themselves.
 
 We can normalize a state in-place by using the `normalize!` function:
 

@@ -1,10 +1,10 @@
 ################
 # OuterProduct #
 ################
-type OuterProduct{P,N} <: DiracOp{P,N}
-    scalar::Number
-    kt::Ket{P,N}
-    br::Bra{P,N}
+type OuterProduct{P,N,S,K,B} <: DiracOp{P,N}
+    scalar::S
+    kt::Ket{P,N,K}
+    br::Bra{P,N,B}
 end
 
 ptype(op::OuterProduct) = ptype(op.kt)
