@@ -5,10 +5,9 @@ Under the hood, QuDirac's Kets, Bras, and operator types use `Dict`s to map labe
 
 There are few important things to keep in mind when working with these structures:
 
-- All coefficients are restricted to be a subtype of `Number`.
 - All state labels are of type `StateLabel`.
-- All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra)
-- Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are "unordered". In other words, iteration through a QuDirac object's labels and coefficients is not guaranteed to be in any particular order.
+- All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra).
+- Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered. In other words, iteration through a QuDirac object's labels/coefficients is not guaranteed to be in any particular order.
 
 ---
 #  Accessing/Assigning coefficients
@@ -50,7 +49,7 @@ julia> k4[3,2,3,3]
 
 ```
 
-One can also peform `setindex!` operations on a state: 
+One can also use `setindex!` on states: 
 
 ```
 julia> k = 0.0*ket(0)
@@ -139,48 +138,6 @@ julia> gop[(8,1,10),(2,1,2)] = 1
 julia> gop[(8,1,10),(2,1,2)]
 1
 ```
-
-There are a few functions, however, that are exclusive to the `OuterProduct` 
-type: `getket` and `getbra`. 
-
-These functions are equivalent to taking the inner product of an operator
-and a specific basis Ket/Bra, but is generally :
-
-```
-julia> getket(op, (2,5,4))
-Ket{KroneckerDelta,3,Int64} with 1000 state(s):
-  3200 | 8,1,10 ⟩
-  20160 | 8,9,7 ⟩
-  160 | 2,1,2 ⟩
-  1600 | 2,5,4 ⟩
-  2880 | 6,4,3 ⟩
-  1600 | 1,10,4 ⟩
-  ⁞
-
-julia> getket(op, (2,5,4)) == op*ket(2,5,4)
-true
-```
-
-Likewise with `getbra`:
-
-```
-julia> getbra(op, (2,5,4))
-Bra{KroneckerDelta,3,Int64}} with 1000 state(s):
-  3200 ⟨ 8,1,10 |
-  20160 ⟨ 8,9,7 |
-  160 ⟨ 2,1,2 |
-  1600 ⟨ 2,5,4 |
-  2880 ⟨ 6,4,3 |
-  1600 ⟨ 1,10,4 |
-  ⁞
-
-julia> getbra(op, (2,5,4)) == bra(2,5,4)*op
-true
-```
-
-Why have these methods at all if we can already take inner products? Well, these methods are 
-generally more efficient than calculating the inner product if the result you're looking
-for is the action on a basis state.
 
 ---
 #  Using the `get` function

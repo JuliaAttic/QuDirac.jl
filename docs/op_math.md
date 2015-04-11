@@ -21,7 +21,7 @@ Specifically, an outer product of two states will yield an instance of the `Oute
 
 The `OuterProduct` type is a lazy representation of the outer product of two states - it simply stores a reference to 
 the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
-a *view* onto the factor states. This is why several coefficient types must be parameterized in the type - the first is for a global scalar, the second for the Ket, and the third for the Bra. This allows quick, memory-efficient construction of density operators and the like.
+a *view* onto the factor states. Several coefficient types are parameterized in the type - the first is for a global scalar, the second for the Ket, and the third for the Bra. This allows memory-efficient construction of density operators and the like.
 
 With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `GenericOp` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view. 
 

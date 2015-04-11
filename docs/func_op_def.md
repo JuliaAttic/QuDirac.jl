@@ -106,7 +106,7 @@ Ket{KroneckerDelta,3,Float64} with 125 state(s):
   ⁞
 ```
 
-...and we can reuse `f` as well, but define the operator on the second factor by passing in `2`:
+...and we can reuse `f` as well, but define the operator on the second factor:
 
 ```
 julia> â₂ = func_op(f, k3, 2)
