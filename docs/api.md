@@ -47,10 +47,6 @@ _**setindex!**_
 
 _**delete!**_
 
-_**labels**_
-
-_**coeffs**_
-
 ---
 ## Mapping Functions
 ---
@@ -72,10 +68,8 @@ _**xsubspace**_
 _**filternz/filternz!**_
 
 ---
-## Label-based Evaluation
+## Inner Product Evaluation
 ---
-
-_**wavefunc**_
 
 _**inner_eval**_
 

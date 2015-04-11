@@ -43,9 +43,6 @@ Base.haskey(op::OuterProduct, o::OuterLabel) = haskey(op, klabel(o), blabel(o))
 Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
 Base.get(op::OuterProduct, o::OuterLabel, default=0) = get(op, klabel(o), blabel(o), default)
 
-labels(op::OuterProduct) = imap(o->OuterLabel(o[1], o[2]), product(labels(op.kt), labels(op.br)))
-QuBase.coeffs(op::OuterProduct) = imap(v->op.scalar*prod(v), product(coeffs(op.kt), coeffs(op.br)))
-
 ##############
 # ctranspose #
 ##############
@@ -103,7 +100,7 @@ end
 #########
 function Base.trace(op::OuterProduct{KroneckerDelta})
     result = 0
-    for k in labels(op.kt), b in labels(op.br)
+    for k in keys(dict(op.kt)), b in keys(dict(op.br))
         if b == k
             result += op[k,b]
         end
@@ -114,7 +111,7 @@ end
 function Base.trace(op::OuterProduct)
     result = 0
     prodtype = ptype(op)
-    for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
+    for i in keys(dict(op.kt)), (k,v) in dict(op.kt), (b,c) in dict(op.br)
         result += v*c'*inner_rule(prodtype, i, k) * inner_rule(prodtype, b, i)
     end
     return op.scalar * result
@@ -124,7 +121,7 @@ end
 # Partial Trace #
 #################
 function ortho_ptrace!(result, op::OuterProduct, over)
-    for k in labels(op.kt), b in labels(op.br)
+    for k in keys(dict(op.kt)), b in keys(dict(op.br))
         if k[over] == b[over]
             add_to_dict!(result, OuterLabel(except(k, over), except(b, over)), op[k,b])
         end
@@ -134,7 +131,7 @@ end
 
 function general_ptrace!(result, op::OuterProduct, over)
     prodtype = ptype(op)
-    for i in labels(op.kt), (k,v) in dict(op.kt), (b,c) in dict(op.br)
+    for i in keys(dict(op.kt)), (k,v) in dict(op.kt), (b,c) in dict(op.br)
         add_to_dict!(result, 
                      OuterLabel(except(k, over), except(b, over)),
                      op.scalar*v*c'*inner_rule(prodtype, i[over], k[over])*inner_rule(prodtype, b[over], i[over]))        
@@ -176,7 +173,6 @@ export getbra,
     hasbra,
     ptrace,
     purity,
-    labels,
     filternz,
     xsubspace,
     nfactors

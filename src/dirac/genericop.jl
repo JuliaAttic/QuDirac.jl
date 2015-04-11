@@ -123,11 +123,6 @@ Base.delete!(op::GenericOp, label::OuterLabel) = (delete!(dict(op), label); retu
 Base.delete!(opc::DualOp, label::OuterLabel) = delete!(opc.op, reverse(label))
 Base.delete!(op::GeneralOp, k, b) = delete!(op, OuterLabel(k, b))
 
-labels(op::GenericOp) = keys(dict(op))
-labels(opc::DualOp) = imap(reverse, labels(opc.op))
-QuBase.coeffs(op::GenericOp) = values(dict(op))
-QuBase.coeffs(opc::DualOp) = imap(conj, coeffs(opc.op))
-
 #############
 # ctranpose #
 #############
@@ -336,7 +331,7 @@ QuBase.normalize!(op::DiracOp) = scale!(1/norm(op), op)
 #########
 function Base.trace(op::GenericOp{KroneckerDelta})
     result = 0
-    for o in labels(op)
+    for o in keys(dict(op))
         if klabel(o)==blabel(o)
             result += op[o]
         end
@@ -347,7 +342,7 @@ end
 function Base.trace(op::GenericOp)
     result = 0
     prodtype = ptype(op)
-    for i in distinct(imap(klabel, labels(op))), (o,v) in dict(op)
+    for i in distinct(imap(klabel, keys(dict(op)))), (o,v) in dict(op)
         result += v * inner_rule(prodtype, i, klabel(o)) * inner_rule(prodtype, blabel(o), i)
     end
     return result
@@ -364,7 +359,7 @@ ptrace{N}(op::DiracOp{KroneckerDelta,N}, over) = GenericOp(ptype(op), ortho_ptra
 ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), general_ptrace!(OpDict{N-1,promote_type(eltype(op),inner_type(ptype(op),N))}(), op, over))
 
 function ortho_ptrace!(result, op::GeneralOp, over)
-    for o in labels(op)
+    for o in keys(dict(op))
         if klabel(o)[over] == blabel(o)[over]
             add_to_dict!(result, OuterLabel(except(klabel(o), over), except(blabel(o), over)), op[o])
         end
@@ -372,9 +367,9 @@ function ortho_ptrace!(result, op::GeneralOp, over)
     return result
 end
 
-function general_ptrace!(result, op::GeneralOp, over)
+function general_ptrace!(result, op::GenericOp, over)
     prodtype = ptype(op)
-    for i in distinct(imap(klabel, labels(op))), (o,v) in dict(op)
+    for i in distinct(imap(klabel, keys(dict(op)))), (o,v) in dict(op)
         add_to_dict!(result, 
                      OuterLabel(except(klabel(o), over), except(blabel(o), over)),
                      v * inner_rule(prodtype, i[over], klabel(o)[over]) * inner_rule(prodtype, blabel(o)[over], i[over]))
@@ -384,7 +379,7 @@ end
 
 function general_ptrace!(result, opc::DualOp, over)
     prodtype = ptype(opc)
-    for i in distinct(imap(klabel, labels(opc))), (o,v) in dict(opc)
+    for i in distinct(imap(klabel, keys(dict(opc)))), (o,v) in dict(opc)
         add_to_dict!(result, 
                      OuterLabel(except(blabel(o), over), except(klabel(o), over)),
                      v' * inner_rule(prodtype, i[over], blabel(o)[over]) * inner_rule(prodtype, klabel(o)[over], i[over]))
@@ -427,7 +422,6 @@ export GenericOp,
     filternz,
     filternz!,
     purity,
-    labels,
     act_on,
     inner_eval,
     func_op

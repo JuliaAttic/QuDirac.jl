@@ -75,10 +75,6 @@ Base.get(s::DiracState, label, default=0) = get(s, StateLabel(label), default)
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
 Base.delete!(s::DiracState, label) = delete!(s, StateLabel(label))
 
-labels(s::DiracState) = keys(dict(s))
-QuBase.coeffs(kt::Ket) = values(dict(kt))
-QuBase.coeffs(br::Bra) = imap(ctranspose, coeffs(br.kt))
-
 ##############
 # ctranspose #
 ##############
@@ -242,7 +238,6 @@ export ket,
     filternz,
     purity,
     wavefunc,
-    labels,
     act_on,
     default_inner,
     inner_eval
