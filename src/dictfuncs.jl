@@ -30,9 +30,7 @@ end
 
 function add_merge!(result, other)
     for (k,v) in other
-        if v != 0
-            result[k] = get(result,k,0) + v 
-        end
+        add_to_dict!(result, k, v)
     end
     return result
 end
@@ -43,9 +41,7 @@ end
 
 function sub_merge!(result, other)
     for (k,v) in other
-        if v != 0
-            result[k] = get(result,k,0) - v 
-        end
+        add_to_dict!(result, k, -v)
     end
     return result
 end
@@ -66,7 +62,7 @@ dscale{K,V,T}(d::Dict{K,V}, c::T) = dscale!(Dict{K,promote_type(V,T)}(), d, c)
 
 function add_to_dict!(dict, label, c)
     if c != 0
-        dict[label] = get(dict, label, 0)+c
+        dict[label] = get(dict, label, 0) + c
     end
     return dict
 end

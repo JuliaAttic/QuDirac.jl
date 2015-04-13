@@ -150,7 +150,6 @@ end
 nfactors{P,N}(::OuterProduct{P,N}) = N
 xsubspace(op::OuterProduct,x) = xsubspace(convert(GenericOp, op), x)
 filternz(op::OuterProduct) = filternz(convert(GenericOp, op))
-purity(op::OuterProduct) = trace(op^2)
 
 ######################
 # Printing Functions #

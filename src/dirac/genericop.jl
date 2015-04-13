@@ -413,7 +413,9 @@ xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->is_sum_x(k,x), dict(op))
 filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
 filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
 
-purity(op::GeneralOp) = trace(op^2)
+purity(op::DiracOp) = trace(op^2)
+QuBase.commutator(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
+QuBase.anticommutator(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 
 inner_eval(f::Function, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 inner_eval(op::DiracOp) = mapcoeffs(inner_eval,op)
