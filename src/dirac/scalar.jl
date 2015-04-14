@@ -26,12 +26,25 @@ Base.conj(i::InnerProduct) = InnerProduct(i.ptype, klabel(i), blabel(i))
 ##############
 # inner_rule #
 ##############
-inner_rule(p::AbstractInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
+function inner_labels{N}(p::AbstractInner, b::StateLabel{N}, k::StateLabel{N})
+    v = 1
+    for i=1:N
+        v *= inner_rule(p, b[i], k[i])
+    end
+    return v
+end
+
+inner_rule(p::AbstractInner, b, k) = inner_rule(UndefinedInner(), b, k)
+
+inner_labels(p::UndefinedInner, b::StateLabel, k::StateLabel) = ScalarExpr(InnerProduct(p, b, k))
+inner_rule(p::UndefinedInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
+
+inner_labels(::KroneckerDelta, b::StateLabel, k::StateLabel) = b == k ? 1 : 0
 inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 
-inner_type{P}(::P, N) = first(Base.return_types(inner_rule, (P, StateLabel{N}, StateLabel{N})))
-inner_type(::UndefinedInner, N) = ScalarExpr
-inner_type(::KroneckerDelta, N) = Int64
+inner_type(::AbstractInner) = Any
+inner_type(::UndefinedInner) = ScalarExpr
+inner_type(::KroneckerDelta) = Int64
 
 ##############
 # ScalarExpr #
@@ -77,7 +90,7 @@ Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 ##############
 # inner_eval #
 ##############
-inner_eval(i::InnerProduct) = inner_rule(i.ptype, blabel(i), klabel(i))
+inner_eval(i::InnerProduct) = inner_labels(i.ptype, blabel(i), klabel(i))
 inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
 inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))
 inner_eval(n::Number) = n
@@ -299,4 +312,7 @@ end
 
 Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
-export inner_eval
+export inner_eval,
+    inner_rule,
+    inner_labels,
+    inner_type

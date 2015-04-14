@@ -136,31 +136,31 @@ Base.ctranspose(opc::DualOp) = opc.op
 #########
 function inner{P,N,A,B}(br::Bra{P,N,A}, op::GenericOp{P,N,B})
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = StateDict{N, promote_type(A,B,inner_type(prodtype))}()
     return Bra(prodtype, inner_load!(result, br, op, prodtype))
 end
 
 function inner{P,N,A,B}(op::GenericOp{P,N,A}, kt::Ket{P,N,B})
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = StateDict{N, promote_type(A,B,inner_type(prodtype))}()
     return Ket(prodtype, inner_load!(result, op, kt, prodtype))
 end
 
 function inner{P,N,A,B}(a::GenericOp{P,N,A}, b::GenericOp{P,N,B})
     prodtype = ptype(a)
-    result = OpDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = OpDict{N, promote_type(A,B,inner_type(prodtype))}()
     return GenericOp(prodtype, inner_load!(result, a, b, prodtype))
 end
 
 function inner{P,N,A,B}(a::GenericOp{P,N,A}, b::DualOp{P,N,B})
     prodtype = ptype(a)
-    result = OpDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = OpDict{N, promote_type(A,B,inner_type(prodtype))}()
     return GenericOp(prodtype, inner_load!(result, a, b, prodtype))
 end
 
 function inner{P,N,A,B}(a::DualOp{P,N,A}, b::GenericOp{P,N,B})
     prodtype = ptype(a)
-    result = OpDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = OpDict{N, promote_type(A,B,inner_type(prodtype))}()
     return GenericOp(prodtype, inner_load!(result, a, b, prodtype))
 end
 
@@ -172,7 +172,7 @@ function inner_load!(result, a::GenericOp, b::GenericOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
                      OuterLabel(klabel(o1), blabel(o2)),
-                     v*c*inner_rule(prodtype, blabel(o1), klabel(o2)))
+                     v*c*inner_labels(prodtype, blabel(o1), klabel(o2)))
     end
     return result
 end
@@ -181,7 +181,7 @@ function inner_load!(result, a::GenericOp, b::DualOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
                      OuterLabel(klabel(o1), klabel(o2)),
-                     v*c'*inner_rule(prodtype, blabel(o1), blabel(o2)))
+                     v*c'*inner_labels(prodtype, blabel(o1), blabel(o2)))
     end
     return result
 end
@@ -190,7 +190,7 @@ function inner_load!(result, a::DualOp, b::GenericOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result,
                      OuterLabel(blabel(o1), blabel(o2)),
-                     v'*c*inner_rule(prodtype, klabel(o1), klabel(o2)))
+                     v'*c*inner_labels(prodtype, klabel(o1), klabel(o2)))
     end
     return result
 end
@@ -212,7 +212,7 @@ end
 function brcoeff(brdict, prodtype, klabel, v)
     coeff = 0
     for (blabel,c) in brdict
-        coeff += c'*v*inner_rule(prodtype, klabel, blabel) 
+        coeff += c'*v*inner_labels(prodtype, klabel, blabel) 
     end
     return coeff'
 end
@@ -220,7 +220,7 @@ end
 function ktcoeff(ktdict, prodtype, blabel, v)
     coeff = 0
     for (klabel,c) in ktdict
-        coeff += c*v*inner_rule(prodtype, klabel, blabel) 
+        coeff += c*v*inner_labels(prodtype, klabel, blabel) 
     end
     return coeff
 end
@@ -248,13 +248,13 @@ end
 
 function act_on{P,N,A,B}(op::GenericOp{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = StateDict{N, promote_type(A,B,inner_type(prodtype))}()
     return Ket(prodtype, act_on_dict!(result, op, kt, i, prodtype))
 end
 
 function act_on{P,N,A,B}(op::DualOp{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_type(prodtype,N))}()
+    result = StateDict{N, promote_type(A,B,inner_type(prodtype))}()
     return Ket(prodtype, act_on_dict!(result, op, kt, i, prodtype))
 end
 
@@ -345,7 +345,7 @@ function Base.trace(op::GenericOp)
     for (o,v) in dict(op)
         if klabel(o)==blabel(o)
             i = klabel(o)
-            result += v * inner_rule(prodtype, i, i) * inner_rule(prodtype, i, i)
+            result += v * inner_labels(prodtype, i, i) * inner_labels(prodtype, i, i)
         end
     end
     return result
@@ -359,7 +359,7 @@ Base.trace(opc::DualOp) = trace(opc.op)'
 ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
 ptrace(op::DiracOp{KroneckerDelta,1}, over) = over == 1 ? trace(op) : throw(BoundsError()) # redundant def to resolve ambiguity
 ptrace{N}(op::DiracOp{KroneckerDelta,N}, over) = GenericOp(ptype(op), ortho_ptrace!(OpDict{N-1,eltype(op)}(), op, over))
-ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), general_ptrace!(OpDict{N-1,promote_type(eltype(op),inner_type(ptype(op),N))}(), op, over))
+ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), general_ptrace!(OpDict{N-1,promote_type(eltype(op),inner_type(ptype(op)))}(), op, over))
 
 function ortho_ptrace!(result, op::GenericOp, over)
     for (o,v) in dict(op)
@@ -386,7 +386,7 @@ function general_ptrace!(result, op::GenericOp, over)
             i = klabel(o)[over]
             add_to_dict!(result,
                          OuterLabel(except(klabel(o), over), except(blabel(o), over)),
-                         v * inner_rule(prodtype,  i, i) * inner_rule(prodtype,i, i))
+                         v * inner_rule(prodtype, i, i) * inner_rule(prodtype, i, i))
         end
     end
     return result
@@ -399,7 +399,7 @@ function general_ptrace!(result, opc::DualOp, over)
             i = klabel(o)[over]
             add_to_dict!(result,
                          OuterLabel(except(blabel(o), over), except(klabel(o), over)),
-                         v' * inner_rule(prodtype,  i, i) * inner_rule(prodtype, i, i))
+                         v' * inner_rule(prodtype, i, i) * inner_rule(prodtype, i, i))
         end
     end
     return result

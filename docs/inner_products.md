@@ -77,6 +77,61 @@ As you've probably noticed from previous examples, the out-of-the-box default in
 # Custom inner product types
 ---
 
+**inner_rule**
+
+---
+
+One can easily define their own inner product type in order to overload QuDirac's built-in behavior:
+
+```
+julia> immutable MyInner <: AbstractInner end
+
+# k and b are factor labels
+julia> QuDirac.inner_rule(::MyInner, k, b) = sqrt(k+b)
+inner_rule (generic function with 4 methods)
+
+julia> default_inner(MyInner());
+
+julia> bra(1)*ket(1)
+1.4142135623730951
+
+julia> bra(1,2,3)*ket(1,2,3)
+6.928203230275509
+```
+
+---
+**inner_labels**
+
+---
+
+Overloading `inner_rule` defines the behavior between each factor's Bra and Ket labels. 
+
+There is another method, `inner_labels`, which defines inner product behavior over the *entire* Bra and Ket labels, 
+rather than individual factors. By default, this method is defined such that the following is true:
+
+```
+⟨ b₁,b₂,b₃... | k₁,k₂,k₃... ⟩ --> ⟨ b₁ | k₁ ⟩ * ⟨ b₂ | k₂ ⟩ * ⟨ b₃ | k₃ ⟩ * ...
+```
+
+...where the inner products between the individual factors (denoted by the subscripts above) are evaluated using 
+`inner_rule`. 
+
+If one so wishes, `inner_labels` can be overloaded for specific behaviors just like `inner_rule`:
+
+```
+julia> immutable SumInner <: AbstractInner end
+
+# b and k are factor labels
+julia> QuDirac.inner_rule(::SumInner, b, k) = b + k
+inner_rule (generic function with 5 methods)
+
+# sum factor-wise inner products instead of the default behavior (multiplying them)
+julia> QuDirac.inner_labels(p::SumInner, b::StateLabel, k::StateLabel) = sum(map((x, y) -> QuDirac.inner_rule(p, x, y), b, k))
+inner_labels (generic function with 4 methods)
+
+julia> bra(1,2,3)*ket(4,5,6)
+21
+```
 
 ---
 # Scalar expressions and `inner_eval`

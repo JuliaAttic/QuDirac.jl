@@ -90,7 +90,7 @@ function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
     result = 0
     prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        result += c'*v*inner_rule(prodtype,b,k)
+        result += c'*v*inner_labels(prodtype,b,k)
     end
     return result  
 end
@@ -131,7 +131,7 @@ end
 
 function act_on{P,N,A,B}(br::Bra{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(br)
-    result = StateDict{N-1, promote_type(A, B, inner_type(prodtype, N-1))}()
+    result = StateDict{N-1, promote_type(A, B, inner_type(prodtype))}()
     return Ket(prodtype, act_on_dict!(result, br, kt, i, prodtype))
 end
 
@@ -194,8 +194,6 @@ nfactors{P,N}(::DiracState{P,N}) = N
 xsubspace(s::DiracState, x) = similar(s, filter((k,v)->is_sum_x(k,x), dict(s)))
 switch(s::DiracState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
 permute(s::DiracState, perm::Vector) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
-switch!(s::DiracState, i, j) = (mapkeys!(label->switch(label,i,j), dict(s)); return s)
-Base.permute!(s::DiracState, perm::Vector) = (mapkeys!(label->permute(label,perm), dict(s)); return s)
 
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))

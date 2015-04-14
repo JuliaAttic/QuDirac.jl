@@ -1,24 +1,3 @@
-function mapvals!(f, d)
-    for (k,v) in d
-        d[k] = f(v)
-    end
-    return d
-end
-
-mapvals(f, d) = Dict(collect(keys(d)), map(f, collect(values(d))))
-
-function mapkeys!(f, d)
-    for (k,v) in d
-        delete!(d,k)
-        d[f(k)] = v
-    end
-    return d
-end
-
-mapkeys(f, d) = Dict(map(f, collect(keys(d))), collect(values(d)))
-
-mapkv(f, d) = Dict(map(f, collect(d)))
-
 function tensordict!(result, a, b)
     for (k,v) in a
         for (l,c) in b

@@ -113,7 +113,8 @@ function Base.trace(op::OuterProduct)
     prodtype = ptype(op)
     for (k,v) in dict(op.kt), (b,c) in dict(op.br)
         if b == k
-            result += v * c' * inner_rule(prodtype, k, k) * inner_rule(prodtype, b, b)
+            i = b
+            result += v * c' * inner_labels(prodtype, i, i) * inner_labels(prodtype, i, i)
         end
     end
     return op.scalar * result
