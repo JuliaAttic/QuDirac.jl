@@ -45,22 +45,20 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 1 ⟩
 ```
 
-As you can see, states do not automatically normalize themselves under operations like addition. This leads us to the next section...
-
 ---
 # Normalization
 ---
 
-In general, QuDirac objects do not automatically normalize themselves.
+In general, QuDirac objects do not automatically normalize themselves, but normalization functions are provided.
 
 We can normalize a state in-place by using the `normalize!` function:
 
 ```
-julia> k = sum(i -> i*ket(i), 1:3)
-Ket{KroneckerDelta,1,Int64} with 3 state(s):
-  3 | 3 ⟩
-  2 | 2 ⟩
-  1 | 1 ⟩
+julia> k = sum(i -> float(i)*ket(i), 1:3)
+Ket{KroneckerDelta,1,Float64} with 3 state(s):
+  3.0 | 3 ⟩
+  2.0 | 2 ⟩
+  1.0 | 1 ⟩
 
 julia> normalize!(k)
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
@@ -93,7 +91,47 @@ julia> k'' == k
 true
 ```
 
-For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra in any way will result in the mutation of the underlying Ket. If you would like a copy of a state instead, you can explicitly construct one via the `copy` function.
+For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra in any way will result in the mutation of the underlying Ket:
+
+```
+julia> k = 2.3*ket(1) + 4.5*ket(2)
+Ket{KroneckerDelta,1,Float64} with 2 state(s):
+  4.5 | 2 ⟩
+  2.3 | 1 ⟩
+
+julia> b = k'
+Bra{KroneckerDelta,1,Float64} with 2 state(s):
+  4.5 ⟨ 2 |
+  2.3 ⟨ 1 |
+
+julia> normalize!(b) # in-place operation mutates b, which mutates k
+Bra{KroneckerDelta,1,Float64} with 2 state(s):
+  0.8904346821960807 ⟨ 2 |
+  0.4551110597891079 ⟨ 1 |
+
+julia> k
+Ket{KroneckerDelta,1,Float64} with 2 state(s):
+  0.8904346821960807 | 2 ⟩
+  0.4551110597891079 | 1 ⟩
+```
+
+If you would like a copy of a state instead, you can explicitly construct one via the `copy` function:
+
+```
+julia> k = (ket(1) + ket(2));
+
+julia> b = copy(k)';
+
+julia> scale!(3,b)
+Bra{KroneckerDelta,1,Int64} with 2 state(s):
+  3 ⟨ 2 |
+  3 ⟨ 1 |
+
+julia> k
+Ket{KroneckerDelta,1,Int64} with 2 state(s):
+  1 | 2 ⟩
+  1 | 1 ⟩
+```
 
 ---
 # Tensor Product
