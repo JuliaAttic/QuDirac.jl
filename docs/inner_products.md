@@ -109,7 +109,7 @@ inner_rettype(::UndefinedInner) = ScalarExpr
 inner_rettype(::KroneckerDelta) = Int64
 ```
 
-Another example: If my use of `SumInner` will be restricted to cases where the state labels hold `Int64`s, it's easy to see that evaluations using `SumInner` will always produce `Int64`s. Thus, if I can make the assumption that my labels will be integers, I can then share this assumption with QuDirac by defining the following:
+Another example: If my use of `SumInner` will be restricted to cases where the state labels hold `Int64`s, it's easy to see that evaluations using `SumInner` will always produce `Int64`s. I can then share this assumption with QuDirac by defining the following:
 
 ```
 julia> QuDirac.inner_rettype(::SumInner) = Int64
