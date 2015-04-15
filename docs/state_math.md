@@ -91,7 +91,7 @@ julia> k'' == k
 true
 ```
 
-For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra in any way will result in the mutation of the underlying Ket:
+For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra will result in the mutation of the underlying Ket:
 
 ```
 julia> k = 2.3*ket(1) + 4.5*ket(2)

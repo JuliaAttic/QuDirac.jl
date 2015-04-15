@@ -10,5 +10,3 @@ pages:
 - ['inner_products.md', 'User Guide', 'Working with Inner Products']
 - ['d_str.md', 'User Guide', 'Natural expression input using @d_str']
 - ['api.md', 'User Guide', 'API']
-
-theme: readthedocs
