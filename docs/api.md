@@ -31,6 +31,10 @@ _**commmutator**_
 
 _**anticommmutator**_
 
+_**switch**_
+
+_**permute**_
+
 ---
 ## `Dict`-like Functions
 ---
@@ -143,11 +147,4 @@ _**default_inner**_
 
 _**QuDirac.inner_rule**_
 
----
-## Misc. Functions
----
-
-_**switch/switch!**_
-
-_**permute/permute!**_
-
+_**QuDirac.inner_rettype**_

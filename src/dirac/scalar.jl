@@ -298,4 +298,5 @@ end
 Base.show(io::IO, s::InnerExpr) = print(io, repr(s))
 
 export inner_eval,
-    inner_rule
+    inner_rule,
+    inner_rettype
