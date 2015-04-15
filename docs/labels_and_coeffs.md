@@ -188,4 +188,4 @@ julia> get(k, ('a', 'b', 'c'), "Not here")
 
 QuDirac supports filtering out states' components via arbitrary predicate functions, as well as mapping functions
 over an object's coefficients and labels. For more, see the [Filtering Functions](api/#filtering-functions) and 
-[Mapping Functions](api/#mapping-functions) sections of QuDirac's [API](api.md)
+[Mapping Functions](api/#mapping-functions) sections of QuDirac's [API](api.md).
