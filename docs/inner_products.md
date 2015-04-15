@@ -117,7 +117,7 @@ inner_rettype (generic function with 4 methods)
 ```
 
 ---
-# `ScalarExpr` and `inner_eval`
+# Delayed Inner Product Evaluation
 ---
 
 Evaluation using the `UndefinedInner` type yields objects of type `ScalarExpr`. These objects are merely representations of unevaluated inner products, and can be treated like numbers in most respects:
