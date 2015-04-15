@@ -185,11 +185,46 @@ Ket{UndefinedInner,2,Int64} with 2 state(s):
 ```
 
 ---
-# Supported Functions with `InnerExpr`
+# Functions supported by `InnerExpr`
 ---
 
-The following is a list of the functions supported for use with scalar expressions:
+The following is a list of the functions supported for use with `InnerExpr` (keep in mind that `InnerExpr <: Number`):
 
+```
+one(::InnerExpr)
+zero(::InnerExpr)
 
+abs(::InnerExpr)
+abs2(::InnerExpr)
 
+conj(::InnerExpr)
+ctranspose(::InnerExpr)
 
++(::InnerExpr, ::Number)
++(::Number, ::InnerExpr)
+
+-(::InnerExpr, ::Number)
+-(::Number, ::InnerExpr)
+
+/(::InnerExpr, ::Number)
+/(::Number, ::InnerExpr)
+
+*(::InnerExpr, ::Number)
+*(::Number, ::InnerExpr)
+
+^(::InnerExpr, ::Number)
+^(::Number, ::InnerExpr)
+
+exp(::InnerExpr)
+exp2(::InnerExpr)
+
+sqrt(::InnerExpr)
+
+log(::InnerExpr, ::Number)
+log(::Number, ::InnerExpr)
+
+log(::InnerExpr)
+log2(::InnerExpr)
+```
+
+If you would like support for a function not in the above list, feel free to open an issue or pull request on the QuDirac repo.
