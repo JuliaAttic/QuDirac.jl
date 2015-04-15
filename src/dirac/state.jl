@@ -12,7 +12,7 @@ end
 
 Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
 
-ket{N}(ptype::AbstractInner, label::StateLabel{N}) = Ket(ptype, [label => 1])
+ket(ptype::AbstractInner, label::StateLabel) = Ket(ptype, [label => 1])
 ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
 
 function default_inner(ptype::AbstractInner)
@@ -175,7 +175,7 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-QuBase.tensor{P,N,M,A,B}(a::Ket{P,N,A}, b::Ket{P,M,B}) = Ket(ptype(b), tensordict!(StateDict{N+M,promote_type(A,B)}(), dict(a), dict(b)))
+QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(ptype(b), tensordict(dict(a), dict(b)))
 QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)

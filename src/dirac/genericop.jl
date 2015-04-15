@@ -279,7 +279,7 @@ end
 ##########
 # tensor #
 ##########
-QuBase.tensor{P,N,M,A,B}(a::GenericOp{P,N,A}, b::GenericOp{P,M,B}) = GenericOp(ptype(a), tensordict!(OpDict{N+M,promote_type(A,B)}(), dict(a), dict(b)))
+QuBase.tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(ptype(a), tensordict(dict(a), dict(b)))
 QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
 QuBase.tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
 

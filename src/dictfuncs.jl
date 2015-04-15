@@ -7,6 +7,9 @@ function tensordict!(result, a, b)
     return result
 end
 
+tensordict{N,M,A,B}(a::StateDict{N,A}, b::StateDict{M,B}) = tensordict!(StateDict{N+M,promote_type(A,B)}(), a, b)
+tensordict{N,M,A,B}(a::OpDict{N,A}, b::OpDict{M,B}) = tensordict!(OpDict{N+M,promote_type(A,B)}(), a, b)
+
 function add_merge!(result, other)
     for (k,v) in other
         add_to_dict!(result, k, v)
