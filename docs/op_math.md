@@ -10,7 +10,7 @@ Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 0,0 ⟩
 
 julia> k*k'
-OuterProduct{KroneckerDelta,2,Int64,Float64,Float64} with 4 operator(s):
+OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
@@ -21,7 +21,7 @@ Specifically, an outer product of two states will yield an instance of the `Oute
 
 The `OuterProduct` type is a lazy representation of the outer product of two states - it simply stores a reference to 
 the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
-a *view* onto the factor states. Several coefficient types are parameterized in the type - the first is for a global scalar, the second for the Ket, and the third for the Bra. This allows memory-efficient construction of density operators and the like.
+a *view* onto the factor states.
 
 With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `GenericOp` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view. 
 
@@ -33,15 +33,15 @@ Like states, operators can be multiplied by a scalar:
 
 ```
 julia> op = ket('a') * bra('b')
-OuterProduct{KroneckerDelta,1,Int64,Int64,Int64} with 1 operator(s):
+OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   1 | 'a' ⟩⟨ 'b' |
 
 julia> im * op
-OuterProduct{KroneckerDelta,1,Complex{Int64},Int64,Int64} with 1 operator(s):
+OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   0 + 1im | 'a' ⟩⟨ 'b' |
 
 julia> op/2
-OuterProduct{KroneckerDelta,1,Float64,Int64,Int64} with 1 operator(s):
+OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   0.5 | 'a' ⟩⟨ 'b' |
 ```
 ---
@@ -115,7 +115,7 @@ Use the `*` function to take the inner product of states/operators:
 
 ```
 julia> k = 1/√2 * (ket(0,0) - ket(1,1)); op = k*k'
-OuterProduct{KroneckerDelta,2,Int64,Float64,Float64} with 4 operator(s):
+OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
@@ -130,7 +130,7 @@ julia> bra(0,0) * op * ket(1,1)
 -0.4999999999999999
 
 julia> op * (ket(1,1) * bra(0,0))
-OuterProduct{KroneckerDelta,2,Float64,Float64,Int64} with 2 operator(s):
+OuterProduct with 2 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Int64}:
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
 ```
@@ -184,7 +184,7 @@ already used for inner products. Thus, one must use the `tensor` function:
 
 ```
 julia> tensor(op,op,op,op) # op from previous example
-OuterProduct{KroneckerDelta,8,Int64,Float64,Float64} with 256 operator(s):
+OuterProduct with 256 operator(s); Ket{KroneckerDelta,8,Float64} * Bra{KroneckerDelta,8,Float64}:
   0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 1,1,1,1,0,0,0,0 |
   -0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
   -0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 1,1,1,1,1,1,0,0 |
@@ -194,7 +194,7 @@ OuterProduct{KroneckerDelta,8,Int64,Float64,Float64} with 256 operator(s):
   ⁞
 
 julia> tensor(op, ket('a')*bra('b'))
-OuterProduct{KroneckerDelta,3,Int64,Float64,Float64} with 4 operator(s):
+OuterProduct with 4 operator(s); Ket{KroneckerDelta,3,Float64} * Bra{KroneckerDelta,3,Float64}:
   0.4999999999999999 | 0,0,'a' ⟩⟨ 0,0,'b' |
   -0.4999999999999999 | 0,0,'a' ⟩⟨ 1,1,'b' |
   -0.4999999999999999 | 1,1,'a' ⟩⟨ 0,0,'b' |
@@ -230,7 +230,7 @@ Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 'b','a' ⟩
 
 julia> dense = bell * bell'
-OuterProduct{KroneckerDelta,2,Int64,Float64,Float64} with 4 operator(s):
+OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
   0.4999999999999999 | 'b','a' ⟩⟨ 'b','a' |
   0.4999999999999999 | 'b','a' ⟩⟨ 'a','b' |
   0.4999999999999999 | 'a','b' ⟩⟨ 'b','a' |

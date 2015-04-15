@@ -22,7 +22,7 @@ Bra{KroneckerDelta,2,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 1,1 |
 
 julia> op = bell * bell'
-OuterProduct{KroneckerDelta,2,Int64,Float64,Float64} with 4 operator(s):
+OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:  
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |

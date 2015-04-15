@@ -87,7 +87,7 @@ except two labels are required; one for the basis Ket, and another for the basis
 
 ```
 julia> k = sum(i->i*ket(i), 1:10); op = k*k'
-OuterProduct{KroneckerDelta,1,Int64,Int64,Int64} with 100 operator(s):
+OuterProduct with 100 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   81 | 9 ⟩⟨ 9 |
   36 | 9 ⟩⟨ 4 |
   72 | 9 ⟩⟨ 8 |
@@ -100,7 +100,7 @@ julia> op[6,8]
 48
 
 julia> op = tensor(op,op,op)
-OuterProduct{KroneckerDelta,3,Int64,Int64,Int64} with 1000000 operator(s):
+OuterProduct with 1000000 operator(s); Ket{KroneckerDelta,3,Int64} * Bra{KroneckerDelta,3,Int64}:
   1600 | 4,5,2 ⟩⟨ 4,5,2 |
   1920 | 4,5,2 ⟩⟨ 2,8,3 |
   8640 | 4,5,2 ⟩⟨ 6,6,6 |
@@ -120,7 +120,7 @@ Assigning coefficients, however, only works with `GenericOp`s (due to the
 
 ```
 julia> op[(8,1,10),(2,1,2)] = 1
-ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3,Int64,Int64,Int64}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
+ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3,Int64,Ket{KroneckerDelta,3,Int64},Bra{KroneckerDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
 
 julia> gop = convert(GenericOp, op)
 GenericOp{KroneckerDelta,3,Int64} with 1000000 operator(s):
