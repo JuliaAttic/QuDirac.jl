@@ -3,7 +3,7 @@
 ###########
 typealias StateDict{N,T} Dict{StateLabel{N},T}
 
-type Ket{P,N,T} <: DiracState{P,N,T}
+type Ket{P,N,T} <: DiracState{P,N}
     ptype::P
     dict::StateDict{N,T}
     Ket(ptype, dict) = new(ptype, dict)
@@ -21,7 +21,7 @@ end
 
 default_inner(KroneckerDelta())
 
-type Bra{P,N,T} <: DiracState{P,N,T}
+type Bra{P,N,T} <: DiracState{P,N}
     kt::Ket{P,N,T}
 end
 
@@ -41,7 +41,8 @@ ptype(b::Bra) = ptype(b.kt)
 #######################
 # Dict-Like Functions #
 #######################
-Base.eltype{P,N,T}(::DiracState{P,N,T}) = T
+Base.eltype{P,N,T}(::Ket{P,N,T}) = T
+Base.eltype{P,N,T}(::Bra{P,N,T}) = T
 
 Base.copy(kt::Ket) = Ket(ptype(kt), copy(dict(kt)))
 Base.copy(br::Bra) = Bra(copy(br.kt))

@@ -1,7 +1,7 @@
 ####################
 # GenericOp/DualOp #
 ####################
-abstract GeneralOp{P,N,T} <: DiracOp{P,N,T}
+abstract GeneralOp{P,N,T} <: DiracOp{P,N}
 
 typealias OpDict{N,T} Dict{OuterLabel{N},T}
 

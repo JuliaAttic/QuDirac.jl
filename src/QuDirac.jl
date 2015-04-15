@@ -19,9 +19,9 @@ module QuDirac
     immutable UndefinedInner <: AbstractInner end 
     immutable KroneckerDelta <: AbstractInner end
     
-    abstract AbstractDirac{P<:AbstractInner,N,T}
-    abstract DiracOp{P,N,T} <: AbstractDirac{P,N,T}
-    abstract DiracState{P,N,T} <: AbstractDirac{P,N,T}
+    abstract AbstractDirac{P<:AbstractInner,N}
+    abstract DiracOp{P,N} <: AbstractDirac{P,N}
+    abstract DiracState{P,N} <: AbstractDirac{P,N}
 
     abstract DiracScalar <: Number
 
