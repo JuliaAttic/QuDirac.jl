@@ -1,7 +1,7 @@
 ################
 # OuterProduct #
 ################
-type OuterProduct{P,N,S,K<:Ket{P,N},B<:Bra{P,N}} <: DiracOp{P,N}
+type OuterProduct{P,N,S,K<:Ket,B<:Bra} <: DiracOp{P,N}
     scalar::S
     kt::K
     br::B
