@@ -21,3 +21,5 @@ op_copy[3,0] = 32+im
 
 @test_approx_eq norm(qubits) 1
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)
+
+@assert act_on(bra(1), ket('a','b','c'), 2) == (bra(1) * ket('b')) * ket('a','c')

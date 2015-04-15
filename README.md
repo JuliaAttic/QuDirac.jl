@@ -108,7 +108,7 @@ julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 julia> default_inner(UndefinedInner());
 
 julia> d" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
-((⟨ 'a','b' | 1,1 ⟩ + ⟨ 'a','b' | 0,0 ⟩) / 1.4142135623730951)
+((⟨ 'a','b' | 0,0 ⟩ + ⟨ 'a','b' | 1,1 ⟩) / 1.4142135623730951)
 ```
 
 #### ...and other stuff (examples and documentation coming soon)

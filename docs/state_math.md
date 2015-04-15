@@ -45,10 +45,7 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 1 ⟩
 ```
 
-Two key observations can be made here: 
-
-1. The basis states of a Ket are unordered. See the [Labels and coefficients](labels_and_coeffs.md) section for more info about Bras and Kets as data structures.
-2. States do not automatically normalize themselves under operations like addition, which leads us to the next section...
+As you can see, states do not automatically normalize themselves under operations like addition. This leads us to the next section...
 
 ---
 # Normalization

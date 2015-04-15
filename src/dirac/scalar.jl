@@ -1,13 +1,10 @@
 ##############
 # InnerLabel #
 ##############
-immutable InnerProduct{P<:AbstractInner,N} <: DiracScalar
-    ptype::P
+immutable InnerProduct{N} <: DiracScalar
     b::StateLabel{N}
     k::StateLabel{N}
 end
-
-InnerProduct(ptype, b, k) = InnerProduct(ptype, StateLabel(k), StateLabel(b))
 
 blabel(i::InnerProduct) = i.b
 klabel(i::InnerProduct) = i.k
@@ -15,36 +12,34 @@ klabel(i::InnerProduct) = i.k
 Base.repr(i::InnerProduct) = brstr(blabel(i))*ktstr(klabel(i))[2:end]
 Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 
-Base.(:(==))(a::InnerProduct, b::InnerProduct) = a.ptype == b.ptype && 
-                                             blabel(a) == blabel(b) &&
-                                             klabel(a) == klabel(b) 
+Base.(:(==))(a::InnerProduct, b::InnerProduct) = blabel(a) == blabel(b) && klabel(a) == klabel(b)                                             
 Base.(:(==))(::InnerProduct, ::Number) = false
 Base.(:(==))(::Number, ::InnerProduct) = false
 
-Base.conj(i::InnerProduct) = InnerProduct(i.ptype, klabel(i), blabel(i))
+Base.hash(i::InnerProduct) = hash(blabel(i), hash(klabel(i)))
+Base.hash(i::InnerProduct, h::Uint64) = hash(hash(i), h)
+
+Base.conj(i::InnerProduct) = InnerProduct(klabel(i), blabel(i))
 
 ##############
 # inner_rule #
 ##############
-function inner_labels{N}(p::AbstractInner, b::StateLabel{N}, k::StateLabel{N})
-    v = 1
-    for i=1:N
-        v *= inner_rule(p, b[i], k[i])
-    end
-    return v
-end
 
-inner_rule(p::AbstractInner, b, k) = inner_rule(UndefinedInner(), b, k)
+# we can cheat here to avoid tempory StateLabel construction
+# to evaluate KroneckerDelta inner products 
+eval_inner_rule(p::KroneckerDelta, b, k) = inner_rule(p, b, k)
+eval_inner_rule(p::KroneckerDelta, b::StateLabel, k::StateLabel) = inner_rule(p, b, k)
 
-inner_labels(p::UndefinedInner, b::StateLabel, k::StateLabel) = ScalarExpr(InnerProduct(p, b, k))
-inner_rule(p::UndefinedInner, b, k) = ScalarExpr(InnerProduct(p, b, k))
+eval_inner_rule(p::AbstractInner, b::StateLabel, k::StateLabel) = inner_rule(p, b, k)
+eval_inner_rule(p::AbstractInner, b, k) = inner_rule(p, StateLabel(b), StateLabel(k))
 
-inner_labels(::KroneckerDelta, b::StateLabel, k::StateLabel) = b == k ? 1 : 0
+inner_rule{P<:AbstractInner}(::P, b, k) = error("inner_rule(::$P, ::StateLabel, ::StateLabel) must be defined to evaluate inner products with type $P")
+inner_rule(::UndefinedInner, b, k) = ScalarExpr(InnerProduct(b, k))
 inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 
-inner_type(::AbstractInner) = Any
-inner_type(::UndefinedInner) = ScalarExpr
-inner_type(::KroneckerDelta) = Int64
+inner_rettype{P<:AbstractInner}(::P) = first(Base.return_types(inner_rule, (P, StateLabel, StateLabel)))
+inner_rettype(::UndefinedInner) = ScalarExpr
+inner_rettype(::KroneckerDelta) = Int64
 
 ##############
 # ScalarExpr #
@@ -70,14 +65,17 @@ end
 ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
 ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
 
+Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
+Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
+
 Base.(:(==))(a::ScalarExpr, b::ScalarExpr) = a.ex == b.ex
-Base.(:(==))(a::InnerProduct, b::ScalarExpr) = ScalarExpr(a) == b
-Base.(:(==))(a::ScalarExpr, b::InnerProduct) = a == ScalarExpr(b)
+Base.(:(==))(s::ScalarExpr, i::InnerProduct) = s == ScalarExpr(i)
+Base.(:(==))(i::InnerProduct, s::ScalarExpr) = s == i
 Base.(:(==))(::ScalarExpr, ::Number) = false
 Base.(:(==))(::Number, ::ScalarExpr) = false
 
-Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
-Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
+Base.hash(s::ScalarExpr) = hash(s.ex)
+Base.hash(s::ScalarExpr, h::Uint64) = hash(hash(s), h)
 
 Base.one(::ScalarExpr) = ScalarExpr(1)
 Base.zero(::ScalarExpr) = ScalarExpr(0)
@@ -90,29 +88,16 @@ Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
 ##############
 # inner_eval #
 ##############
-inner_eval(i::InnerProduct) = inner_labels(i.ptype, blabel(i), klabel(i))
-inner_eval(s::ScalarExpr) = eval(inner_reduce!(copy(s.ex)))
-inner_eval(f::Function, s::ScalarExpr) = eval(f_reduce!(f, copy(s.ex)))
-inner_eval(n::Number) = n
+inner_eval(f, s::ScalarExpr) = eval(inner_reduce!(f, copy(s.ex)))
 
-inner_reduce!(s::ScalarExpr) = inner_reduce!(copy(s.ex))
-inner_reduce!(i::InnerProduct) = inner_eval(i)
-inner_reduce!(n) = n
+inner_reduce!(f, s::ScalarExpr) = inner_reduce!(f, copy(s.ex))
+inner_reduce!(f::Function, i::InnerProduct) = f(blabel(i), klabel(i))
+inner_reduce!(p::AbstractInner, i::InnerProduct) = inner_rule(p, blabel(i), klabel(i))
+inner_reduce!(f, n) = n
 
-function inner_reduce!(ex::Expr)
+function inner_reduce!(f, ex::Expr)
     for i=1:length(ex.args)
-        ex.args[i] = inner_reduce!(ex.args[i])
-    end
-    return ex
-end
-
-f_reduce!(f::Function, s::ScalarExpr) = f_reduce!(f, copy(s.ex))
-f_reduce!(f::Function, i::InnerProduct) = f(blabel(i), klabel(i))
-f_reduce!(f::Function, n) = n
-
-function f_reduce!(f::Function, ex::Expr)
-    for i=1:length(ex.args)
-        ex.args[i] = f_reduce!(f, ex.args[i])
+        ex.args[i] = inner_reduce!(f, ex.args[i])
     end
     return ex
 end
@@ -313,6 +298,4 @@ end
 Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
 
 export inner_eval,
-    inner_rule,
-    inner_labels,
-    inner_type
+    inner_rule

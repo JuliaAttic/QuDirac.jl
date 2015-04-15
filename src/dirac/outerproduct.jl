@@ -22,9 +22,11 @@ Base.promote_rule{G<:GenericOp, O<:OuterProduct}(::Type{G}, ::Type{O}) = Generic
 #######################
 Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), eltype(op.br))
 
-Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = a.scalar == b.scalar && a.kt == b.kt && a.br == b.br
+# these equality/hash functions are pretty inefficient...
+Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(GenericOp, a) == convert(GenericOp, b) 
+Base.hash(op::OuterProduct) = hash(convert(GenericOp, op))
+Base.hash(op::OuterProduct, h::Uint64) = hash(hash(op), h)
 
-Base.hash(op::OuterProduct) = hash(op.scalar, hash(op.kt, hash(op.br)))
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
 Base.getindex(op::OuterProduct, k, b) = op.scalar * op.kt[k] * op.br[b]
@@ -117,7 +119,7 @@ function Base.trace(op::OuterProduct)
     for (k,v) in dict(op.kt), (b,c) in dict(op.br)
         if b == k
             i = b
-            result += v * c' * inner_labels(prodtype, i, i) * inner_labels(prodtype, i, i)
+            result += v * c' * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i)
         end
     end
     return op.scalar * result
@@ -142,7 +144,7 @@ function general_ptrace!(result, op::OuterProduct, over)
             i = k[over]
             add_to_dict!(result,
                          OuterLabel(except(k, over), except(b, over)),
-                         op[k,b] * inner_rule(prodtype, i, i) * inner_rule(prodtype, i, i))
+                         op[k,b] * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i))
         end
     end
     return result

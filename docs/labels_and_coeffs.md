@@ -7,7 +7,7 @@ There are few important things to keep in mind when working with these structure
 
 - All state labels are of type `StateLabel`.
 - All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra).
-- Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered. In other words, iteration through a QuDirac object's labels/coefficients is not guaranteed to be in any particular order.
+- Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
 ---
 #  Accessing/Assigning coefficients

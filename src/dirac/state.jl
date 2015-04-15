@@ -50,9 +50,10 @@ Base.copy(br::Bra) = Bra(copy(br.kt))
 Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
 Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 
-Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(a) == dict(b)
+Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(filternz(a)) == dict(filternz(b))
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
-Base.hash(s::DiracState) = hash(dict(s), hash(typeof(s)))
+Base.hash(s::DiracState) = hash(dict(filternz(s)), hash(ptype(s)))
+Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
 
 Base.length(s::DiracState) = length(dict(s))
 
@@ -91,7 +92,7 @@ function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
     result = 0
     prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        result += c'*v*inner_labels(prodtype,b,k)
+        result += c'*v*eval_inner_rule(prodtype,b,k)
     end
     return result  
 end
@@ -132,13 +133,13 @@ end
 
 function act_on{P,N,A,B}(br::Bra{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(br)
-    result = StateDict{N-1, promote_type(A, B, inner_type(prodtype))}()
+    result = StateDict{N-1, promote_type(A, B, inner_rettype(prodtype))}()
     return Ket(prodtype, act_on_dict!(result, br, kt, i, prodtype))
 end
 
 function act_on_dict!(result, br::Bra, kt::Ket, i, prodtype)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        add_to_dict!(result, except(k,i), c'*v*inner_rule(prodtype, b[1], k[i]))
+        add_to_dict!(result, except(k,i), c'*v*eval_inner_rule(prodtype, b[1], k[i]))
     end
     return result
 end
@@ -208,8 +209,7 @@ end
 purity(kt::Ket) = purity(kt*kt')
 purity(br::Bra) = purity(br.kt)
 
-inner_eval(f::Function, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
-inner_eval(s::DiracState) = mapcoeffs(inner_eval,s)
+inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 
 ######################
 # Printing Functions #
