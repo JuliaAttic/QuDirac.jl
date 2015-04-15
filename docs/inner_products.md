@@ -12,7 +12,7 @@ immutable UndefinedInner <: AbstractInner end
 Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
 
 ```
-inner_rule(p::UndefinedInner, b::StateLabel, k::StateLabel) = ScalarExpr(InnerProduct(p, b, k)) # lazy evaluation of inner product
+inner_rule(p::UndefinedInner, b::StateLabel, k::StateLabel) = InnerExpr(InnerProduct(p, b, k)) # lazy evaluation of inner product
 inner_rule(::KroneckerDelta, b::StateLabel, k::StateLabel) = b == k ? 1 : 0
 ```
 
@@ -105,7 +105,7 @@ julia> bra(1,2,3)*ket(4,-5,6)
 For certain operations, QuDirac tries to predict the return type of `inner_rule` to allow for more exact coefficient type inferencing. You can help this prediction by defining a method for the `inner_rettype` function that specificies what the return type will be for your custom inner product evaluations. For example, for the `KroneckerDelta` and `UndefinedInner` types, the following are defined:
 
 ```
-inner_rettype(::UndefinedInner) = ScalarExpr
+inner_rettype(::UndefinedInner) = InnerExpr
 inner_rettype(::KroneckerDelta) = Int64
 ```
 
@@ -120,7 +120,7 @@ inner_rettype (generic function with 4 methods)
 # Delayed Inner Product Evaluation
 ---
 
-Evaluation using the `UndefinedInner` type yields objects of type `ScalarExpr`. These objects are merely representations of unevaluated inner products, and can be treated like numbers in most respects:
+Evaluation using the `UndefinedInner` type yields objects of type `InnerExpr`. These objects are merely representations of unevaluated inner products, and can be treated like numbers in most respects:
 
 ```
 julia> default_inner(UndefinedInner());
@@ -133,14 +133,14 @@ julia> s = √((bra(1) * ket(3))^2 + 1)
 (sqrt(((⟨ 1 | 3 ⟩^2) + 1)))
 
 julia> typeof(s)
-ScalarExpr (constructor with 4 methods)
+InnerExpr (constructor with 4 methods)
 
 julia> s * ket(1,2,3)
 Ket{UndefinedInner,3,Number} with 1 state(s):
   (sqrt(((⟨ 1 | 3 ⟩^2) + 1))) | 1,2,3 ⟩
 ```
 
-The `inner_eval` function can be used to re-evaluate `ScalarExpr`s by mapping a function to each unresolved inner product:
+The `inner_eval` function can be used to re-evaluate `InnerExpr`s by mapping a function to each unresolved inner product:
 
 ```
 julia> s = (e^(bra(1,2) * ket(3,4)) + (bra(5,6)*ket(7,8))im)^4
@@ -157,7 +157,7 @@ julia> inner_eval(f, s) == ((e^((3+4) - (1+2))) + (((7+8) - (5+6)) * im))^4
 true
 ```
 
-One can pass in inner product type instances instead of functions, which will evaluate the `ScalarExpr` using the inner product type's `inner_rule` method:
+One can pass in inner product type instances instead of functions, which will evaluate the `InnerExpr` using the inner product type's `inner_rule` method:
 
 ```
 # evaluate s using KroneckerDelta inner_rule
@@ -185,7 +185,7 @@ Ket{UndefinedInner,2,Int64} with 2 state(s):
 ```
 
 ---
-# Supported Functions with `ScalarExpr`
+# Supported Functions with `InnerExpr`
 ---
 
 The following is a list of the functions supported for use with scalar expressions:

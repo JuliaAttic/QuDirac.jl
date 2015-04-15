@@ -34,63 +34,63 @@ eval_inner_rule(p::AbstractInner, b::StateLabel, k::StateLabel) = inner_rule(p, 
 eval_inner_rule(p::AbstractInner, b, k) = inner_rule(p, StateLabel(b), StateLabel(k))
 
 inner_rule{P<:AbstractInner}(::P, b, k) = error("inner_rule(::$P, ::StateLabel, ::StateLabel) must be defined to evaluate inner products with type $P")
-inner_rule(::UndefinedInner, b, k) = ScalarExpr(InnerProduct(b, k))
+inner_rule(::UndefinedInner, b, k) = InnerExpr(InnerProduct(b, k))
 inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
 
 inner_rettype{P<:AbstractInner}(::P) = first(Base.return_types(inner_rule, (P, StateLabel, StateLabel)))
-inner_rettype(::UndefinedInner) = ScalarExpr
+inner_rettype(::UndefinedInner) = InnerExpr
 inner_rettype(::KroneckerDelta) = Int64
 
 ##############
-# ScalarExpr #
+# InnerExpr #
 ##############
-# A ScalarExpr is a type that wraps arthimetic expressions
+# A InnerExpr is a type that wraps arthimetic expressions
 # performed with DiracScalars. The allows storage and 
 # delayed evaluation of expressions. For example, this 
 # expression:
 #   
 #   (< a | b >^2 + < c | d >^2 - 3.13+im) / 2
 #
-# is representable as a ScalarExpr.
+# is representable as a InnerExpr.
 #
-# One can then use the inner_eval(::Function, ::ScalarExpr) 
+# One can then use the inner_eval(::Function, ::InnerExpr) 
 # function to map an evaluation function onto all InnerProducts
-# contained in the ScalarExpr, and evaluate the expression
+# contained in the InnerExpr, and evaluate the expression
 # arthimetically.
 
-immutable ScalarExpr <: DiracScalar
+immutable InnerExpr <: DiracScalar
     ex::Expr
 end
 
-ScalarExpr(s::ScalarExpr) = ScalarExpr(s.ex)
-ScalarExpr{N<:Number}(n::N) = convert(ScalarExpr, n)
+InnerExpr(s::InnerExpr) = InnerExpr(s.ex)
+InnerExpr{N<:Number}(n::N) = convert(InnerExpr, n)
 
-Base.convert(::Type{ScalarExpr}, s::ScalarExpr) = s
-Base.convert{N<:Number}(::Type{ScalarExpr}, n::N) = ScalarExpr(Expr(:call, +, n))
+Base.convert(::Type{InnerExpr}, s::InnerExpr) = s
+Base.convert{N<:Number}(::Type{InnerExpr}, n::N) = InnerExpr(Expr(:call, +, n))
 
-Base.(:(==))(a::ScalarExpr, b::ScalarExpr) = a.ex == b.ex
-Base.(:(==))(s::ScalarExpr, i::InnerProduct) = s == ScalarExpr(i)
-Base.(:(==))(i::InnerProduct, s::ScalarExpr) = s == i
-Base.(:(==))(::ScalarExpr, ::Number) = false
-Base.(:(==))(::Number, ::ScalarExpr) = false
+Base.(:(==))(a::InnerExpr, b::InnerExpr) = a.ex == b.ex
+Base.(:(==))(s::InnerExpr, i::InnerProduct) = s == InnerExpr(i)
+Base.(:(==))(i::InnerProduct, s::InnerExpr) = s == i
+Base.(:(==))(::InnerExpr, ::Number) = false
+Base.(:(==))(::Number, ::InnerExpr) = false
 
-Base.hash(s::ScalarExpr) = hash(s.ex)
-Base.hash(s::ScalarExpr, h::Uint64) = hash(hash(s), h)
+Base.hash(s::InnerExpr) = hash(s.ex)
+Base.hash(s::InnerExpr, h::Uint64) = hash(hash(s), h)
 
-Base.one(::ScalarExpr) = ScalarExpr(1)
-Base.zero(::ScalarExpr) = ScalarExpr(0)
+Base.one(::InnerExpr) = InnerExpr(1)
+Base.zero(::InnerExpr) = InnerExpr(0)
 
-Base.promote_rule{N<:Number}(::Type{ScalarExpr}, ::Type{N}) = Number
+Base.promote_rule{N<:Number}(::Type{InnerExpr}, ::Type{N}) = Number
 
-Base.length(s::ScalarExpr) = length(s.ex.args)
-Base.getindex(s::ScalarExpr, i) = s.ex.args[i]
+Base.length(s::InnerExpr) = length(s.ex.args)
+Base.getindex(s::InnerExpr, i) = s.ex.args[i]
 
 ##############
 # inner_eval #
 ##############
-inner_eval(f, s::ScalarExpr) = eval(inner_reduce!(f, copy(s.ex)))
+inner_eval(f, s::InnerExpr) = eval(inner_reduce!(f, copy(s.ex)))
 
-inner_reduce!(f, s::ScalarExpr) = inner_reduce!(f, copy(s.ex))
+inner_reduce!(f, s::InnerExpr) = inner_reduce!(f, copy(s.ex))
 inner_reduce!(f::Function, i::InnerProduct) = f(blabel(i), klabel(i))
 inner_reduce!(p::AbstractInner, i::InnerProduct) = inner_rule(p, blabel(i), klabel(i))
 inner_reduce!(f, n) = n
@@ -105,20 +105,20 @@ end
 ######################
 # Printing Functions #
 ######################
-Base.show(io::IO, s::ScalarExpr) = print(io, repr(s.ex)[2:end])
+Base.show(io::IO, s::InnerExpr) = print(io, repr(s.ex)[2:end])
 
 ##################
 # Exponentiation #
 ##################
-exponentiate(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)^$(b)))
+exponentiate(a::DiracScalar, b::DiracScalar) = InnerExpr(:($(a)^$(b)))
 
 function exponentiate(s::DiracScalar, n::Number)
     if n==1
-        return ScalarExpr(s)
+        return InnerExpr(s)
     elseif n==0
-        return ScalarExpr(1)
+        return InnerExpr(1)
     else
-        return ScalarExpr(:($(s)^$(n)))
+        return InnerExpr(:($(s)^$(n)))
     end
 end
 
@@ -126,146 +126,146 @@ Base.(:^)(s::DiracScalar, n::Integer) = exponentiate(s,n)
 Base.(:^)(s::DiracScalar, n::Rational) = exponentiate(s,n)
 Base.(:^)(s::DiracScalar, n::Number) = exponentiate(s,n)
 
-Base.exp(s::DiracScalar) = ScalarExpr(:(exp($(s))))
-Base.exp2(s::DiracScalar) = ScalarExpr(:(exp2($(s))))
+Base.exp(s::DiracScalar) = InnerExpr(:(exp($(s))))
+Base.exp2(s::DiracScalar) = InnerExpr(:(exp2($(s))))
 
-Base.sqrt(s::DiracScalar) = ScalarExpr(:(sqrt($(s))))
+Base.sqrt(s::DiracScalar) = InnerExpr(:(sqrt($(s))))
 
 # The reason we don't actually implement the below comment
 # out method for exp() is that we don't know for sure that 
 # the log is actually natural (base e), and it's probably 
 # not worth it in most cases to check. 
-# exp(s::DiracScalar) = length(s)==2 && s[1]==:log ? s[2] : ScalarExpr(:(exp($(s))))
+# exp(s::DiracScalar) = length(s)==2 && s[1]==:log ? s[2] : InnerExpr(:(exp($(s))))
 
-Base.log(s::DiracScalar) = length(s)==2 && s[1]==:exp ? s[2] : ScalarExpr(:(log($(s))))
-Base.log2(s::DiracScalar) = length(s)==2 && s[1]==:exp2 ? s[2] : ScalarExpr(:(log2($(s))))
+Base.log(s::DiracScalar) = length(s)==2 && s[1]==:exp ? s[2] : InnerExpr(:(log($(s))))
+Base.log2(s::DiracScalar) = length(s)==2 && s[1]==:exp2 ? s[2] : InnerExpr(:(log2($(s))))
 
-Base.log(a::MathConst{:e}, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
+Base.log(a::MathConst{:e}, b::DiracScalar) = InnerExpr(:(log($(a),$(b))))
 
-Base.log(a::DiracScalar, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
-Base.log(a::DiracScalar, b::Number) = ScalarExpr(:(log($(a),$(b))))
-Base.log(a::Number, b::DiracScalar) = ScalarExpr(:(log($(a),$(b))))
+Base.log(a::DiracScalar, b::DiracScalar) = InnerExpr(:(log($(a),$(b))))
+Base.log(a::DiracScalar, b::Number) = InnerExpr(:(log($(a),$(b))))
+Base.log(a::Number, b::DiracScalar) = InnerExpr(:(log($(a),$(b))))
 
 ##################
 # Multiplication #
 ##################
-Base.(:*)(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)*$(b)))
+Base.(:*)(a::DiracScalar, b::DiracScalar) = InnerExpr(:($(a)*$(b)))
 Base.(:*)(a::Bool, b::DiracScalar) = a ? *(1,b) : *(0,b)
 Base.(:*)(a::DiracScalar, b::Bool) = b ? *(a,1) : *(a,0)
 
 function Base.(:*)(a::DiracScalar, b::Number)
     if b==1
-        return ScalarExpr(a)
+        return InnerExpr(a)
     elseif b==0
-        return ScalarExpr(0)
+        return InnerExpr(0)
     else
-        return ScalarExpr(:($(a)*$(b)))
+        return InnerExpr(:($(a)*$(b)))
     end
 end
 
 function Base.(:*)(a::Number, b::DiracScalar)
     if a==1
-        return ScalarExpr(b)
+        return InnerExpr(b)
     elseif a==0
-        return ScalarExpr(0)
+        return InnerExpr(0)
     else
-        return ScalarExpr(:($(a)*$(b)))
+        return InnerExpr(:($(a)*$(b)))
     end
 end
 
 ##############
 ## Division ##
 ##############
-Base.(:/)(a::DiracScalar, b::DiracScalar) = a==b ? ScalarExpr(1) : ScalarExpr(:($(a)/$(b)))
+Base.(:/)(a::DiracScalar, b::DiracScalar) = a==b ? InnerExpr(1) : InnerExpr(:($(a)/$(b)))
 
 # the below is only implemented to prevent
 # ambiguity warnings
 function Base.(:/)(a::DiracScalar, b::Complex)
     if b==0
-        return ScalarExpr(Inf)
+        return InnerExpr(Inf)
     elseif b==1
-        return ScalarExpr(a)
+        return InnerExpr(a)
     else
-        return ScalarExpr(:($(a)/$(b)))
+        return InnerExpr(:($(a)/$(b)))
     end
 end
 
 function Base.(:/)(a::DiracScalar, b::Number)
     if b==0
-        return ScalarExpr(Inf)
+        return InnerExpr(Inf)
     elseif b==1
-        return ScalarExpr(a)
+        return InnerExpr(a)
     else
-        return ScalarExpr(:($(a)/$(b)))
+        return InnerExpr(:($(a)/$(b)))
     end
 end
 
 function Base.(:/)(a::Number, b::DiracScalar)
     if a==0
-        return ScalarExpr(0)
+        return InnerExpr(0)
     else
-        return ScalarExpr(:($(a)/$(b)))
+        return InnerExpr(:($(a)/$(b)))
     end
 end
 
 ##############
 ## Addition ##
 ##############
-Base.(:+)(a::DiracScalar, b::DiracScalar) = ScalarExpr(:($(a)+$(b)))
+Base.(:+)(a::DiracScalar, b::DiracScalar) = InnerExpr(:($(a)+$(b)))
 
 function Base.(:+)(a::DiracScalar, b::Number)
     if b==0
-        return ScalarExpr(a)
+        return InnerExpr(a)
     else
-        return ScalarExpr(:($(a)+$(b)))
+        return InnerExpr(:($(a)+$(b)))
     end
 end
 
 function Base.(:+)(a::Number, b::DiracScalar)
     if a==0
-        return ScalarExpr(b)
+        return InnerExpr(b)
     else
-        return ScalarExpr(:($(a)+$(b)))
+        return InnerExpr(:($(a)+$(b)))
     end
 end
 
 #################
 ## Subtraction ##
 #################
-Base.(:-)(s::ScalarExpr) = length(s)==2 && s[1]==:- ? ScalarExpr(s[2]) :  ScalarExpr(:(-$(s)))
-Base.(:-)(s::DiracScalar) = ScalarExpr(:(-$(s)))
+Base.(:-)(s::InnerExpr) = length(s)==2 && s[1]==:- ? InnerExpr(s[2]) :  InnerExpr(:(-$(s)))
+Base.(:-)(s::DiracScalar) = InnerExpr(:(-$(s)))
 
-Base.(:-)(a::DiracScalar, b::DiracScalar) = a==b ? ScalarExpr(0) : ScalarExpr(:($(a)-$(b)))
+Base.(:-)(a::DiracScalar, b::DiracScalar) = a==b ? InnerExpr(0) : InnerExpr(:($(a)-$(b)))
 
 function Base.(:-)(a::DiracScalar, b::Number)
     if b==0
-        return ScalarExpr(a)
+        return InnerExpr(a)
     else
-        return ScalarExpr(:($(a)-$(b)))
+        return InnerExpr(:($(a)-$(b)))
     end
 end
 
 function Base.(:-)(a::Number, b::DiracScalar)
     if a==0
-        return ScalarExpr(-b)
+        return InnerExpr(-b)
     else
-        return ScalarExpr(:($(a)+$(b)))
+        return InnerExpr(:($(a)+$(b)))
     end
 end
 
 ####################
 ## Absolute Value ##
 ####################
-Base.abs(s::ScalarExpr) = length(s)==2 && s[1]==:abs ? s :  ScalarExpr(:(abs($(s))))
-Base.abs(s::DiracScalar) = ScalarExpr(:(abs($s)))
+Base.abs(s::InnerExpr) = length(s)==2 && s[1]==:abs ? s :  InnerExpr(:(abs($(s))))
+Base.abs(s::DiracScalar) = InnerExpr(:(abs($s)))
 
-Base.abs2(s::DiracScalar) = ScalarExpr(:(abs2($s)))
+Base.abs2(s::DiracScalar) = InnerExpr(:(abs2($s)))
 
 #######################
 ## Complex Conjugate ##
 #######################
-Base.conj(s::ScalarExpr) = length(s)==2 && s[1]==:conj ? ScalarExpr(s[2]) :  ScalarExpr(:(conj($(s))))
-Base.conj(s::DiracScalar) = ScalarExpr(:(conj($(s))))
+Base.conj(s::InnerExpr) = length(s)==2 && s[1]==:conj ? InnerExpr(s[2]) :  InnerExpr(:(conj($(s))))
+Base.conj(s::DiracScalar) = InnerExpr(:(conj($(s))))
 Base.ctranspose(s::DiracScalar) = conj(s)
 
 ############################
@@ -283,7 +283,7 @@ end
 ########################
 ## Printing Functions ##
 ########################
-function Base.repr(s::ScalarExpr)
+function Base.repr(s::InnerExpr)
     if s[1]==+
         if length(s)==2
             return repr(s[2])
@@ -295,7 +295,7 @@ function Base.repr(s::ScalarExpr)
     end
 end
 
-Base.show(io::IO, s::ScalarExpr) = print(io, repr(s))
+Base.show(io::IO, s::InnerExpr) = print(io, repr(s))
 
 export inner_eval,
     inner_rule
