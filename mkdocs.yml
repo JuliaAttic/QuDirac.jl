@@ -1,5 +1,7 @@
 site_name: QuDirac.jl
 repo_url: https://github.com/JuliaQuantum/QuDirac.jl
+theme: readthedocs
+markdown_extensions: [fenced_code]
 pages:
 - ['index.md', 'Introduction']
 - ['constructing_states.md', 'User Guide', 'Constructing Single States']

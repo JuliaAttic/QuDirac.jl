@@ -19,7 +19,7 @@ There are few important things to keep in mind when working with these structure
 
 Julia's `getindex` function has been overloaded to allow coefficients of a state to be accessed by the basis states' labels:
 
-```
+```julia
 julia> k = normalize(sum(i->i*ket(i), 1:3))
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.8017837257372732 | 3 ⟩
@@ -33,7 +33,7 @@ julia> k[3]
 
 The coefficients of product states are accessed in the same fashion:
 
-```
+```julia
 julia> k4 = k^4
 Ket{KroneckerDelta,4,Float64} with 81 state(s):
   0.03061224489795919 | 2,1,3,1 ⟩
@@ -51,7 +51,7 @@ julia> k4[3,2,3,3]
 
 One can also use `setindex!` on states: 
 
-```
+```julia
 julia> k = 0.0*ket(0)
 Ket{KroneckerDelta,1,Float64} with 1 state(s):
   0.0 | 0 ⟩
@@ -66,7 +66,7 @@ Ket{KroneckerDelta,1,Float64} with 3 state(s):
 Performing a `setindex!` operation on a state is faster than constructing new states 
 for the sake of addition/subtraction, but is a mutation of the orginal state:
 
-```
+```julia
 julia> k + ket(0) # this requires constructing a new instance of | 0 ⟩
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.2182178902359924 | 2 ⟩
@@ -85,7 +85,7 @@ julia> k[0] += 1 # faster than the above, but mutates k
 Operator coefficients are accessed in the same manner as state coefficients, 
 except two labels are required; one for the basis Ket, and another for the basis Bra:
 
-```
+```julia
 julia> k = sum(i->i*ket(i), 1:10); op = k*k'
 OuterProduct with 100 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   81 | 9 ⟩⟨ 9 |
@@ -118,7 +118,7 @@ The above obviously works with `GenericOp`s as well as `OuterProduct`s.
 Assigning coefficients, however, only works with `GenericOp`s (due to the 
 `OuterProduct` type simply being a view on its underlying state factors):
 
-```
+```julia
 julia> op[(8,1,10),(2,1,2)] = 1
 ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3,Int64,Ket{KroneckerDelta,3,Int64},Bra{KroneckerDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
 
@@ -145,7 +145,7 @@ julia> gop[(8,1,10),(2,1,2)]
 
 If a label is not explictly present in a QuDirac object, then calling `getindex` with that label results in an error: 
 
-```
+```julia
 julia> k = sum(i-> i * ket(i), 1:3)^3
 Ket{KroneckerDelta,3,Int64}} with 27 state(s):
   12 | 2,2,3 ⟩
@@ -164,7 +164,7 @@ ERROR: key not found: StateLabel{3}('a','b','c')
 
 QuDirac overloads Julia's `get` method in order to provide more flexibility in the above scenario. By default, `get` is defined to return a `0` instead of an error if the label it's given isn't found:
 
-```
+```julia
 julia> get(k, ('a', 'b', 'c'))
 0
 
@@ -177,7 +177,7 @@ true
 
 One can pass in an extra argument to `get` that replaces `0` as the default return value: 
 
-```
+```julia
 julia> get(k, ('a', 'b', 'c'), "Not here")
 "Not here"
 ```

@@ -22,7 +22,7 @@ which takes a function, a Ket, and a factor index as arguments.
 
 Let's say we have a simple Ket `k`:
 
-```
+```julia
 julia> k = normalize(sum(ket, 0:4))
 Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 4 ⟩
@@ -34,7 +34,7 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
 
 Now we can define our lowering operator in `k`'s basis:
 
-```
+```julia
 julia> f(label) = (sqrt(label), label-1)
 f (generic function with 1 method)
 
@@ -68,7 +68,7 @@ construct â such that
 
 As we can see, this operator we defined works as expected:
 
-```
+```julia
 julia> â*k
 Ket{KroneckerDelta,1,Float64} with 4 state(s):
   0.8944271909999159 | 3 ⟩
@@ -94,7 +94,7 @@ operator on the second factor of a three-factor basis.
 
 We'll just reuse `k` from the previous example to construct our basis labels:
 
-```
+```julia
 julia> k3 = k^3
 Ket{KroneckerDelta,3,Float64} with 125 state(s):
   0.08944271909999157 | 0,1,2 ⟩
@@ -108,7 +108,7 @@ Ket{KroneckerDelta,3,Float64} with 125 state(s):
 
 ...and we can reuse `f` as well, but define the operator on the second factor:
 
-```
+```julia
 julia> â₂ = func_op(f, k3, 2)
 GenericOp{KroneckerDelta,3,Float64} with 100 operator(s):
   1.4142135623730951 | 0,1,2 ⟩⟨ 0,2,2 |
@@ -122,7 +122,7 @@ GenericOp{KroneckerDelta,3,Float64} with 100 operator(s):
 
 Testing it out:
 
-```
+```julia
 julia> â₂ * k3
 Ket{KroneckerDelta,3,Float64} with 100 state(s):
   0.12649110640673517 | 0,1,2 ⟩
@@ -144,7 +144,7 @@ Ket{KroneckerDelta,3,Float64} with 1 state(s):
 
 If you wish to functionally define an operator on all factors of the basis, you may easily do so by omitting the factor index as an argument:
 
-```
+```julia
 julia> k = sum(i -> i * ket(i,i+1,i+2), 1:10)
 Ket{KroneckerDelta,3,Int64} with 10 state(s):
   4 | 4,5,6 ⟩

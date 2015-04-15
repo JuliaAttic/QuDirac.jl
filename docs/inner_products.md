@@ -3,7 +3,7 @@
 
 Every QuDirac state or operator has a type parameter `P<:AbstractInner` which describes the inner product behavior for the object. QuDirac comes with two such inner product types:
 
-```
+```julia
 abstract AbstractInner
 immutable KroneckerDelta <: AbstractInner end
 immutable UndefinedInner <: AbstractInner end
@@ -11,7 +11,7 @@ immutable UndefinedInner <: AbstractInner end
 
 Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
 
-```
+```julia
 inner_rule(p::UndefinedInner, b::StateLabel, k::StateLabel) = InnerExpr(InnerProduct(p, b, k)) # lazy evaluation of inner product
 inner_rule(::KroneckerDelta, b::StateLabel, k::StateLabel) = b == k ? 1 : 0
 ```
@@ -24,7 +24,7 @@ The arguments to `inner_rule` are, in order:
 
 Most examples in this documentation show the `KroneckerDelta` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
 
-```
+```julia
 julia> k = sum(i->i*ket(i), 1:5)
 Ket{UndefinedInner,1,Int64} with 5 state(s):
   4 | 4 ⟩
@@ -54,7 +54,7 @@ The parens in the above result may look ugly, but are currently necessary for di
 To create an instance of a Ket or Bra with a specific inner product type, you can simply 
 pass an instance of the type to the `ket` or `bra` function:
 
-```
+```julia
 julia> ket(UndefinedInner(), 1, 2)
 Ket{UndefinedInner,2,Int64} with 1 state(s):
   1 | 1,2 ⟩
@@ -62,7 +62,7 @@ Ket{UndefinedInner,2,Int64} with 1 state(s):
 
 If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `default_inner` function:
 
-```
+```julia
 julia> default_inner(UndefinedInner());
 
 julia> ket(1,2)
@@ -82,7 +82,7 @@ As you've probably noticed from previous examples, the out-of-the-box default in
 
 One can easily define their own inner product type in order to overload QuDirac's built-in behavior:
 
-```
+```julia
 julia> immutable SumInner <: AbstractInner end
 
 julia> QuDirac.inner_rule(::SumInner, k, b) = sum(k) + sum(b)
@@ -104,14 +104,14 @@ julia> bra(1,2,3)*ket(4,-5,6)
 
 For certain operations, QuDirac tries to predict the return type of `inner_rule` to allow for more exact coefficient type inferencing. You can help this prediction by defining a method for the `inner_rettype` function that specificies what the return type will be for your custom inner product evaluations. For example, for the `KroneckerDelta` and `UndefinedInner` types, the following are defined:
 
-```
+```julia
 inner_rettype(::UndefinedInner) = InnerExpr
 inner_rettype(::KroneckerDelta) = Int64
 ```
 
 Another example: If my use of `SumInner` will be restricted to cases where the state labels hold `Int64`s, it's easy to see that evaluations using `SumInner` will always produce `Int64`s. I can then share this assumption with QuDirac by defining the following:
 
-```
+```julia
 julia> QuDirac.inner_rettype(::SumInner) = Int64
 inner_rettype (generic function with 4 methods)
 ```
@@ -122,7 +122,7 @@ inner_rettype (generic function with 4 methods)
 
 Evaluation using the `UndefinedInner` type yields objects of type `InnerExpr`. These objects are merely representations of unevaluated inner products, and can be treated like numbers in most respects:
 
-```
+```julia
 julia> default_inner(UndefinedInner());
 
 julia> act_on(bra('x'), ket('a','b','c'), 2)
@@ -142,7 +142,7 @@ Ket{UndefinedInner,3,Number} with 1 state(s):
 
 The `inner_eval` function can be used to re-evaluate `InnerExpr`s by mapping a function to each unresolved inner product:
 
-```
+```julia
 julia> s = (e^(bra(1,2) * ket(3,4)) + (bra(5,6)*ket(7,8))im)^4
 (((exp(⟨ 1,2 | 3,4 ⟩)) + (⟨ 5,6 | 7,8 ⟩ * im))^4)
 
@@ -159,7 +159,7 @@ true
 
 One can pass in inner product type instances instead of functions, which will evaluate the `InnerExpr` using the inner product type's `inner_rule` method:
 
-```
+```julia
 # evaluate s using KroneckerDelta inner_rule
 inner_eval(KroneckerDelta(), s)
 1.0 + 0.0im
@@ -167,7 +167,7 @@ inner_eval(KroneckerDelta(), s)
 
 Finally, `inner_eval` can be called on states and operators to perform the evaluation on their coefficients:
 
-```
+```julia
 julia> s = act_on(bra('x') + bra('y'), ket('a','b','c') + ket('d', 'e', 'f'), 2)
 Ket{UndefinedInner,2,Number} with 2 state(s):
   (⟨ 'x' | 'e' ⟩ + ⟨ 'y' | 'e' ⟩) | 'd','f' ⟩
@@ -190,7 +190,7 @@ Ket{UndefinedInner,2,Int64} with 2 state(s):
 
 The following is a list of the functions supported for use with `InnerExpr` (keep in mind that `InnerExpr <: Number`):
 
-```
+```julia
 one(::InnerExpr)
 zero(::InnerExpr)
 

@@ -3,7 +3,7 @@
 
 Multiplying a state by a scalar modifies the coefficient appropriately:
 
-```
+```julia
 julia> k = (1+3.4im) * ket(0)
 Ket{KroneckerDelta,1,Complex{Float64}} with 1 state(s):
   1.0 + 3.4im | 0 ⟩
@@ -19,7 +19,7 @@ Ket{KroneckerDelta,1,Complex{Float64}} with 1 state(s):
 
 States can be also be added and subtracted:
 
-```
+```julia
 julia> ket(0) + ket(0) == 2 * ket(0)
 true
 
@@ -35,7 +35,7 @@ Ket{KroneckerDelta,1,Float64} with 3 state(s):
 
 One can conviently sum over an iterable of labels by using Julia's `sum` function in conjunction with the `ket`/`bra` function:
 
-```
+```julia
 julia> 1/√5 * sum(ket, 1:5)
 Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 2 ⟩
@@ -53,7 +53,7 @@ In general, QuDirac objects do not automatically normalize themselves, but norma
 
 We can normalize a state in-place by using the `normalize!` function:
 
-```
+```julia
 julia> k = sum(i -> float(i)*ket(i), 1:3)
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   3.0 | 3 ⟩
@@ -78,7 +78,7 @@ The `normalize` function (without the trailing "!") is also provided, which norm
 
 One can use the `ctranspose` function to construct the dual of a given state:
 
-```
+```julia
 julia> k = im * ket(0)
 Ket{KroneckerDelta,1,Complex{Int64}} with 1 state(s):
   0 + 1im | 0 ⟩
@@ -93,7 +93,7 @@ true
 
 For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra will result in the mutation of the underlying Ket:
 
-```
+```julia
 julia> k = 2.3*ket(1) + 4.5*ket(2)
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   4.5 | 2 ⟩
@@ -117,7 +117,7 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 
 If you would like a copy of a state instead, you can explicitly construct one via the `copy` function:
 
-```
+```julia
 julia> k = (ket(1) + ket(2));
 
 julia> b = copy(k)';
@@ -139,7 +139,7 @@ Ket{KroneckerDelta,1,Int64} with 2 state(s):
 
 One can take a tensor product of states simply by multiplying them:
 
-```
+```julia
 julia> ket(0) * ket(0)
 Ket{KroneckerDelta,2,Int64} with 1 state(s):
   1 | 0,0 ⟩
@@ -149,7 +149,7 @@ As you might notice, a tensor product of Kets is itself a Ket, and the result
 of the above is the same as if we input `ket(0,0)`. Taking the tensor product of 
 more complicated states illustrates the tensor product's cartesian properties:
 
-```
+```julia
 julia> normalize!(sum(i->i^2*ket(i), 0:3) * sum(i->i/2*ket(i), -3:3))
 Ket{KroneckerDelta,2,Float64} with 18 state(s):
   -0.5154323951168185 | 3,-3 ⟩
@@ -159,7 +159,7 @@ Ket{KroneckerDelta,2,Float64} with 18 state(s):
   -0.07636035483212125 | 2,-1 ⟩
   0.019090088708030313 | 1,1 ⟩
   ⁞
-``` 
+```
 
 ---
 # Inner Product
@@ -167,7 +167,7 @@ Ket{KroneckerDelta,2,Float64} with 18 state(s):
 
 Similarly to the tensor product, the inner product can be taken simply by multiplying Bras with Kets:
 
-```
+```julia
 julia> bra(0)*ket(1)
 0
 
@@ -203,7 +203,7 @@ If these states are orthonormal, our final result is
 
 QuDirac supports this operation through the use of the `act_on` function:
 
-```
+```julia
 julia> ψ = normalize!(ket(0,1) + 2*ket(1,0))
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.4472135954999579 | 0,1 ⟩
@@ -220,7 +220,7 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 
 This does, of course, work even when the Bra is a superposition of states:
 
-```
+```julia
 julia> ϕ = 1/√2 * (bra(0) + bra(1))
 Bra{KroneckerDelta,1,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 0 |

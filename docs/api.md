@@ -81,7 +81,7 @@ This function acts exactly like Julia's built-in filtering function for `Dict`s.
 
 Example:
 
-```
+```julia
 julia> s = normalize!(sum(ket, 0:4)^3);
 
 julia> filter((label, c)->label[2]==2, s) # extract labels where the second factor is labeled "2" 
@@ -117,7 +117,7 @@ Removes the zero-valued components of `obj`. An in-place version, `filternz!`, i
 
 Example:
 
-```
+```julia
 julia> k = sum(ket, 0:4); k[2] = 0; normalize!(k)
 Ket{KroneckerDelta,1} with 5 state(s):
   0.5 | 0 ⟩
