@@ -125,9 +125,9 @@ Evaluation using the `UndefinedInner` type yields objects of type `ScalarExpr`. 
 ```
 julia> default_inner(UndefinedInner());
 
-julia> act_on(bra(1), ket('a','b','c'), 2)
+julia> act_on(bra('x'), ket('a','b','c'), 2)
 Ket{UndefinedInner,2,Number} with 1 state(s):
-  ⟨ 1 | 'b' ⟩ | 'a','c' ⟩
+  ⟨ 'x' | 'b' ⟩ | 'a','c' ⟩
 
 julia> s = √((bra(1) * ket(3))^2 + 1)
 (sqrt(((⟨ 1 | 3 ⟩^2) + 1)))
