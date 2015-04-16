@@ -326,23 +326,11 @@ QuBase.normalize!(op::DiracOp) = scale!(1/norm(op), op)
 #########
 # Trace #
 #########
-function Base.trace(op::GenericOp{KroneckerDelta})
+function Base.trace(op::GenericOp)
     result = 0
     for (o,v) in dict(op)
         if klabel(o)==blabel(o)
             result += v
-        end
-    end
-    return result
-end
-
-function Base.trace(op::GenericOp)
-    result = 0
-    prodtype = ptype(op)
-    for (o,v) in dict(op)
-        if klabel(o)==blabel(o)
-            i = klabel(o)
-            result += v * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i)
         end
     end
     return result
@@ -354,11 +342,9 @@ Base.trace(opc::DualOp) = trace(opc.op)'
 # Partial trace #
 #################
 ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-ptrace(op::DiracOp{KroneckerDelta,1}, over) = over == 1 ? trace(op) : throw(BoundsError()) # redundant def to resolve ambiguity
-ptrace{N}(op::DiracOp{KroneckerDelta,N}, over) = GenericOp(ptype(op), ortho_ptrace!(OpDict{N-1,eltype(op)}(), op, over))
-ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), general_ptrace!(OpDict{N-1,promote_type(eltype(op),inner_rettype(ptype(op)))}(), op, over))
+ptrace(op::DiracOp, over) = GenericOp(ptype(op), ptrace_dict!(OpDict{N-1,eltype(op)}(), op, over))
 
-function ortho_ptrace!(result, op::GenericOp, over)
+function ptrace_dict!(result, op::GenericOp, over)
     for (o,v) in dict(op)
         if klabel(o)[over] == blabel(o)[over]
             add_to_dict!(result, OuterLabel(except(klabel(o), over), except(blabel(o), over)), v)
@@ -367,36 +353,10 @@ function ortho_ptrace!(result, op::GenericOp, over)
     return result
 end
 
-function ortho_ptrace!(result, opc::DualOp, over)
+function ptrace_dict!(result, opc::DualOp, over)
     for (o,v) in dict(opc)
         if blabel(o)[over] == klabel(o)[over]
             add_to_dict!(result, OuterLabel(except(blabel(o), over), except(klabel(o), over)), v')
-        end
-    end
-    return result
-end
-
-function general_ptrace!(result, op::GenericOp, over)
-    prodtype = ptype(op)
-    for (o,v) in dict(op)
-        if klabel(o)[over] == blabel(o)[over]
-            i = klabel(o)[over]
-            add_to_dict!(result,
-                         OuterLabel(except(klabel(o), over), except(blabel(o), over)),
-                         v * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i))
-        end
-    end
-    return result
-end
-
-function general_ptrace!(result, opc::DualOp, over)
-    prodtype = ptype(opc)
-    for (o,v) in dict(opc)
-        if klabel(o)[over] == blabel(o)[over]
-            i = klabel(o)[over]
-            add_to_dict!(result,
-                         OuterLabel(except(blabel(o), over), except(klabel(o), over)),
-                         v' * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i))
         end
     end
     return result

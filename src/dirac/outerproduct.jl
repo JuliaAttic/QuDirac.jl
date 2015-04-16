@@ -105,7 +105,7 @@ end
 #########
 # Trace #
 #########
-function Base.trace(op::OuterProduct{KroneckerDelta})
+function Base.trace(op::OuterProduct)
     result = 0
     for (k,v) in dict(op.kt), (b,c) in dict(op.br)
         if b == k
@@ -115,38 +115,13 @@ function Base.trace(op::OuterProduct{KroneckerDelta})
     return op.scalar * result
 end
 
-function Base.trace(op::OuterProduct)
-    result = 0
-    prodtype = ptype(op)
-    for (k,v) in dict(op.kt), (b,c) in dict(op.br)
-        if b == k
-            i = b
-            result += v * c' * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i)
-        end
-    end
-    return op.scalar * result
-end
-
 #################
 # Partial Trace #
 #################
-function ortho_ptrace!(result, op::OuterProduct, over)
+function ptrace_dict!(result, op::OuterProduct, over)
     for k in keys(dict(op.kt)), b in keys(dict(op.br))
         if k[over] == b[over]
             add_to_dict!(result, OuterLabel(except(k, over), except(b, over)), op[k,b])
-        end
-    end
-    return result
-end
-
-function general_ptrace!(result, op::OuterProduct, over)
-    prodtype = ptype(op)
-    for k in keys(dict(op.kt)), b in keys(dict(op.br))
-        if k[over] == b[over]
-            i = k[over]
-            add_to_dict!(result,
-                         OuterLabel(except(k, over), except(b, over)),
-                         op[k,b] * eval_inner_rule(prodtype, i, i) * eval_inner_rule(prodtype, i, i))
         end
     end
     return result
