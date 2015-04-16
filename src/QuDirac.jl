@@ -44,7 +44,6 @@ module QuDirac
     include("dictfuncs.jl")
     include("mapfuncs.jl")
     
-
     #################
     # default_inner #
     #################
