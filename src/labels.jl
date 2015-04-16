@@ -83,7 +83,9 @@ nzcoeff(k,v) = v!=0
 second(t) = t[2]
 except(label::StateLabel, i) = StateLabel(label[1:i-1]..., label[i+1:end]...)
 setindex(label::StateLabel, x, y) = StateLabel(label[1:y-1]..., x, label[y+1:end]...)
+
 permute{N}(label::StateLabel{N}, perm::Vector) = StateLabel{N}(label[perm])
+permute(o::OuterLabel, perm::Vector) = OuterLabel(permute(o.k, perm), permute(o.b, perm))
 
 function switch!(arr, i, j)
     tmp = arr[i]
@@ -92,6 +94,8 @@ function switch!(arr, i, j)
     return arr
 end
 switch{N}(label::StateLabel{N}, i, j) =  StateLabel{N}(label[switch!([1:N], i, j)])
+
+switch(o::OuterLabel, i, j) = OuterLabel(switch(o.k, i, j), switch(o.b, i, j))
 
 export StateLabel,
     OuterLabel,

@@ -369,6 +369,8 @@ nfactors{P,N}(::GeneralOp{P,N}) = N
 xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->is_sum_x(k,x), dict(op)))
 filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
 filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
+switch(op::GeneralOp, i, j) = maplabels(label->switch(label,i,j), op)
+permute(op::GeneralOp, perm::Vector) = maplabels(label->permute(label,perm), op)
 
 purity(op::DiracOp) = trace(op^2)
 QuBase.commutator(a::DiracOp, b::DiracOp) = (a*b) - (b*a)

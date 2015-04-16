@@ -198,8 +198,8 @@ QuBase.normalize!(s::DiracState) = scale!(1/norm(s), s)
 ########################
 nfactors{P,N}(::DiracState{P,N}) = N
 xsubspace(s::DiracState, x) = similar(s, filter((k,v)->is_sum_x(k,x), dict(s)))
-switch(s::DiracState, i, j) = similar(s, mapkeys(label->switch(label,i,j), dict(s)))
-permute(s::DiracState, perm::Vector) = similar(s, mapkeys(label->permute(label,perm), dict(s)))
+switch(s::DiracState, i, j) = maplabels(label->switch(label,i,j), s)
+permute(s::DiracState, perm::Vector) = maplabels(label->permute(label,perm), s)
 
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))

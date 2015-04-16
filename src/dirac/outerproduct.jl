@@ -133,6 +133,8 @@ end
 nfactors{P,N}(::OuterProduct{P,N}) = N
 xsubspace(op::OuterProduct,x) = xsubspace(convert(GenericOp, op), x)
 filternz(op::OuterProduct) = filternz(convert(GenericOp, op))
+switch(op::OuterProduct, i, j) = switch(convert(GenericOp, op), i, j)
+permute(op::OuterProduct, perm::Vector) = permute(convert(GenericOp, op), perm)
 
 ######################
 # Printing Functions #
