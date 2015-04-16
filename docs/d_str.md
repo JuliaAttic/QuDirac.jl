@@ -8,7 +8,7 @@ Ket{KroneckerDelta,1,Int64} with 1 state(s):
   1 | 0 ⟩
 ```
 
-The macro parses the string for the `|`, `>` and `<` characters,  `ket` and `bra` functions. Thus, these characters are considered special. *When using `d` strings, the `|`, `>` and `<` characters cannot be used for anything other than as indicators of Kets and Bras.*
+The macro parses the string for the `|`, `>` and `<` characters, replacing them where appropriate with the `ket` and `bra` functions. Thus, these characters are considered special. *When using `d` strings, the `|`, `>` and `<` characters cannot be used for anything other than as indicators of Kets and Bras.*
 
 Assignments and function calls work as expected, though:
 
