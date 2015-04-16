@@ -10,5 +10,5 @@ pages:
 - ['labels_and_coeffs.md', 'User Guide', 'Labels and coefficients']
 - ['func_op_def.md', 'User Guide', 'Functionally Defining Operators']
 - ['inner_products.md', 'User Guide', 'Working with Inner Products']
-- ['d_str.md', 'User Guide', 'Natural expression input using @d_str']
+- ['d_str.md', 'User Guide', 'd" ... " syntax']
 - ['api.md', 'User Guide', 'API']

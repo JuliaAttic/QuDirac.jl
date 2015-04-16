@@ -44,25 +44,37 @@ module QuDirac
     include("dictfuncs.jl")
     include("mapfuncs.jl")
     
-    ########
-    # @drc #
-    ########
+    ##########
+    # @d_str #
+    ##########
     const ktpat = r"\|.*?\>"
     const brpat = r"\<.*?\|"
 
     ktrep(str) = "ket("*str[2:end-1]*")"
     brrep(str) = "bra("*str[2:end-1]*")"
 
+    function prune_dirac(str)
+        return replace(replace(str, brpat, brrep), ktpat, ktrep)
+    end
+
     macro d_str(str)
-        result = replace(str, brpat, brrep)
-        result = replace(result, ktpat, ktrep)
-        return parse(result)
+        return esc(parse(prune_dirac(str)))
+    end
+
+    macro d_mstr(str)
+        return esc(quote
+            local s;
+            for s in filter(x -> ! isempty(x), split($str, '\n'))
+                eval(parse(QuDirac.prune_dirac(s)))
+            end
+        end)
     end
 
     export AbstractInner,
         UndefinedInner,
         KroneckerDelta,
         @d_str,
+        @d_mstr,
         AbstractDirac,
         DiracState,
         DiracOp,
