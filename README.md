@@ -65,9 +65,10 @@ julia> bra(π) * ket(e) # eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
 
 #### Generate operator representations from user-defined functions
 
-Functional generation of a lowering operator: 
+For example, here's the functional generation of a lowering operator: 
 
 ```julia
+# State in a number basis
 julia> k = normalize(sum(ket, 0:4))
 Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 4 ⟩
@@ -79,6 +80,7 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
 julia> f(label) = (sqrt(label), label-1)
 f (generic function with 1 method)
 
+# generate â in the basis of k
 julia> â = func_op(f, k, 1)
 GenericOp{KroneckerDelta,1,Float64} with 4 operator(s):
   2.0 | 3 ⟩⟨ 4 |
