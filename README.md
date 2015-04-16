@@ -127,6 +127,6 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 #### ...and other stuff (examples and documentation coming soon)
 
 - `xsubspace` allows easy selection of excitation subspaces of states and operators
-- `permute!`/`permute` and `switch!`/`switch` allows generic permutation of factor labels for states
+- `permute` and `switch` allows generic permutation of factor labels for states
 - `filter`/`filter!` are supported on both the labels and coefficients of operators/states
-- Arbitrary mapping functions (`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
+- Arbitrary mapping functions (`map`/`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
