@@ -222,6 +222,8 @@ julia> trace(k*k')
 1.0000000000000002
 ```
 
+Note that the trace calculation is defined to sum the coefficients for which the Ket label and Bra label are equal.
+
 The partial trace of an operator can be taken using the `ptrace` function:
 
 ```julia
