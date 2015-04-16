@@ -342,7 +342,7 @@ Base.trace(opc::DualOp) = trace(opc.op)'
 # Partial trace #
 #################
 ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-ptrace(op::DiracOp, over) = GenericOp(ptype(op), ptrace_dict!(OpDict{N-1,eltype(op)}(), op, over))
+ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), ptrace_dict!(OpDict{N-1,eltype(op)}(), op, over))
 
 function ptrace_dict!(result, op::GenericOp, over)
     for (o,v) in dict(op)

@@ -89,6 +89,7 @@ Base.getindex(s::InnerExpr, i) = s.ex.args[i]
 # inner_eval #
 ##############
 inner_eval(f, s::InnerExpr) = eval(inner_reduce!(f, copy(s.ex)))
+inner_eval(f, c) = c
 
 inner_reduce!(f, s::InnerExpr) = inner_reduce!(f, copy(s.ex))
 inner_reduce!(f::Function, i::InnerProduct) = f(blabel(i), klabel(i))
