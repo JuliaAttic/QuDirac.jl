@@ -5,7 +5,7 @@ quantum mechanics computations.
 
 Current Features:
 
-- Implementations of state types (`Ket`,`Bra`), and a variety of operator types (`GenericOp`,`Projector`)
+- Implementations of state types (`Ket`,`Bra`), and a variety of operator types (`GenericOp`,`OuterProduct`)
 - Support for abstract/undefined inner products
 - Users can define custom inner product rules
 - Subspace selection/transformation via functions on labels and coefficients
