@@ -10,7 +10,7 @@ There are few important things to keep in mind when working with these structure
 - Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
 ---
-#  Accessing/Assigning coefficients
+#  Accessing and assigning coefficients
 ---
 
 **States**

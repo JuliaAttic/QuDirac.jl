@@ -1,3 +1,23 @@
+# QuDirac's Type Hiearchy
+---
+
+This API refers to various types to describe the domain of the included functions. For clarity's sake, here is the type hiearchy for QuDirac objects:
+
+```
+abstract AbstractDirac{P<:AbstractInner,N}
+
+abstract DiracOp{P,N} <: AbstractDirac{P,N}
+abstract DiracState{P,N} <: AbstractDirac{P,N}
+
+type Ket{P,N,T} <: DiracState{P,N}
+type Bra{P,N,T} <: DiracState{P,N}
+
+type GenericOp{P,N,T} <: DiracOp{P,N}
+type DualOp{P,N,T} <: DiracOp{P,N}
+type OuterProduct{P,N,S,K,B} <: DiracOp{P,N}
+```
+
+---
 # Constructor functions
 ---
 
@@ -126,25 +146,58 @@ Ket{KroneckerDelta,3,Int64} with 3 state(s):
 # Dict-like Functions
 ---
 
-*length*
+*length(obj::AbstractDirac)*
+
+Returns the number of (label, coefficient) pairs stored in `obj`. This is the same as the 
+number of basis states/operators present in `obj`.
 
 ---
-*nfactors*
+*nfactors(obj::AbstractDirac)*
+
+Returns the number of factor systems of `obj`. This information is also parameterized in the
+type of `obj`, e.g. an instance of type `Ket{KroneckerDelta,3}` has 3 factors.
 
 ---
-*get*
+*get(state::DiracState, label[, default]),*
+
+*get(op::DiracOp, ktlabel, brlabel[, default])*
+
+Get the coefficient specified by the provided label(s), return a default value of 0 if the labels could not be found. This default value can be overwridden by passing in the desired value instead. See [here](labels_and_coeffs/#using-the-get-function) for details.
 
 ---
-*haskey*
+*haskey(state::DiracState, label),*
+
+*haskey(op::DiracOp, ktlabel, brlabel)*
+
+Return `true` if the labels are found in the provided objects, and `false` otherwise. 
 
 ---
-*getindex*
+*getindex(state::DiracState, label...),*
+
+*getindex(op::DiracOp, ktlabel, brlabel)*
+
+Return the coefficient for the basis state/operator with the given labels, erroring if the labels could not be found.
+See [here](labels_and_coeffs/#accessing-and-assigning-coefficients) for details.
+
 
 ---
-*setindex!*
+*setindex!(state::DiracState, c, label...),*
+
+*setindex!(op::DiracOp, c, ktlabel, brlabel)*
+
+Set the coefficient `c` for the basis state/operator with the given labels, mutating the first argument.
+See [here](labels_and_coeffs/#accessing-and-assigning-coefficients) for details.
+
+This function is not implemented on `OuterProduct`s.
 
 ---
-*delete!*
+*delete!(state::DiracState, label),*
+
+*delete!(op::DiracOp, ktlabel, brlabel)*
+
+Delete the specified label->coefficient mapping from the first argument.
+
+This function is not implemented on `OuterProduct`s.
 
 ---
 # Mapping Functions
@@ -175,9 +228,10 @@ This function acts exactly like Julia's built-in filtering function for `Dict`s.
 Example:
 
 ```julia
-julia> s = normalize!(sum(ket, 0:4)^3);
+julia> k = normalize(sum(ket, 0:4)^3);
 
-julia> filter((label, c)->label[2]==2, s) # extract labels where the second factor is labeled "2" 
+ # extract labels where the second factor is 2
+julia> filter((label, c)->label[2]==2, k)
 Ket{KroneckerDelta,3} with 25 state(s):
   0.08944271909999159 | 4,2,0 ⟩
   0.08944271909999159 | 1,2,2 ⟩
@@ -195,7 +249,9 @@ Extracts the elements of `obj` whose labels sum to `x`
 Example:
 
 ```julia
-julia> xsubspace(s, 10)
+julia> k = normalize(sum(ket, 0:4)^3);
+
+julia> xsubspace(k, 10)
 Ket{KroneckerDelta,3} with 6 state(s):
   0.08944271909999159 | 4,4,2 ⟩
   0.08944271909999159 | 4,3,3 ⟩
@@ -213,23 +269,30 @@ Removes the zero-valued components of `obj`. An in-place version, `filternz!`, i
 Example:
 
 ```julia
-julia> k = sum(ket, 0:4); k[2] = 0; normalize!(k)
-Ket{KroneckerDelta,1} with 5 state(s):
-  0.5 | 0 ⟩
-  0.0 | 2 ⟩
-  0.5 | 3 ⟩
-  0.5 | 4 ⟩
-  0.5 | 1 ⟩
+julia> k0 = sum(ket, 0:10); 
 
-julia> filternz(k^3)
-Ket{KroneckerDelta,3} with 64 state(s):
-  0.125 | 1,4,1 ⟩
-  0.125 | 3,4,4 ⟩
-  0.125 | 3,3,1 ⟩
-  0.125 | 0,3,1 ⟩
-  0.125 | 1,1,0 ⟩
-  0.125 | 1,3,3 ⟩
-  ⁞
+julia> k1 = map((label, v) -> iseven(label[1]) ? (label, v) : (label, 0), k0)
+Ket{KroneckerDelta,1,Int64} with 11 state(s):
+  1 | 2 ⟩
+  0 | 5 ⟩
+  0 | 1 ⟩
+  1 | 6 ⟩
+  0 | 9 ⟩
+  1 | 8 ⟩
+  0 | 7 ⟩
+  1 | 4 ⟩
+  0 | 3 ⟩
+  1 | 0 ⟩
+  1 | 10 ⟩
+
+julia> filternz(k1)
+Ket{KroneckerDelta,1,Int64} with 6 state(s):
+  1 | 2 ⟩
+  1 | 6 ⟩
+  1 | 8 ⟩
+  1 | 4 ⟩
+  1 | 0 ⟩
+  1 | 10 ⟩
 ```
 
 ---

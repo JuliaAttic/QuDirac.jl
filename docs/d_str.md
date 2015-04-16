@@ -1,3 +1,6 @@
+# Natural Dirac notation input syntax
+---
+
 QuDirac supports an input format that is even more natural than using the `ket` or `bra` functions by implementing `d" ... "` and `d""" ... """` syntax. The former is for single-line input, while the latter is for multi-line input.
 
 Seeing this syntax in action:
@@ -8,7 +11,7 @@ Ket{KroneckerDelta,1,Int64} with 1 state(s):
   1 | 0 ⟩
 ```
 
-The macro parses the string for the `|`, `>` and `<` characters, replacing them where appropriate with the `ket` and `bra` functions. Thus, these characters are considered special. *When using `d` strings, the `|`, `>` and `<` characters cannot be used for anything other than as indicators of Kets and Bras.*
+The macro parses the string for the `|`, `>` and `<` characters, replacing them where appropriate with the `ket` and `bra` functions. Thus, when using this syntax, the `|`, `>` and `<` characters *cannot be used for anything other than as indicators of Kets and Bras*.
 
 Assignments and function calls work as expected, though:
 
@@ -16,6 +19,10 @@ Assignments and function calls work as expected, though:
 julia> @d_str " ψ = 1/√2 * (| 0,0 > + | 1,1 >); purity(ptrace(ψ*ψ', 2)) "
 0.4999999999999998
 ```
+
+---
+# Multi-line syntax
+---
 
 With multi-line support, one can write entire chunks of code using the above notation. Just wrap the code in `d""" ... """`:
 
