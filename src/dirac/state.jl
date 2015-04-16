@@ -15,12 +15,6 @@ Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
 ket(ptype::AbstractInner, label::StateLabel) = Ket(ptype, [label => 1])
 ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
 
-function default_inner(ptype::AbstractInner)
-    QuDirac.ket(items...) = ket(ptype, StateLabel(items))
-end
-
-default_inner(KroneckerDelta())
-
 type Bra{P,N,T} <: DiracState{P,N}
     kt::Ket{P,N,T}
 end
@@ -242,5 +236,4 @@ export ket,
     purity,
     wavefunc,
     act_on,
-    default_inner,
     inner_eval

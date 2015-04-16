@@ -38,8 +38,9 @@ GenericOp{KroneckerDelta,1,Float64} with 2 operator(s):
 
 ```julia
 # tells QuDirac to use the rule for undefined inner products
-julia> default_inner(UndefinedInner());
- 
+julia> default_inner(UndefinedInner())
+INFO: QuDirac's default inner product type is currently UndefinedInner()
+
 julia> k = 1/√2 * (ket('a') + ket('b'))
 Ket{UndefinedInner,1,Float64} with 2 state(s):
   0.7071067811865475 | 'b' ⟩
@@ -57,7 +58,8 @@ julia> immutable MyInner <: AbstractInner end
 julia> QuDirac.inner_rule(::MyInner, ktlabel, brlabel) = sqrt(ktlabel[1]+brlabel[1])
 inner_rule (generic function with 3 methods)
 
-julia> default_inner(MyInner());
+julia> default_inner(MyInner())
+INFO: QuDirac's default inner product type is currently MyInner()
 
 julia> bra(π) * ket(e) # eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
 2.420717761749361
@@ -106,7 +108,8 @@ Ket{KroneckerDelta,1,Float64} with 1 state(s):
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 0.7071067811865475
 
-julia> default_inner(UndefinedInner());
+julia> default_inner(UndefinedInner())
+INFO: QuDirac's default inner product type is currently UndefinedInner()
 
 julia> d" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 'a','b' | 0,0 ⟩ + ⟨ 'a','b' | 1,1 ⟩) / 1.4142135623730951)

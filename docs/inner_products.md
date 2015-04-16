@@ -63,7 +63,8 @@ Ket{UndefinedInner,2,Int64} with 1 state(s):
 If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `default_inner` function:
 
 ```julia
-julia> default_inner(UndefinedInner());
+julia> default_inner(UndefinedInner())
+INFO: QuDirac's default inner product type is currently UndefinedInner()
 
 julia> ket(1,2)
 Ket{UndefinedInner,2,Int64} with 1 state(s):
@@ -89,6 +90,7 @@ julia> QuDirac.inner_rule(::SumInner, k, b) = sum(k) + sum(b)
 inner_rule (generic function with 4 methods)
 
 julia> default_inner(SumInner());
+INFO: QuDirac's default inner product type is currently SumInner()
 
 julia> bra(1)*ket(1)
 2
@@ -124,6 +126,7 @@ Evaluation using the `UndefinedInner` type yields objects of type `InnerExpr`. T
 
 ```julia
 julia> default_inner(UndefinedInner());
+INFO: QuDirac's default inner product type is currently UndefinedInner()
 
 julia> act_on(bra('x'), ket('a','b','c'), 2)
 Ket{UndefinedInner,2,Number} with 1 state(s):
