@@ -99,7 +99,7 @@ Ket{KroneckerDelta,1,Float64} with 1 state(s):
   2.0 | 3 ⟩
 ```
 
-#### `@d_str` for inputting expressions in natural Dirac notation
+#### `d" ... "` syntax for natural Dirac notation input
 
 ```julia
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
@@ -109,6 +109,18 @@ julia> default_inner(UndefinedInner());
 
 julia> d" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 'a','b' | 0,0 ⟩ + ⟨ 'a','b' | 1,1 ⟩) / 1.4142135623730951)
+
+julia> d"""
+       ψ = 1/√2 * (| 0,0 > + | 1,1 >)
+       a = purity(ptrace(ψ*ψ', 2))
+       ϕ = normalize!( 1/5 * < 0 | + 4/5 * < 1 | )
+       result = normalize!(a * act_on(ϕ, ψ, 2))
+       """
+
+julia> result
+Ket{KroneckerDelta,1,Float64} with 2 state(s):
+  0.24253562503633297 | 0 ⟩
+  0.9701425001453319 | 1 ⟩
 ```
 
 #### ...and other stuff (examples and documentation coming soon)
