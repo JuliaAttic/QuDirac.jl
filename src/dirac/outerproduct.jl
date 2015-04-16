@@ -48,6 +48,8 @@ Base.haskey(op::OuterProduct, o::OuterLabel) = haskey(op, klabel(o), blabel(o))
 Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
 Base.get(op::OuterProduct, o::OuterLabel, default=0) = get(op, klabel(o), blabel(o), default)
 
+Base.collect(op::OuterProduct) = collect(convert(GenericOp, op))
+
 ##############
 # ctranspose #
 ##############

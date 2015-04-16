@@ -124,6 +124,10 @@ Base.delete!(op::GenericOp, label::OuterLabel) = (delete!(dict(op), label); retu
 Base.delete!(opc::DualOp, label::OuterLabel) = delete!(opc.op, reverse(label))
 Base.delete!(op::GeneralOp, k, b) = delete!(op, OuterLabel(k, b))
 
+Base.collect(op::GenericOp) = collect(dict(op))
+opc_entry(kv) = ctpair(kv[1], kv[2])
+Base.collect(opc::DualOp) = map(opc_entry, collect(opc.op))
+
 #############
 # ctranpose #
 #############

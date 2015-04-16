@@ -77,6 +77,10 @@ Base.get(s::DiracState, label, default=0) = get(s, StateLabel(label), default)
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
 Base.delete!(s::DiracState, label) = delete!(s, StateLabel(label))
 
+Base.collect(k::Ket) = collect(dict(k))
+bra_entry(kv) = (kv[1], kv[2]')
+Base.collect(b::Bra) = map(bra_entry, collect(b.kt))
+
 ##############
 # ctranspose #
 ##############
