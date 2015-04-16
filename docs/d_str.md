@@ -17,7 +17,7 @@ julia> @d_str " ψ = 1/√2 * (| 0,0 > + | 1,1 >); purity(ptrace(ψ*ψ', 2)) "
 0.4999999999999998
 ```
 
-Along with multi-line support, this makes it possible to write entire chunks of code this way. Just wrap the code in `d""" ... """`:
+With multi-line support, one can write entire chunks of code using the above notation. Just wrap the code in `d""" ... """`:
 
 ```
 julia> d"""
