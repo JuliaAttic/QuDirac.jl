@@ -1,71 +1,87 @@
-## Constructor functions
+# Constructor functions
 ---
 
-_**ket(labels...)**_
+*ket(labels...)*
 
 Construct a single (i.e. non-superposed) Ket with as many factors as there are `labels`. 
 See [Constructing Single Kets](constructing_states/#constructing-single-kets) section for more.
 
-_**bra(labels...)**_
+---
+*bra(labels...)*
 
 Construct a single (i.e. non-superposed) Bra with as many factors as there are `labels`. 
 See the [Constructing Single Bras](constructing_states/#constructing-single-bras) section for more.
 
-_**func_op(f::Function, k::Ket[, i::Int])**_
+---
+*func_op(f::Function, k::Ket[, i::Int])*
 
 Generate the representation for the operator specified by the function `f` acting on `k`'s basis. 
 One can optionally pass in `i` to specify the operator's action on a specific factor of the basis.
 See the [Functionally Defining Operators](func_op_def.md) section for more.
 
 ---
-## Math Functions
+# Math Functions
 ---
 
-_**purity(op::DiracOp)**_
+*purity(op::DiracOp)*
 
 Calculate `Tr(op^2)`.
 
-_**norm(obj::AbstractDirac)**_
+---
+*norm(obj::AbstractDirac)*
 
 Calculate the Frobenius norm of `obj`.
 
-_**scale(obj::AbstractDirac, c::Number), scale(c::Number, obj::AbstractDirac)**_
+---
+*scale(obj::AbstractDirac, c::Number),* 
+
+*scale(c::Number, obj::AbstractDirac)*
 
 Multiply `obj` by the scalar `c`. The in-place version, `scale!`, is also defined.
 
-_**normalize(obj::AbstractDirac)**_
+---
+*normalize(obj::AbstractDirac)*
 
 Normalize `obj`, i.e. scale it by `1/norm(obj)`. The in-place version, `normalize!`, is also defined.
 
-_**act_on{P}(br::Bra{P,1}, kt::Ket{P}, i::Int)**_
+---
+*act_on{P}(br::Bra{P,1}, kt::Ket{P}, i::Int)*
 
 Act `br` on the `i`th factor of `kt`. This method is discussed in detail [here](state_math/#acting-a-bra-on-a-specific-ket-factor).
 
-_**act_on{P}(op::DiracOp{P,1}, kt::Ket{P}, i::Int)**_
+*act_on{P}(op::DiracOp{P,1}, kt::Ket{P}, i::Int)*
 
 Act `op` on the `i`th factor of `kt`. This method is discussed in detail [here](op_math/#acting-an-operator-on-a-specific-ket-factor).
 
-_**tensor{P}(ops::DiracOp{P}...), tensor{P}(states::DiracState{P}...)**_
+---
+*tensor{P}(ops::DiracOp{P}...),* 
+
+*tensor{P}(states::DiracState{P}...)*
 
 Take the tensor product of the given arguments.
 
-_**trace(op::DiracOp)**_
+---
+*trace(op::DiracOp)*
 
 Take the trace of `op`. See [here](op_math/#trace-and-partial-trace) for details.
 
-_**ptrace(op::DiracOp, i::Int)**_
+---
+*ptrace(op::DiracOp, i::Int)*
 
 Take the partial trace of `op` over the `i`th subsystem. See [here](op_math/#trace-and-partial-trace) for details.
 
-_**commmutator(a::DiracOp, b::DiracOp)**_
+---
+*commmutator(a::DiracOp, b::DiracOp)*
 
 Calculate the commutator `a*b - b*a`. 
 
-_**anticommmutator**_
+---
+*anticommmutator(a::DiracOp, b::DiracOp)*
 
 Calculate the anticommutator `a*b + b*a`. 
 
-_**switch(obj::AbstractDirac, i, j)**_
+---
+*switch(obj::AbstractDirac, i, j)*
 
 Switch the `i`th and `j`th factors in the labels of `obj`.
 
@@ -85,7 +101,8 @@ Ket{KroneckerDelta,3,Int64} with 3 state(s):
   3 | 3,5,4 ⟩
 ```
 
-_**permute(obj::AbstractDirac, perm::Vector)**_
+---
+*permute(obj::AbstractDirac, perm::Vector)*
 
 Apply the given permutation, `perm`, to the labels of `obj`
 
@@ -106,44 +123,52 @@ Ket{KroneckerDelta,3,Int64} with 3 state(s):
 ```
 
 ---
-## `Dict`-like Functions
+# Dict-like Functions
 ---
 
-_**length**_
-
-_**nfactors**_
-
-_**get**_
-
-_**haskey**_
-
-_**getindex**_
-
-_**setindex!**_
-
-_**delete!**_
+*length*
 
 ---
-## Mapping Functions
+*nfactors*
+
+---
+*get*
+
+---
+*haskey*
+
+---
+*getindex*
+
+---
+*setindex!*
+
+---
+*delete!*
+
+---
+# Mapping Functions
 ---
 
-_**map(f::Function, obj::AbstractDirac)**_
+*map(f::Function, obj::AbstractDirac)*
 
 Maps `f` onto the `(label, coefficient)` pairs of `obj`. For states, `f` is called as `f(::StateLabel,::T)` where `T` is the coefficient type of `obj`. For operators, `f` is called as `f(:OpLabel,::T)`.
 
-_**maplabels(f::Function, obj::AbstractDirac)**_
+---
+*maplabels(f::Function, obj::AbstractDirac)*
 
 Maps `f` onto the labels of `obj`. For states, `f` is called as `f(::StateLabel)`. For operators, `f` is called as `f(::OpLabel)`.
 
-_**mapcoeffs(f::Function, obj::AbstractDirac)**_
+---
+*mapcoeffs(f::Function, obj::AbstractDirac)*
 
 Maps `f` onto the coefficients of `obj`. An in-place version, `mapcoeffs!`, is also provided. The function `f` will be called as `f(::T)` where `T` is the coefficient type of `obj`.
 
 ---
-## Filtering Functions
+# Filtering Functions
 ---
 
-_**filter(f::Function, obj::AbstractDirac)**_
+*filter(f::Function, obj::AbstractDirac)*
 
 This function acts exactly like Julia's built-in filtering function for `Dict`s. An in-place version, `filter!`, is also provided.
 
@@ -162,7 +187,8 @@ Ket{KroneckerDelta,3} with 25 state(s):
   ⁞
 ```
 
-_**xsubspace(obj::AbstractDirac, x)**_
+---
+*xsubspace(obj::AbstractDirac, x)*
 
 Extracts the elements of `obj` whose labels sum to `x`
 
@@ -179,7 +205,8 @@ Ket{KroneckerDelta,3} with 6 state(s):
   0.08944271909999159 | 4,2,4 ⟩
 ```
 
-_**filternz(obj::AbstractDirac)**_
+---
+*filternz(obj::AbstractDirac)*
 
 Removes the zero-valued components of `obj`. An in-place version, `filternz!`, is also provided.
 
@@ -206,13 +233,16 @@ Ket{KroneckerDelta,3} with 64 state(s):
 ```
 
 ---
-## Inner Product Evaluation
+# Inner Product Evaluation
 ---
 
-_**inner_eval**_
+*inner_eval*
 
-_**default_inner**_
+---
+*default_inner*
 
-_**QuDirac.inner_rule**_
+---
+*QuDirac.inner_rule*
 
-_**QuDirac.inner_rettype**_
+---
+*QuDirac.inner_rettype*
