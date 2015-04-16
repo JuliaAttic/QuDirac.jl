@@ -34,13 +34,12 @@ GenericOp{KroneckerDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 1 ⟩⟨ 1 |
 ```
 
-#### User-extensible inner product rules + support for abstract inner products
-
-Abstract inner product example:
+#### Support for abstract inner products
 
 ```julia
+# tells QuDirac to use the rule for undefined inner products
 julia> default_inner(UndefinedInner());
-
+ 
 julia> k = 1/√2 * (ket('a') + ket('b'))
 Ket{UndefinedInner,1,Float64} with 2 state(s):
   0.7071067811865475 | 'b' ⟩
@@ -50,7 +49,7 @@ julia> bra('a') * k
 ((0.7071067811865475 * ⟨ 'a' | 'b' ⟩) + (0.7071067811865475 * ⟨ 'a' | 'a' ⟩))
 ```
 
-Custom inner product example:
+#### Custom inner product rules
 
 ```julia
 julia> immutable MyInner <: AbstractInner end
