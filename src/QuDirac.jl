@@ -2,7 +2,6 @@ module QuDirac
     
     using QuBase
     using Iterators
-    using FastAnonymous
     
     ####################
     # String Constants #
