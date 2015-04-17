@@ -41,6 +41,10 @@ inner_rettype{P<:AbstractInner}(::P) = first(Base.return_types(inner_rule, (P, S
 inner_rettype(::UndefinedInner) = InnerExpr
 inner_rettype(::KroneckerDelta) = Int64
 
+# very common operation for state/operator inner products
+inner_mul(v,c,prodtype,b,k) = v * c * eval_inner_rule(prodtype, b, k)
+
+
 ##############
 # InnerExpr #
 ##############

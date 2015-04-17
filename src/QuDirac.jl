@@ -2,6 +2,7 @@ module QuDirac
     
     using QuBase
     using Iterators
+    using FastAnonymous
     
     ####################
     # String Constants #
@@ -57,6 +58,7 @@ module QuDirac
     # constructors for the relevant objects.
     function default_inner(ptype::AbstractInner)
         QuDirac.ket(items...) = ket(ptype, StateLabel(items))
+        QuDirac.ket(label::StateLabel) = ket(ptype, label)
         info("QuDirac's default inner product type is currently $ptype")
     end
 
@@ -82,7 +84,7 @@ module QuDirac
     macro d_mstr(str)
         return esc(quote
             local s;
-            for s in filter(x -> ! isempty(x), split($str, '\n'))
+            for s in filter(x -> ! isempty(x), split(strip($str), '\n'))
                 eval(parse(QuDirac.prune_dirac(s)))
             end
         end)

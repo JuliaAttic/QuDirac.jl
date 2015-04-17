@@ -90,7 +90,7 @@ function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
     result = 0
     prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        result += c'*v*eval_inner_rule(prodtype,b,k)
+        result += inner_mul(c',v,prodtype,b,k)
     end
     return result  
 end
@@ -137,7 +137,7 @@ end
 
 function act_on_dict!(result, br::Bra, kt::Ket, i, prodtype)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        add_to_dict!(result, except(k,i), c'*v*eval_inner_rule(prodtype, b[1], k[i]))
+        add_to_dict!(result, except(k,i), inner_mul(c', v, prodtype, b[1], k[i]))
     end
     return result
 end
@@ -223,7 +223,9 @@ Base.show(io::IO, s::DiracState) = dirac_show(io, s)
 Base.showcompact(io::IO, s::DiracState) = dirac_showcompact(io, s)
 Base.repr(s::DiracState) = dirac_repr(s)
 
-export ket,
+export Ket,
+    Bra,
+    ket,
     bra,
     nfactors,
     xsubspace,

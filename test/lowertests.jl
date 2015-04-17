@@ -1,7 +1,7 @@
 k = sum(i->i * ket(i), 1:5)
 
-lower(label) = (sqrt(label), label-1)
-a = func_op(lower, k, 1)
+lower(label) = (sqrt(label[1]), StateLabel(label[1]-1))
+a = func_permop(lower, k)
 
 @assert a == sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5)
 
@@ -17,6 +17,8 @@ filternz!(delete!(hik, StateLabel(6)))
 
 k3 = k^3
 
-a_2 = func_op(lower, k3, 2)
+lower2(label) = (sqrt(label[2]), StateLabel(label[1], label[2]-1, label[3]))
+
+a_2 = func_permop(lower2, k3)
 
 @assert a_2 * k3 == act_on(a, k3, 2)

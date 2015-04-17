@@ -71,7 +71,7 @@ For example, here's the functional generation of a lowering operator:
 
 ```julia
 # State in a number basis
-julia> k = normalize(sum(ket, 0:4))
+julia> k = normalize(sum(ket, 1:5))
 Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 4 ⟩
   0.4472135954999579 | 3 ⟩
@@ -79,19 +79,20 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 0 ⟩
   0.4472135954999579 | 1 ⟩
 
-julia> f(label) = (sqrt(label), label-1)
-f (generic function with 1 method)
+julia> lower(n) = (sqrt(n[1]), StateLabel(n[1]-1))
+lower (generic function with 1 method)
 
-# generate â in the basis of k
-julia> â = func_op(f, k, 1)
-GenericOp{KroneckerDelta,1,Float64} with 4 operator(s):
+julia> â = func_permop(lower, k)
+GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
+  2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
   1.0 | 0 ⟩⟨ 1 |
   1.4142135623730951 | 1 ⟩⟨ 2 |
   1.7320508075688772 | 2 ⟩⟨ 3 |
 
 julia> â*k
-Ket{KroneckerDelta,1,Float64} with 4 state(s):
+Ket{KroneckerDelta,1,Float64} with 5 state(s):
+  1.0 | 4 ⟩
   0.8944271909999159 | 3 ⟩
   0.7745966692414833 | 2 ⟩
   0.4472135954999579 | 0 ⟩
@@ -111,20 +112,22 @@ julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 julia> default_inner(UndefinedInner())
 INFO: QuDirac's default inner product type is currently UndefinedInner()
 
-julia> d" < 'a','b' | *  (| 0,0 > + | 1,1 >)/√2 "
-((⟨ 'a','b' | 0,0 ⟩ + ⟨ 'a','b' | 1,1 ⟩) / 1.4142135623730951)
+julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
+((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)
+```
 
+```
 julia> d"""
-       ψ = 1/√2 * (| 0,0 > + | 1,1 >)
+       ψ = 1/√2 * (| :↑,:↑ > + | :↓,:↓ >)
        a = purity(ptrace(ψ*ψ', 2))
-       ϕ = normalize!( 1/5 * < 0 | + 4/5 * < 1 | )
+       ϕ = normalize!( 1/5 * < :↑ | + 4/5 * < :↓ | )
        result = normalize!(a * act_on(ϕ, ψ, 2))
        """
 
 julia> result
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
-  0.24253562503633297 | 0 ⟩
-  0.9701425001453319 | 1 ⟩
+  0.9701425001453319 | :↓ ⟩
+  0.24253562503633297 | :↑
 ```
 
 #### ...and other stuff (examples and documentation coming soon)

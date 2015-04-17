@@ -40,8 +40,10 @@ function cons_outer!(result, kt, br)
     return GenericOp(ptype(kt), result)
 end
 
-func_op(f, kt::Ket) = cons_func_op(f, collect(keys(dict(kt))), kt)
-func_op(f, kt::Ket, i) = cons_func_op(f, collect(keys(dict(kt))), kt, i)
+func_op(f, kt::Ket) = func_op(f, keys(dict(kt)))
+func_op(f, labels) = sum(label -> f(label) * bra(label), labels)
+
+func_permop(f, kt::Ket) = cons_func_op(f, collect(keys(dict(kt))), kt)
 
 function cons_func_op(f, keys, kt)
     pairs = map(f, keys)
@@ -50,23 +52,9 @@ function cons_func_op(f, keys, kt)
     return GenericOp(ptype(kt), load_func_dict!(result, keys, pairs))
 end
 
-function cons_func_op{P,N}(f, keys, kt::Ket{P,N}, i)
-    pairs = map(label->f(label[i]), keys)
-    result = OpDict{N, eltype(pairs)[1]}()
-    return GenericOp(ptype(kt), load_func_dict!(result, keys, pairs, i))
-end
-
 function load_func_dict!(result, keys, pairs)
     for j=1:length(pairs)
         add_to_dict!(result, OuterLabel(pairs[j][2], keys[j]), pairs[j][1])
-    end
-    return result
-end
-
-function load_func_dict!(result, keys, pairs, i)
-    for j=1:length(pairs)
-        label = keys[j]
-        add_to_dict!(result, OuterLabel(setindex(label, pairs[j][2], i), label), pairs[j][1])
     end
     return result
 end
@@ -177,7 +165,7 @@ function inner_load!(result, a::GenericOp, b::GenericOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
                      OuterLabel(klabel(o1), blabel(o2)),
-                     v*c*eval_inner_rule(prodtype, blabel(o1), klabel(o2)))
+                     inner_mul(v, c, prodtype, blabel(o1), klabel(o2)))
     end
     return result
 end
@@ -186,7 +174,7 @@ function inner_load!(result, a::GenericOp, b::DualOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
                      OuterLabel(klabel(o1), klabel(o2)),
-                     v*c'*eval_inner_rule(prodtype, blabel(o1), blabel(o2)))
+                     inner_mul(v, c', prodtype, blabel(o1), blabel(o2)))
     end
     return result
 end
@@ -195,7 +183,7 @@ function inner_load!(result, a::DualOp, b::GenericOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result,
                      OuterLabel(blabel(o1), blabel(o2)),
-                     v'*c*eval_inner_rule(prodtype, klabel(o1), klabel(o2)))
+                     inner_mul(v', c, prodtype, klabel(o1), klabel(o2)))
     end
     return result
 end
@@ -217,7 +205,7 @@ end
 function brcoeff(brdict, prodtype, klabel, v)
     coeff = 0
     for (blabel,c) in brdict
-        coeff += c'*v*eval_inner_rule(prodtype, klabel, blabel) 
+        coeff += inner_mul(c', v, prodtype, klabel, blabel) 
     end
     return coeff'
 end
@@ -225,7 +213,7 @@ end
 function ktcoeff(ktdict, prodtype, blabel, v)
     coeff = 0
     for (klabel,c) in ktdict
-        coeff += c*v*eval_inner_rule(prodtype, klabel, blabel) 
+        coeff += inner_mul(c, v, prodtype, klabel, blabel)
     end
     return coeff
 end
@@ -259,7 +247,7 @@ function act_on_dict!(result, op::GenericOp, kt::Ket, i, prodtype)
     for (o,c) in dict(op), (k,v) in dict(kt)
         add_to_dict!(result, 
                      setindex(k, klabel(o)[1], i),
-                     c * v * eval_inner_rule(prodtype, blabel(o)[1], k[i]))
+                     inner_mul(c, v, prodtype, blabel(o)[1], k[i]))
     end
     return result
 end
@@ -268,7 +256,7 @@ function act_on_dict!(result, op::DualOp, kt::Ket, i, prodtype)
     for (o,c) in dict(op), (k,v) in dict(kt)
         add_to_dict!(result,
                      setindex(k, blabel(o)[1], i),
-                     c' * v * eval_inner_rule(prodtype, klabel(o)[1], k[i]))
+                     inner_mul(c', v, prodtype, klabel(o)[1], k[i]))
     end
     return result
 end
@@ -402,4 +390,5 @@ export GenericOp,
     purity,
     act_on,
     inner_eval,
-    func_op
+    func_op,
+    func_permop
