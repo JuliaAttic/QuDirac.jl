@@ -146,13 +146,18 @@ Base.summary(op::OuterProduct) = "OuterProduct with $(length(op)) operator(s); $
 function Base.show(io::IO, op::OuterProduct)
     print(io, summary(op)*":")
     pad = "  "
-    maxlen = 4
-    for k in take(keys(dict(op.kt)), maxlen),
-        b in take(keys(dict(op.br)), maxlen)
-        println(io)
-        print(io, labelrepr(op, k, b, pad))
+    maxlen = 10
+    i = 1
+    for k in keys(dict(op.kt)), b in keys(dict(op.br))
+        if i > maxlen
+            break
+        else
+            i += 1
+            println(io)
+            print(io, labelrepr(op, k, b, pad))
+        end
     end
-    if length(op) > maxlen^2
+    if length(op) > maxlen
         println(io)
         print(io, "$pad$vdots")
     end

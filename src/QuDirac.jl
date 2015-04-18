@@ -1,7 +1,6 @@
 module QuDirac
     
     using QuBase
-    using Iterators
     
     ####################
     # String Constants #
