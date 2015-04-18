@@ -270,7 +270,6 @@ Base.abs2(s::DiracScalar) = InnerExpr(:(abs2($s)))
 ## Complex Conjugate ##
 #######################
 Base.conj(s::InnerExpr) = length(s)==2 && s[1]==:conj ? InnerExpr(s[2]) :  InnerExpr(:(conj($(s))))
-Base.conj(s::DiracScalar) = InnerExpr(:(conj($(s))))
 Base.ctranspose(s::DiracScalar) = conj(s)
 
 ############################
