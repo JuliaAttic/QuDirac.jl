@@ -53,7 +53,9 @@ module QuDirac
     # Also, global optimization is poor, so we don't want
     # to use that either. Thus, we go for a function that
     # straight-up redefines the default convenience 
-    # constructors for the relevant objects.
+    # constructors for the relevant objects. This is
+    # hacky, but works for now, seeing as how only a few 
+    # functions actually "use" the default ptype.
     function default_inner(ptype::AbstractInner)
         QuDirac.ket(items...) = ket(ptype, StateLabel(items))
         QuDirac.ket(label::StateLabel) = ket(ptype, label)
