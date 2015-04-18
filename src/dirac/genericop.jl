@@ -159,7 +159,7 @@ end
 
 inner(br::Bra, opc::DualOp) = inner(opc.op, br')'
 inner(opc::DualOp, kt::Ket) = inner(kt', opc.op)'
-inner(a::DualOp, b::DualOp) = inner(a.op, b.op)'
+inner(a::DualOp, b::DualOp) = inner(b.op, a.op)'
 
 function inner_load!(result, a::GenericOp, b::GenericOp, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
