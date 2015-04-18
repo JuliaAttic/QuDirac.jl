@@ -97,7 +97,11 @@ module QuDirac
         AbstractDirac,
         DiracState,
         DiracOp,
-        DiracScalar
-end 
+        # from QuBase:
+        tensor,
+        commutator,
+        anticommutator,
+        normalize,
+        normalize!
 
-using QuBase
+end # module QuDirac
