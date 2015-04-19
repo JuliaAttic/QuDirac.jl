@@ -1,9 +1,12 @@
 using QuDirac
 
-# Hadamard operator `H` flips the coin; defined as
+# This file is an example of a discrete-time quantum random walk 
+# implemented using QuDirac. 
+
+# First, we define the Hadamard operator `H`, defined as
 #
-# F | 0 ⟩ = 1/√2 * ( | 0 ⟩ + | 1 ⟩ )
-# F | 1 ⟩ = 1/√2 * ( | 0 ⟩ - | 1 ⟩ )
+# H | 0 ⟩ = 1/√2 * ( | 0 ⟩ + | 1 ⟩ )
+# H | 1 ⟩ = 1/√2 * ( | 0 ⟩ - | 1 ⟩ )
 #
 const H = func_op(label -> d" 1/√2 * ( | 0 > + (-1)^label[1] * | 1 > ) ", [StateLabel(0), StateLabel(1)]);
 
