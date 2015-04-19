@@ -15,13 +15,13 @@ const H = func_op(label -> d" 1/√2 * ( | 0 > + (-1)^label[1] * | 1 > ) ", [Sta
 # that maps over the basis labels of the input Ket such that:
 # 
 # shift_state(| 0, j ⟩) -> | 0, j - 1 ⟩
-# shift_state(| 1, j ⟩) -> | 0, j + 1 ⟩
+# shift_state(| 1, j ⟩) -> | 1, j + 1 ⟩
 #
 function shift_map(label::StateLabel)
     if label[1] == 0
-        return StateLabel(label[1], label[2] - 1)
+        return StateLabel(0, label[2] - 1)
     else
-        return StateLabel(label[1], label[2] + 1)
+        return StateLabel(1, label[2] + 1)
     end
 end
 
