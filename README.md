@@ -127,7 +127,7 @@ julia> d"""
 julia> result
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.9701425001453319 | :↓ ⟩
-  0.24253562503633297 | :↑
+  0.24253562503633297 | :↑ ⟩
 ```
 
 #### ...and other stuff (examples and documentation coming soon)
