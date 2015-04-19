@@ -71,9 +71,17 @@ Base.get(s::DiracState, label, default=0) = get(s, StateLabel(label), default)
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
 Base.delete!(s::DiracState, label) = delete!(s, StateLabel(label))
 
-Base.collect(k::Ket) = collect(dict(k))
-bra_entry(kv) = (kv[1], kv[2]')
-Base.collect(b::Bra) = map(bra_entry, collect(b.kt))
+Base.collect(kt::Ket) = collect(dict(kt))
+Base.collect{P,N,T}(br::Bra{P,N,T}) = collect_pairs!(Array((StateLabel{N}, T), length(br)), br)
+
+function collect_pairs!(result, br::Bra)
+    i = 1
+    for (k,v) in dict(br)
+        result[i] = (k, v')
+        i += 1
+    end
+    return result
+end
 
 ##############
 # ctranspose #

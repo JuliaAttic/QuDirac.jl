@@ -48,7 +48,18 @@ Base.haskey(op::OuterProduct, o::OuterLabel) = haskey(op, klabel(o), blabel(o))
 Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
 Base.get(op::OuterProduct, o::OuterLabel, default=0) = get(op, klabel(o), blabel(o), default)
 
-Base.collect(op::OuterProduct) = collect(convert(GenericOp, op))
+Base.collect{P,N}(op::OuterProduct{P,N}) = collect_pairs!(Array((OuterLabel{N}, eltype(op)), length(op)), op)
+
+function collect_pairs!(result, op::OuterProduct)
+    i = 1
+    for (k,kc) in dict(op.kt)
+        for (b,bc) in dict(op.br)
+            result[i] = (OuterLabel(k, b), op.scalar * kc * bc')
+            i += 1
+        end
+    end
+    return result
+end
 
 ##############
 # ctranspose #

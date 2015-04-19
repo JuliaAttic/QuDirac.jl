@@ -113,8 +113,16 @@ Base.delete!(opc::DualOp, label::OuterLabel) = delete!(opc.op, reverse(label))
 Base.delete!(op::GeneralOp, k, b) = delete!(op, OuterLabel(k, b))
 
 Base.collect(op::GenericOp) = collect(dict(op))
-opc_entry(kv) = ctpair(kv[1], kv[2])
-Base.collect(opc::DualOp) = map(opc_entry, collect(opc.op))
+Base.collect{P,N,T}(opc::DualOp{P,N,T}) = collect_pairs!(Array((OuterLabel{N}, T), length(opc)), opc)
+
+function collect_pairs!(result, opc::DualOp)
+    i = 1
+    for (k,v) in dict(opc)
+        result[i] = (reverse(k), v')
+        i += 1
+    end
+    return result
+end
 
 #############
 # ctranpose #
