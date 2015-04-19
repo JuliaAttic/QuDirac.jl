@@ -1,7 +1,7 @@
 module QuDirac
     
-    if VERSION > v"0.3-"
-        warn("QuDirac is only tested for v0.3 release of Julia. Your version is $VERSION.")
+    if VERSION >= v"0.4-"
+        warn("QuDirac is only tested for the current v0.3 release of Julia. Your version is $VERSION.")
     end
 
     using QuBase
