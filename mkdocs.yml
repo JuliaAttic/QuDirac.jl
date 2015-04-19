@@ -12,4 +12,3 @@ pages:
 - ['inner_products.md', 'User Guide', 'Working with Inner Products']
 - ['d_str.md', 'User Guide', 'd" ... " syntax']
 - ['api.md', 'User Guide', 'API']
-- ['qho.md', 'Examples', 'Quantum Harmonic Oscillator']
