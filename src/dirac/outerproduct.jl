@@ -14,7 +14,7 @@ ptype(op::OuterProduct) = ptype(op.kt)
 
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
 
-Base.convert(::Type{GenericOp}, op::OuterProduct) = scale!(op.scalar, GenericOp(op.kt, op.br))
+Base.convert{P,N}(::Type{GenericOp}, op::OuterProduct{P,N}) = scale!(op.scalar, cons_outer!(OpDict{N,eltype(op)}(), op.kt, op.br))
 Base.promote_rule{G<:GenericOp, O<:OuterProduct}(::Type{G}, ::Type{O}) = GenericOp
 
 #######################
