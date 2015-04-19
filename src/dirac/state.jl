@@ -174,8 +174,8 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-QuBase.tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(ptype(b), tensordict(dict(a), dict(b)))
-QuBase.tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
+tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(ptype(b), tensordict(dict(a), dict(b)))
+tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
 Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
@@ -184,8 +184,8 @@ Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
 # Normalization #
 #################
 Base.norm(s::DiracState) = sqrt(sum(abs2, values(dict(s))))
-QuBase.normalize(s::DiracState) = (1/norm(s))*s
-QuBase.normalize!(s::DiracState) = scale!(1/norm(s), s)
+normalize(s::DiracState) = (1/norm(s))*s
+normalize!(s::DiracState) = scale!(1/norm(s), s)
 
 ########################
 # Misc. Math Functions #

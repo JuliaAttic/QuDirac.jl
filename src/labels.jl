@@ -34,7 +34,7 @@ Base.length{N}(::StateLabel{N}) = N
 
 Base.map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, s.label))
 
-QuBase.tensor(s::StateLabel...) = StateLabel(apply(tuple, s...))
+tensor(s::StateLabel...) = StateLabel(apply(tuple, s...))
 
 labelstr(s::StateLabel) = join(map(repr, s.label), ',')
 Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"
@@ -67,7 +67,7 @@ Base.(:(==)){N}(a::OuterLabel{N}, b::OuterLabel{N}) = hash(a) == hash(b)
 Base.length{N}(::OuterLabel{N}) = N
 
 Base.reverse(o::OuterLabel) = OuterLabel(o.b, o.k)
-QuBase.tensor(o1::OuterLabel, o2::OuterLabel) = OuterLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
+tensor(o1::OuterLabel, o2::OuterLabel) = OuterLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
 
 Base.repr(o::OuterLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
 Base.show(io::IO, o::OuterLabel) = print(io, repr(o))

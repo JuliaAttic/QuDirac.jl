@@ -1,10 +1,8 @@
 module QuDirac
     
-    if VERSION >= v"0.4-"
+    if !(v"0.3-" <= VERSION < v"0.4-")
         warn("QuDirac is only tested for the current v0.3 release of Julia. Your version is $VERSION.")
     end
-
-    using QuBase
     
     ####################
     # String Constants #
@@ -31,7 +29,10 @@ module QuDirac
     #############
     # Functions #
     #############
-    QuBase.tensor() = error("Cannot call tensor function without arguments")
+    # These functions will be in 
+    # QuBase when it releases
+    tensor() = error("Cannot call tensor function without arguments")
+    tensor(s...) = reduce(tensor, s)
 
     ######################
     # Include Statements #
@@ -103,7 +104,9 @@ module QuDirac
         AbstractDirac,
         DiracState,
         DiracOp,
-        # from QuBase:
+        # All functions that conflict 
+        # with QuBase should be exported 
+        # below:
         tensor,
         commutator,
         anticommutator,

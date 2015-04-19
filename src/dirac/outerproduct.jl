@@ -72,9 +72,9 @@ act_on(op::OuterProduct, kt::Ket, i) = act_on(convert(GenericOp, op), kt, i)
 ##########
 # tensor #
 ##########
-QuBase.tensor(kt::Ket, br::Bra) = OuterProduct(1, kt, br)
-QuBase.tensor(br::Bra, kt::Ket) = tensor(kt, br)
-QuBase.tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
+tensor(kt::Ket, br::Bra) = OuterProduct(1, kt, br)
+tensor(br::Bra, kt::Ket) = tensor(kt, br)
+tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
 
 ###########
 # Scaling #

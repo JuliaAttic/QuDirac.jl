@@ -264,9 +264,9 @@ end
 ##########
 # tensor #
 ##########
-QuBase.tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(ptype(a), tensordict(dict(a), dict(b)))
-QuBase.tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
-QuBase.tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
+tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(ptype(a), tensordict(dict(a), dict(b)))
+tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
+tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
 
 Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 
@@ -308,8 +308,8 @@ Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 Base.norm(op::GenericOp) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOp) = norm(opc.op)
 
-QuBase.normalize(op::DiracOp) = scale(1/norm(op), op)
-QuBase.normalize!(op::DiracOp) = scale!(1/norm(op), op)
+normalize(op::DiracOp) = scale(1/norm(op), op)
+normalize!(op::DiracOp) = scale!(1/norm(op), op)
 
 #########
 # Trace #
@@ -361,8 +361,8 @@ switch(op::GeneralOp, i, j) = maplabels(label->switch(label,i,j), op)
 permute(op::GeneralOp, perm::Vector) = maplabels(label->permute(label,perm), op)
 
 purity(op::DiracOp) = trace(op^2)
-QuBase.commutator(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
-QuBase.anticommutator(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
+commutator(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
+anticommutator(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 
 inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 
