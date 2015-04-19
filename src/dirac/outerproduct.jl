@@ -14,8 +14,8 @@ ptype(op::OuterProduct) = ptype(op.kt)
 
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
 
-Base.convert{P,N}(::Type{GenericOp}, op::OuterProduct{P,N}) = scale!(op.scalar, cons_outer!(OpDict{N,eltype(op)}(), op.kt, op.br))
-Base.promote_rule{G<:GenericOp, O<:OuterProduct}(::Type{G}, ::Type{O}) = GenericOp
+Base.convert{P,N}(::Type{OpSum}, op::OuterProduct{P,N}) = scale!(op.scalar, cons_outer!(OpDict{N,eltype(op)}(), op.kt, op.br))
+Base.promote_rule{G<:OpSum, O<:OuterProduct}(::Type{G}, ::Type{O}) = OpSum
 
 #######################
 # Dict-Like Functions #
@@ -23,8 +23,8 @@ Base.promote_rule{G<:GenericOp, O<:OuterProduct}(::Type{G}, ::Type{O}) = Generic
 Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), eltype(op.br))
 
 # these equality/hash functions are pretty inefficient...
-Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(GenericOp, a) == convert(GenericOp, b) 
-Base.hash(op::OuterProduct) = hash(convert(GenericOp, op))
+Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(OpSum, a) == convert(OpSum, b) 
+Base.hash(op::OuterProduct) = hash(convert(OpSum, op))
 Base.hash(op::OuterProduct, h::Uint64) = hash(hash(op), h)
 
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
@@ -37,7 +37,7 @@ Base.getindex(op::OuterProduct, o::OuterLabel) = op[klabel(o), blabel(o)]
 # special and doesn't dispatch directly to getindex...
 # Base.getindex(op::OuterProduct, k, ::Colon) = (op.scalar * op.kt[k]) * op.br
 # Base.getindex(op::OuterProduct, ::Colon, b) = (op.scalar * op.br[b]) * op.kt
-# Base.getindex(op::OuterProduct, ::Colon, ::Colon) = convert(GenericOp, op)
+# Base.getindex(op::OuterProduct, ::Colon, ::Colon) = convert(OpSum, op)
 
 getbra(op::OuterProduct, k) = (op.scalar * get(op.kt,k)) * op.br
 getket(op::OuterProduct, b) = (op.scalar * get(op.br,b)) * op.kt
@@ -72,13 +72,13 @@ Base.ctranspose(op::OuterProduct) = OuterProduct(op.scalar', op.br', op.kt')
 inner(br::Bra, op::OuterProduct) = op.scalar * inner(br, op.kt) * op.br
 inner(op::OuterProduct, kt::Ket) = op.scalar * op.kt * inner(op.br, kt)
 inner(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar * inner(a.br,b.kt), a.kt, b.br)
-inner(a::OuterProduct, b::GeneralOp) = a.scalar * a.kt * inner(a.br, b)
-inner(a::GeneralOp, b::OuterProduct) = inner(a, b.kt) * b.br * b.scalar
+inner(a::OuterProduct, b::AbsOpSum) = a.scalar * a.kt * inner(a.br, b)
+inner(a::AbsOpSum, b::OuterProduct) = inner(a, b.kt) * b.br * b.scalar
 
 ##########
 # act_on #
 ##########
-act_on(op::OuterProduct, kt::Ket, i) = act_on(convert(GenericOp, op), kt, i)
+act_on(op::OuterProduct, kt::Ket, i) = act_on(convert(OpSum, op), kt, i)
 
 ##########
 # tensor #
@@ -100,7 +100,7 @@ Base.scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt
 # + and - #
 ###########
 Base.(:-)(op::OuterProduct) = scale(-1, op)
-Base.(:+)(a::OuterProduct, b::OuterProduct) = convert(GenericOp, a) + convert(GenericOp, b)
+Base.(:+)(a::OuterProduct, b::OuterProduct) = convert(OpSum, a) + convert(OpSum, b)
 
 #################
 # Normalization #
@@ -142,10 +142,10 @@ end
 # Misc. Math Functions #
 ########################
 nfactors{P,N}(::OuterProduct{P,N}) = N
-xsubspace(op::OuterProduct,x) = xsubspace(convert(GenericOp, op), x)
-filternz(op::OuterProduct) = filternz(convert(GenericOp, op))
-switch(op::OuterProduct, i, j) = switch(convert(GenericOp, op), i, j)
-permute(op::OuterProduct, perm::Vector) = permute(convert(GenericOp, op), perm)
+xsubspace(op::OuterProduct,x) = xsubspace(convert(OpSum, op), x)
+filternz(op::OuterProduct) = filternz(convert(OpSum, op))
+switch(op::OuterProduct, i, j) = switch(convert(OpSum, op), i, j)
+permute(op::OuterProduct, perm::Vector) = permute(convert(OpSum, op), perm)
 
 ######################
 # Printing Functions #

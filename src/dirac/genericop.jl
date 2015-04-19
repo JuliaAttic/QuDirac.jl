@@ -1,29 +1,29 @@
 ####################
-# GenericOp/DualOp #
+# OpSum/DualOpSum #
 ####################
-abstract GeneralOp{P,N,T} <: DiracOp{P,N}
+abstract AbsOpSum{P,N,T} <: DiracOp{P,N}
 
 typealias OpDict{N,T} Dict{OuterLabel{N},T}
 
-type GenericOp{P,N,T} <: GeneralOp{P,N,T}
+type OpSum{P,N,T} <: AbsOpSum{P,N,T}
     ptype::P
     dict::OpDict{N,T}
-    GenericOp(ptype, dict) = new(ptype, dict)
-    GenericOp(ptype, dict::OpDict{0}) = error("Cannot construct a 0-factor operator; did you mean to construct a scalar?")
+    OpSum(ptype, dict) = new(ptype, dict)
+    OpSum(ptype, dict::OpDict{0}) = error("Cannot construct a 0-factor operator; did you mean to construct a scalar?")
 end
 
-GenericOp{P,N,T}(ptype::P, dict::OpDict{N,T}) = GenericOp{P,N,T}(ptype, dict)
-GenericOp{P,N,A,B}(kt::Ket{P,N,A}, br::Bra{P,N,B}) = cons_outer!(OpDict{N,promote_type(A,B)}(), kt, br)
+OpSum{P,N,T}(ptype::P, dict::OpDict{N,T}) = OpSum{P,N,T}(ptype, dict)
+OpSum{P,N,A,B}(kt::Ket{P,N,A}, br::Bra{P,N,B}) = cons_outer!(OpDict{N,promote_type(A,B)}(), kt, br)
 
-type DualOp{P,N,T} <: GeneralOp{P,N,T}
-    op::GenericOp{P,N,T}
+type DualOpSum{P,N,T} <: AbsOpSum{P,N,T}
+    op::OpSum{P,N,T}
 end
 
-DualOp{P,N,T}(op::GenericOp{P,N,T}) = DualOp{P,N,T}(op)
-DualOp(items...) = DualOp(GenericOp(items...))
+DualOpSum{P,N,T}(op::OpSum{P,N,T}) = DualOpSum{P,N,T}(op)
+DualOpSum(items...) = DualOpSum(OpSum(items...))
 
-Base.convert(::Type{GenericOp}, opc::DualOp) = eager_ctran(opc.op)
-Base.promote_rule{G<:GenericOp, D<:DualOp}(::Type{G}, ::Type{D}) = GenericOp
+Base.convert(::Type{OpSum}, opc::DualOpSum) = eager_ctran(opc.op)
+Base.promote_rule{G<:OpSum, D<:DualOpSum}(::Type{G}, ::Type{D}) = OpSum
 
 ################
 # Constructors #
@@ -37,7 +37,7 @@ function cons_outer!(result, kt, br)
             end
         end
     end
-    return GenericOp(ptype(kt), result)
+    return OpSum(ptype(kt), result)
 end
 
 func_op(f, kt::Ket) = func_op(f, keys(dict(kt)))
@@ -49,7 +49,7 @@ function cons_func_op(f, keys, kt)
     pairs = map(f, keys)
     types = eltype(pairs)
     result = OpDict{nfactors(types[2]), types[1]}()
-    return GenericOp(ptype(kt), load_func_dict!(result, keys, pairs))
+    return OpSum(ptype(kt), load_func_dict!(result, keys, pairs))
 end
 
 function load_func_dict!(result, keys, pairs)
@@ -62,60 +62,60 @@ end
 ######################
 # Accessor functions #
 ######################
-dict(op::GenericOp) = op.dict
-dict(opc::DualOp) = dict(opc.op)
+dict(op::OpSum) = op.dict
+dict(opc::DualOpSum) = dict(opc.op)
 
-ptype(op::GenericOp) = op.ptype
-ptype(opc::DualOp) = ptype(opc.op)
+ptype(op::OpSum) = op.ptype
+ptype(opc::DualOpSum) = ptype(opc.op)
 
 #######################
 # Dict-Like Functions #
 #######################
-Base.eltype{P,N,T}(::GeneralOp{P,N,T}) = T
+Base.eltype{P,N,T}(::AbsOpSum{P,N,T}) = T
 
-Base.copy(op::GenericOp) = GenericOp(ptype(op), copy(dict(op)))
-Base.copy(opc::DualOp) = DualOp(copy(opc.op))
+Base.copy(op::OpSum) = OpSum(ptype(op), copy(dict(op)))
+Base.copy(opc::DualOpSum) = DualOpSum(copy(opc.op))
 
-Base.similar(op::GenericOp, d=similar(dict(kt)); P=ptype(op)) = GenericOp(P, d)
-Base.similar(opc::DualOp, d=similar(dict(br)); P=ptype(opc)) = DualOp(P, d)
+Base.similar(op::OpSum, d=similar(dict(kt)); P=ptype(op)) = OpSum(P, d)
+Base.similar(opc::DualOpSum, d=similar(dict(br)); P=ptype(opc)) = DualOpSum(P, d)
 
-Base.(:(==)){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = dict(filternz(a)) == dict(filternz(b))
-Base.(:(==)){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = a.op == b.op
+Base.(:(==)){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = dict(filternz(a)) == dict(filternz(b))
+Base.(:(==)){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
 Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
 
-Base.hash(op::GeneralOp) = hash(dict(filternz(op)), hash(ptype(op)))
-Base.hash(op::GeneralOp, h::Uint64) = hash(hash(op), h)
+Base.hash(op::AbsOpSum) = hash(dict(filternz(op)), hash(ptype(op)))
+Base.hash(op::AbsOpSum, h::Uint64) = hash(hash(op), h)
 
-Base.length(op::GeneralOp) = length(dict(op))
+Base.length(op::AbsOpSum) = length(dict(op))
 
-Base.getindex(op::GenericOp, label::OuterLabel) = op.dict[label]
-Base.getindex(op::GenericOp, k::StateLabel, b::StateLabel) = op.dict[OuterLabel(k,b)]
-Base.getindex(opc::DualOp, label::OuterLabel) = opc.op[reverse(label)]'
-Base.getindex(opc::DualOp, k::StateLabel, b::StateLabel) = opc.op[OuterLabel(b,k)]'
-Base.getindex(op::GeneralOp, k, b) = op[StateLabel(k), StateLabel(b)]
+Base.getindex(op::OpSum, label::OuterLabel) = op.dict[label]
+Base.getindex(op::OpSum, k::StateLabel, b::StateLabel) = op.dict[OuterLabel(k,b)]
+Base.getindex(opc::DualOpSum, label::OuterLabel) = opc.op[reverse(label)]'
+Base.getindex(opc::DualOpSum, k::StateLabel, b::StateLabel) = opc.op[OuterLabel(b,k)]'
+Base.getindex(op::AbsOpSum, k, b) = op[StateLabel(k), StateLabel(b)]
 
-Base.setindex!(op::GenericOp, c, label::OuterLabel) = (op.dict[label] = c)
-Base.setindex!(op::GenericOp, c, k::StateLabel, b::StateLabel) = (op.dict[OuterLabel(k,b)] = c)
-Base.setindex!(opc::DualOp, c, label::OuterLabel) = (opc.op[reverse(label)] = c')
-Base.setindex!(opc::DualOp, c, k::StateLabel, b::StateLabel) = (opc.op[OuterLabel(b,k)] = c')
-Base.setindex!(op::GeneralOp, c, k, b) = setindex!(op, c, StateLabel(k), StateLabel(b))
+Base.setindex!(op::OpSum, c, label::OuterLabel) = (op.dict[label] = c)
+Base.setindex!(op::OpSum, c, k::StateLabel, b::StateLabel) = (op.dict[OuterLabel(k,b)] = c)
+Base.setindex!(opc::DualOpSum, c, label::OuterLabel) = (opc.op[reverse(label)] = c')
+Base.setindex!(opc::DualOpSum, c, k::StateLabel, b::StateLabel) = (opc.op[OuterLabel(b,k)] = c')
+Base.setindex!(op::AbsOpSum, c, k, b) = setindex!(op, c, StateLabel(k), StateLabel(b))
 
-Base.haskey(op::GenericOp, label::OuterLabel) = haskey(dict(op), label)
-Base.haskey(opc::DualOp, label::OuterLabel) = haskey(opc.op, reverse(label))
-Base.haskey(op::GeneralOp, k, b) = haskey(op, OuterLabel(k, b))
+Base.haskey(op::OpSum, label::OuterLabel) = haskey(dict(op), label)
+Base.haskey(opc::DualOpSum, label::OuterLabel) = haskey(opc.op, reverse(label))
+Base.haskey(op::AbsOpSum, k, b) = haskey(op, OuterLabel(k, b))
 
-Base.get(op::GenericOp, label::OuterLabel, default=0) = get(dict(op), label, default)
-Base.get(opc::DualOp, label::OuterLabel, default=0) = get(dict(opc), label, default')'
-Base.get(op::GeneralOp, k, b, default=0) = get(op, OuterLabel(k, b), default)
+Base.get(op::OpSum, label::OuterLabel, default=0) = get(dict(op), label, default)
+Base.get(opc::DualOpSum, label::OuterLabel, default=0) = get(dict(opc), label, default')'
+Base.get(op::AbsOpSum, k, b, default=0) = get(op, OuterLabel(k, b), default)
 
-Base.delete!(op::GenericOp, label::OuterLabel) = (delete!(dict(op), label); return op)
-Base.delete!(opc::DualOp, label::OuterLabel) = delete!(opc.op, reverse(label))
-Base.delete!(op::GeneralOp, k, b) = delete!(op, OuterLabel(k, b))
+Base.delete!(op::OpSum, label::OuterLabel) = (delete!(dict(op), label); return op)
+Base.delete!(opc::DualOpSum, label::OuterLabel) = delete!(opc.op, reverse(label))
+Base.delete!(op::AbsOpSum, k, b) = delete!(op, OuterLabel(k, b))
 
-Base.collect(op::GenericOp) = collect(dict(op))
-Base.collect{P,N,T}(opc::DualOp{P,N,T}) = collect_pairs!(Array((OuterLabel{N}, T), length(opc)), opc)
+Base.collect(op::OpSum) = collect(dict(op))
+Base.collect{P,N,T}(opc::DualOpSum{P,N,T}) = collect_pairs!(Array((OuterLabel{N}, T), length(opc)), opc)
 
-function collect_pairs!(result, opc::DualOp)
+function collect_pairs!(result, opc::DualOpSum)
     i = 1
     for (k,v) in dict(opc)
         result[i] = (reverse(k), v')
@@ -127,49 +127,49 @@ end
 #############
 # ctranpose #
 #############
-eager_ctran(op::GenericOp) = map(ctpair, op)
+eager_ctran(op::OpSum) = map(ctpair, op)
 
-Base.ctranspose(op::GenericOp) = DualOp(op)
-Base.ctranspose(opc::DualOp) = opc.op
+Base.ctranspose(op::OpSum) = DualOpSum(op)
+Base.ctranspose(opc::DualOpSum) = opc.op
 
 #########
 # inner #
 #########
-function inner{P,N,A,B}(br::Bra{P,N,A}, op::GenericOp{P,N,B})
+function inner{P,N,A,B}(br::Bra{P,N,A}, op::OpSum{P,N,B})
     prodtype = ptype(op)
     result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
     return Bra(prodtype, inner_load!(result, br, op, prodtype))
 end
 
-function inner{P,N,A,B}(op::GenericOp{P,N,A}, kt::Ket{P,N,B})
+function inner{P,N,A,B}(op::OpSum{P,N,A}, kt::Ket{P,N,B})
     prodtype = ptype(op)
     result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
     return Ket(prodtype, inner_load!(result, op, kt, prodtype))
 end
 
-function inner{P,N,A,B}(a::GenericOp{P,N,A}, b::GenericOp{P,N,B})
+function inner{P,N,A,B}(a::OpSum{P,N,A}, b::OpSum{P,N,B})
     prodtype = ptype(a)
     result = OpDict{N, promote_type(A,B,inner_rettype(prodtype))}()
-    return GenericOp(prodtype, inner_load!(result, a, b, prodtype))
+    return OpSum(prodtype, inner_load!(result, a, b, prodtype))
 end
 
-function inner{P,N,A,B}(a::GenericOp{P,N,A}, b::DualOp{P,N,B})
+function inner{P,N,A,B}(a::OpSum{P,N,A}, b::DualOpSum{P,N,B})
     prodtype = ptype(a)
     result = OpDict{N, promote_type(A,B,inner_rettype(prodtype))}()
-    return GenericOp(prodtype, inner_load!(result, a, b, prodtype))
+    return OpSum(prodtype, inner_load!(result, a, b, prodtype))
 end
 
-function inner{P,N,A,B}(a::DualOp{P,N,A}, b::GenericOp{P,N,B})
+function inner{P,N,A,B}(a::DualOpSum{P,N,A}, b::OpSum{P,N,B})
     prodtype = ptype(a)
     result = OpDict{N, promote_type(A,B,inner_rettype(prodtype))}()
-    return GenericOp(prodtype, inner_load!(result, a, b, prodtype))
+    return OpSum(prodtype, inner_load!(result, a, b, prodtype))
 end
 
-inner(br::Bra, opc::DualOp) = inner(opc.op, br')'
-inner(opc::DualOp, kt::Ket) = inner(kt', opc.op)'
-inner(a::DualOp, b::DualOp) = inner(b.op, a.op)'
+inner(br::Bra, opc::DualOpSum) = inner(opc.op, br')'
+inner(opc::DualOpSum, kt::Ket) = inner(kt', opc.op)'
+inner(a::DualOpSum, b::DualOpSum) = inner(b.op, a.op)'
 
-function inner_load!(result, a::GenericOp, b::GenericOp, prodtype)
+function inner_load!(result, a::OpSum, b::OpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
                      OuterLabel(klabel(o1), blabel(o2)),
@@ -178,7 +178,7 @@ function inner_load!(result, a::GenericOp, b::GenericOp, prodtype)
     return result
 end
 
-function inner_load!(result, a::GenericOp, b::DualOp, prodtype)
+function inner_load!(result, a::OpSum, b::DualOpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
                      OuterLabel(klabel(o1), klabel(o2)),
@@ -187,7 +187,7 @@ function inner_load!(result, a::GenericOp, b::DualOp, prodtype)
     return result
 end
 
-function inner_load!(result, a::DualOp, b::GenericOp, prodtype)
+function inner_load!(result, a::DualOpSum, b::OpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result,
                      OuterLabel(blabel(o1), blabel(o2)),
@@ -196,14 +196,14 @@ function inner_load!(result, a::DualOp, b::GenericOp, prodtype)
     return result
 end
 
-function inner_load!(result, br::Bra, op::GenericOp, prodtype)
+function inner_load!(result, br::Bra, op::OpSum, prodtype)
     for (o,v) in dict(op)
         add_to_dict!(result, blabel(o), brcoeff(dict(br), prodtype, klabel(o), v))
     end
     return result
 end
 
-function inner_load!(result, op::GenericOp, kt::Ket, prodtype)
+function inner_load!(result, op::OpSum, kt::Ket, prodtype)
     for (o,v) in dict(op)
         add_to_dict!(result, klabel(o), ktcoeff(dict(kt), prodtype, blabel(o), v))
     end
@@ -233,25 +233,25 @@ Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 ##########
 # act_on #
 ##########
-act_on(op::GeneralOp, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
+act_on(op::AbsOpSum, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
 
 # clear up ambiguity warnings
-act_on{P}(op::GenericOp{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(op, kt) : throw(BoundsError())
-act_on{P}(opc::DualOp{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(opc, kt) : throw(BoundsError())
+act_on{P}(op::OpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(op, kt) : throw(BoundsError())
+act_on{P}(opc::DualOpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(opc, kt) : throw(BoundsError())
 
-function act_on{P,N,A,B}(op::GenericOp{P,1,A}, kt::Ket{P,N,B}, i)
+function act_on{P,N,A,B}(op::OpSum{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(op)
     result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
     return Ket(prodtype, act_on_dict!(result, op, kt, i, prodtype))
 end
 
-function act_on{P,N,A,B}(op::DualOp{P,1,A}, kt::Ket{P,N,B}, i)
+function act_on{P,N,A,B}(op::DualOpSum{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(op)
     result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
     return Ket(prodtype, act_on_dict!(result, op, kt, i, prodtype))
 end
 
-function act_on_dict!(result, op::GenericOp, kt::Ket, i, prodtype)
+function act_on_dict!(result, op::OpSum, kt::Ket, i, prodtype)
     for (o,c) in dict(op), (k,v) in dict(kt)
         add_to_dict!(result, 
                      setindex(k, klabel(o)[1], i),
@@ -260,7 +260,7 @@ function act_on_dict!(result, op::GenericOp, kt::Ket, i, prodtype)
     return result
 end
 
-function act_on_dict!(result, op::DualOp, kt::Ket, i, prodtype)
+function act_on_dict!(result, op::DualOpSum, kt::Ket, i, prodtype)
     for (o,c) in dict(op), (k,v) in dict(kt)
         add_to_dict!(result,
                      setindex(k, blabel(o)[1], i),
@@ -272,8 +272,8 @@ end
 ##########
 # tensor #
 ##########
-tensor{P}(a::GenericOp{P}, b::GenericOp{P}) = GenericOp(ptype(a), tensordict(dict(a), dict(b)))
-tensor(a::DualOp, b::DualOp) = tensor(a.opc, b.opc)'
+tensor{P}(a::OpSum{P}, b::OpSum{P}) = OpSum(ptype(a), tensordict(dict(a), dict(b)))
+tensor(a::DualOpSum, b::DualOpSum) = tensor(a.opc, b.opc)'
 tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
 
 Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
@@ -281,15 +281,15 @@ Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 ###########
 # Scaling #
 ###########
-Base.scale!(op::GenericOp, c::Number) = (dscale!(dict(op), c); return op)
-Base.scale!(c::Number, op::GenericOp) = scale!(op, c)
-Base.scale!(opc::DualOp, c::Number) = DualOp(scale!(opc.op, c'))
-Base.scale!(c::Number, opc::DualOp) = scale!(opc, c)
+Base.scale!(op::OpSum, c::Number) = (dscale!(dict(op), c); return op)
+Base.scale!(c::Number, op::OpSum) = scale!(op, c)
+Base.scale!(opc::DualOpSum, c::Number) = DualOpSum(scale!(opc.op, c'))
+Base.scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
 
-Base.scale(op::GenericOp, c::Number) = similar(op, dscale(dict(op), c))
-Base.scale(c::Number, op::GenericOp) = scale(op, c)
-Base.scale(opc::DualOp, c::Number) = DualOp(scale(opc.op, c'))
-Base.scale(c::Number, opc::DualOp) = scale(opc, c)
+Base.scale(op::OpSum, c::Number) = similar(op, dscale(dict(op), c))
+Base.scale(c::Number, op::OpSum) = scale(op, c)
+Base.scale(opc::DualOpSum, c::Number) = DualOpSum(scale(opc.op, c'))
+Base.scale(c::Number, opc::DualOpSum) = scale(opc, c)
 
 Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
 Base.(:*)(op::DiracOp, c::Number) = scale(op, c)
@@ -298,14 +298,14 @@ Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
 ###########
 # + and - #
 ###########
-Base.(:-)(op::GenericOp) = scale(-1, op)
-Base.(:-)(opc::DualOp) = DualOp(-opc.op)
+Base.(:-)(op::OpSum) = scale(-1, op)
+Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
 
-Base.(:+){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(b, add_merge(dict(a), dict(b)))
-Base.(:-){P,N}(a::GenericOp{P,N}, b::GenericOp{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.(:-){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
 
-Base.(:+){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op + b.op)
-Base.(:-){P,N}(a::DualOp{P,N}, b::DualOp{P,N}) = DualOp(a.op - b.op)
+Base.(:+){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op + b.op)
+Base.(:-){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op - b.op)
 
 Base.(:+)(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
 Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
@@ -313,8 +313,8 @@ Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 #################
 # Normalization #
 #################
-Base.norm(op::GenericOp) = sqrt(sum(abs2, values(dict(op))))
-Base.norm(opc::DualOp) = norm(opc.op)
+Base.norm(op::OpSum) = sqrt(sum(abs2, values(dict(op))))
+Base.norm(opc::DualOpSum) = norm(opc.op)
 
 normalize(op::DiracOp) = scale(1/norm(op), op)
 normalize!(op::DiracOp) = scale!(1/norm(op), op)
@@ -322,7 +322,7 @@ normalize!(op::DiracOp) = scale!(1/norm(op), op)
 #########
 # Trace #
 #########
-function Base.trace(op::GenericOp)
+function Base.trace(op::OpSum)
     result = 0
     for (o,v) in dict(op)
         if klabel(o)==blabel(o)
@@ -332,15 +332,15 @@ function Base.trace(op::GenericOp)
     return result
 end
 
-Base.trace(opc::DualOp) = trace(opc.op)'
+Base.trace(opc::DualOpSum) = trace(opc.op)'
 
 #################
 # Partial trace #
 #################
 ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-ptrace{P,N}(op::DiracOp{P,N}, over) = GenericOp(ptype(op), ptrace_dict!(OpDict{N-1,eltype(op)}(), op, over))
+ptrace{P,N}(op::DiracOp{P,N}, over) = OpSum(ptype(op), ptrace_dict!(OpDict{N-1,eltype(op)}(), op, over))
 
-function ptrace_dict!(result, op::GenericOp, over)
+function ptrace_dict!(result, op::OpSum, over)
     for (o,v) in dict(op)
         if klabel(o)[over] == blabel(o)[over]
             add_to_dict!(result, OuterLabel(except(klabel(o), over), except(blabel(o), over)), v)
@@ -349,7 +349,7 @@ function ptrace_dict!(result, op::GenericOp, over)
     return result
 end
 
-function ptrace_dict!(result, opc::DualOp, over)
+function ptrace_dict!(result, opc::DualOpSum, over)
     for (o,v) in dict(opc)
         if blabel(o)[over] == klabel(o)[over]
             add_to_dict!(result, OuterLabel(except(blabel(o), over), except(klabel(o), over)), v')
@@ -361,12 +361,12 @@ end
 ########################
 # Misc. Math Functions #
 ########################
-nfactors{P,N}(::GeneralOp{P,N}) = N
-xsubspace(op::GeneralOp, x) = similar(op, filter((k,v)->is_sum_x(k,x), dict(op)))
-filternz!(op::GeneralOp) = (filter!(nzcoeff, dict(op)); return op)
-filternz(op::GeneralOp) = similar(op, filter(nzcoeff, dict(op)))
-switch(op::GeneralOp, i, j) = maplabels(label->switch(label,i,j), op)
-permute(op::GeneralOp, perm::Vector) = maplabels(label->permute(label,perm), op)
+nfactors{P,N}(::AbsOpSum{P,N}) = N
+xsubspace(op::AbsOpSum, x) = similar(op, filter((k,v)->is_sum_x(k,x), dict(op)))
+filternz!(op::AbsOpSum) = (filter!(nzcoeff, dict(op)); return op)
+filternz(op::AbsOpSum) = similar(op, filter(nzcoeff, dict(op)))
+switch(op::AbsOpSum, i, j) = maplabels(label->switch(label,i,j), op)
+permute(op::AbsOpSum, perm::Vector) = maplabels(label->permute(label,perm), op)
 
 purity(op::DiracOp) = trace(op^2)
 commutator(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
@@ -377,15 +377,15 @@ inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 ######################
 # Printing Functions #
 ######################
-labelrepr(op::GenericOp, o::OuterLabel, pad) = "$pad$(op[o]) $(ktstr(klabel(o)))$(brstr(blabel(o)))"
-labelrepr(opc::DualOp, o::OuterLabel, pad) = "$pad$(opc[reverse(o)]) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
+labelrepr(op::OpSum, o::OuterLabel, pad) = "$pad$(op[o]) $(ktstr(klabel(o)))$(brstr(blabel(o)))"
+labelrepr(opc::DualOpSum, o::OuterLabel, pad) = "$pad$(opc[reverse(o)]) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
 
 Base.summary(op::DiracOp) = "$(typeof(op)) with $(length(op)) operator(s)"
-Base.show(io::IO, op::GeneralOp) = dirac_show(io, op)
-Base.showcompact(io::IO, op::GeneralOp) = dirac_showcompact(io, op)
-Base.repr(op::GeneralOp) = dirac_repr(op)
+Base.show(io::IO, op::AbsOpSum) = dirac_show(io, op)
+Base.showcompact(io::IO, op::AbsOpSum) = dirac_showcompact(io, op)
+Base.repr(op::AbsOpSum) = dirac_repr(op)
 
-export GenericOp,
+export OpSum,
     ptrace,
     xsubspace,
     nfactors,

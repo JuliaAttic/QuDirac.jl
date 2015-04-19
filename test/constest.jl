@@ -1,6 +1,6 @@
 simpk = (1+3im) * ket(1)
 proj = simpk*simpk'
-projop = convert(QuDirac.GenericOp, proj)
+projop = convert(QuDirac.OpSum, proj)
 
 k = sum([(i+(i*im))*ket(i) for i=0:3])
 b = sum([(i+(i*3*im))*ket(i) for i=0:3])'

@@ -12,8 +12,8 @@ abstract DiracState{P,N} <: AbstractDirac{P,N}
 type Ket{P,N,T} <: DiracState{P,N}
 type Bra{P,N,T} <: DiracState{P,N}
 
-type GenericOp{P,N,T} <: DiracOp{P,N}
-type DualOp{P,N,T} <: DiracOp{P,N}
+type OpSum{P,N,T} <: DiracOp{P,N}
+type DualOpSum{P,N,T} <: DiracOp{P,N}
 type OuterProduct{P,N,S,K,B} <: DiracOp{P,N}
 ```
 

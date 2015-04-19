@@ -8,7 +8,7 @@ quantum mechanics computations.
 
 Below are some toy examples; actual documentation is coming soon! 
 
-#### State types (`Ket`,`Bra`) and Operator types (`GenericOp`,`OuterProduct`)
+#### State types (`Ket`,`Bra`) and Operator types (`OpSum`,`OuterProduct`)
 
 ```julia
 julia> bell = 1/√2 * (ket(0,0) + ket(1,1))
@@ -29,7 +29,7 @@ OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDe
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
 
 julia> ptrace(op, 1)
-GenericOp{KroneckerDelta,1,Float64} with 2 operator(s):
+OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 0 ⟩⟨ 0 |
   0.4999999999999999 | 1 ⟩⟨ 1 |
 ```
@@ -83,7 +83,7 @@ julia> lower(n) = (sqrt(n[1]), StateLabel(n[1]-1))
 lower (generic function with 1 method)
 
 julia> â = func_permop(lower, k)
-GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
+OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
   1.0 | 0 ⟩⟨ 1 |

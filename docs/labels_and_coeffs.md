@@ -113,17 +113,17 @@ julia> op[(8,1,10),(2,1,2)]
 320
 ```
 
-The above obviously works with `GenericOp`s as well as `OuterProduct`s.
+The above obviously works with `OpSum`s as well as `OuterProduct`s.
 
-Assigning coefficients, however, only works with `GenericOp`s (due to the 
+Assigning coefficients, however, only works with `OpSum`s (due to the 
 `OuterProduct` type simply being a view on its underlying state factors):
 
 ```julia
 julia> op[(8,1,10),(2,1,2)] = 1
 ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3,Int64,Ket{KroneckerDelta,3,Int64},Bra{KroneckerDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
 
-julia> gop = convert(GenericOp, op)
-GenericOp{KroneckerDelta,3,Int64} with 1000000 operator(s):
+julia> gop = convert(OpSum, op)
+OpSum{KroneckerDelta,3,Int64} with 1000000 operator(s):
   168 | 7,4,1 ⟩⟨ 1,6,1 |
   90 | 1,1,9 ⟩⟨ 5,1,2 |
   2520 | 5,6,2 ⟩⟨ 2,3,7 |

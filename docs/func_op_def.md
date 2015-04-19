@@ -60,7 +60,7 @@ The operator will then be represented in that Ket's basis:
 
 ```
 julia> op = func_op(flip, ket(0) + ket(1))
-GenericOp{KroneckerDelta,1,Float64} with 4 operator(s):
+OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |
@@ -110,7 +110,7 @@ julia> lower(n::StateLabel) = (sqrt(n[1]), StateLabel(n[1]-1))
 lower (generic function with 1 method)
 
 julia> â = func_permop(lower, k)
-GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
+OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
   1.0 | 0 ⟩⟨ 1 |
@@ -191,7 +191,7 @@ Ket{KroneckerDelta,3,Int64} with 10 state(s):
   8 | 8,9,10 ⟩
 
 julia> Â₁₃₂ = func_permop(label -> (1, StateLabel(label[[1,3,2]])), k)
-GenericOp{KroneckerDelta,3,Int64} with 10 operator(s):
+OpSum{KroneckerDelta,3,Int64} with 10 operator(s):
   1 | 2,4,3 ⟩⟨ 2,3,4 |
   1 | 4,6,5 ⟩⟨ 4,5,6 |
   1 | 7,9,8 ⟩⟨ 7,8,9 |
