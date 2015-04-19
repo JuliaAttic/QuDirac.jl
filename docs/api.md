@@ -33,16 +33,45 @@ Construct a single (i.e. non-superposed) Bra with as many factors as there are `
 See the [Constructing Single Bras](constructing_states/#constructing-single-bras) section for more.
 
 ---
-*func_op(f::Function, k::Ket[, i::Int])*
+*func_op(f::Function, k::Ket)*
 
 Generate the representation for the operator specified by the function `f` acting on `k`'s basis. 
-One can optionally pass in `i` to specify the operator's action on a specific factor of the basis.
-See the [Functionally Defining Operators](func_op_def.md) section for more.
+
+See the [Functionally Defining Operators](func_op_def.md) section for detailed examples.
+
+---
+*func_op(f::Function, k::Ket)*
+
+Generate the representation for the operator specified by the function `f` acting on `k`'s basis. 
+
+See the [Functionally Defining Operators](func_op_def.md) section for detailed examples.
+
+---
+*func_permop(f::Function, k::Ket)*
+
+Similar to `func_op`, but has the restriction that the action of an operator on a Ket 
+returns a basis Ket, not a superpositional state. This restriction can be stated as
+
+```
+Ô | i ⟩ = cᵢⱼ | j ⟩
+```
+
+...where both `| i ⟩` and `| j ⟩` are basis states, i.e. *not* superpositional states.
+
+This function is much more efficient than `func_op` for constructing generalized permutation operators.
+
+See the [Permutative Operator Representation](func_op_def/#permutative-operator-representation) section for detailed examples.
 
 ---
 # Math Functions
 ---
 
+*nfactors(obj::AbstractDirac)*
+
+Returns the number of factor systems of `obj`. This information is also parameterized in the
+type of `obj`, e.g. an instance of type `Ket{KroneckerDelta,3}` has 3 factors.
+
+---
 *purity(op::DiracOp)*
 
 Calculate `Tr(op^2)`.
@@ -152,10 +181,9 @@ Returns the number of (label, coefficient) pairs stored in `obj`. This is the sa
 number of basis states/operators present in `obj`.
 
 ---
-*nfactors(obj::AbstractDirac)*
+*collect(obj::AbstractDirac)*
 
-Returns the number of factor systems of `obj`. This information is also parameterized in the
-type of `obj`, e.g. an instance of type `Ket{KroneckerDelta,3}` has 3 factors.
+Returns a `Vector` of the (label, coefficient) pairs stored in `obj`. The ordering of the returned pairs is not guaranteed.
 
 ---
 *get(state::DiracState, label[, default]),*
@@ -178,7 +206,6 @@ Return `true` if the labels are found in the provided objects, and `false` other
 
 Return the coefficient for the basis state/operator with the given labels, erroring if the labels could not be found.
 See [here](labels_and_coeffs/#accessing-and-assigning-coefficients) for details.
-
 
 ---
 *setindex!(state::DiracState, c, label...),*

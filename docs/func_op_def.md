@@ -68,7 +68,7 @@ GenericOp{KroneckerDelta,1,Float64} with 4 operator(s):
 ```
 
 ---
-# Diagonal Operator Representation
+# Permutative Operator Representation
 ---
 
 If the operator you wish to construct can be represented as a generalized permutation matrix, one can use 
@@ -79,11 +79,12 @@ this case, means that the operator representation can be defined as:
 Ô | i ⟩ = cᵢⱼ | j ⟩
 ```
 
-Where both `| i ⟩` and `| j ⟩` are basis states, i.e. *not* superpositional states. 
-Thus, examples of  identity, ladder operators, . The use of `func_permop` is a little different from the more general `func_op`, so let's 
-construct the lowering operator as an example.
+...where both `| i ⟩` and `| j ⟩` are basis states, i.e. *not* superpositional states. Common examples of 
+operators that adhere to this definition are the identity operator and the ladder operators for the 
+quantum harmonic oscillator. 
 
-The lowering operator `â` is defined as 
+The use of `func_permop` is a little different from the more general `func_op`, so let's 
+construct the lowering operator as an example. The lowering operator `â` is defined as 
 
 ```
 â | n ⟩ = √n | n - 1 ⟩
@@ -101,7 +102,8 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
   0.4472135954999579 | 1 ⟩
 ```
 
-Now we can define our lowering operator in `k`'s basis:
+To do so, we construct a function that applies to each basis label, and pass it
+to `func_permop` along with `k`:
 
 ```julia
 julia> lower(n::StateLabel) = (sqrt(n[1]), StateLabel(n[1]-1))
@@ -116,11 +118,10 @@ GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
   1.7320508075688772 | 2 ⟩⟨ 3 |
 ```
 
-In the above, `func_permop` takes the same arguments as `func_op` - a function, and a state.
-However, the output of this function is structured differently than the output of functions 
-passed to `func_op`. A function passed to `func_permop` takes in a `StateLabel` 
-and return a coefficient-label pair of type `(T, StateLabel)`, where `T` is the coefficient
-type of the resulting operator. 
+As you can see, the output of `lower` is structured differently than the output of functions 
+passed to `func_op`. A function passed to `func_permop` takes in a `StateLabel` and return 
+a (coefficient, label) pair of type `(T, StateLabel)`, where `T` is the coefficient type 
+of the resulting operator. 
 
 Thus, mixing Julia syntax and math, our functional construction of `â` could be written out like this:
 
@@ -167,7 +168,7 @@ Bra{KroneckerDelta,1,Float64} with 1 state(s):
   2.0 ⟨ 3 |
 ```
 
-Another example is the factor switching operator Â₁₃₂, defined as: 
+Another example is the factor switching operator `Â₁₃₂`, defined as: 
 
 ```
 Â₁₃₂ | a, b, c ⟩  = | a, c, b ⟩
@@ -217,7 +218,7 @@ Ket{KroneckerDelta,3,Int64} with 10 state(s):
 ```
 
 Note that, in practice, QuDirac provides the `switch` and `permute` functions for states and operators, 
-which can imitate the above behavior in functional form:
+which can imitate the above behavior in functional form (and is not restricted to a basis)
 
 ```
 julia> Â₁₃₂ * k == switch(k, 2, 3) == permute(k, [1, 3, 2])
