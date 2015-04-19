@@ -28,23 +28,18 @@ end
 shift_ket(kt::Ket) = maplabels(shift_map, kt) 
 
 function walk_nsteps(steps)
-    if steps == 0
-        return [d" 1.0 * | 0,0 > "]
-    else
-        steps += 1
+    steps += 1
 
-        # Allocate space for the results
-        results = Array(Ket{KroneckerDelta, 2, Float64}, steps);
+    # Allocate space for the results
+    results = Array(Ket{KroneckerDelta, 2, Float64}, steps);
 
-        # Initial state
-        results[1] = d" 1.0 * | 0,0 > "
+    # Initial state
+    results[1] = d" 1.0 * | 0,0 > "
 
-        # Calculate the each step by referring to the previous step
-        for i=2:steps
-            results[i] = shift_ket(act_on(H, results[i-1], 1))
-        end
-
-        return results
+    # Calculate the each step by referring to the previous step
+    for i=2:steps
+        results[i] = shift_ket(act_on(H, results[i-1], 1))
     end
-end
 
+    return results
+end
