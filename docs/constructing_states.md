@@ -60,7 +60,7 @@ julia> nfactors(k)
 3
 ```
 
-Just as with single labels, one is free to use labels of any type for multi-factor states:
+Just as with single-factor states, one is free to use labels of any type:
 
 ```julia
 julia> k = ket(0, ":)", :a, [1,2,3])

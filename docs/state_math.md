@@ -20,10 +20,10 @@ Ket{KroneckerDelta,1,Complex{Float64}} with 1 state(s):
 States can be also be added and subtracted:
 
 ```julia
-julia> ket(0) + ket(0) == 2 * ket(0)
+julia> d" | 0 > + | 0 > == 2 * | 0 > "
 true
 
-julia> ket(0) - ket(0) == 0 * ket(0)
+julia> d" | 0 > - | 0 > == 0 * | 0 > "
 true
 
 julia> d" 1/√3 * (| 0 > + | 1 > - | 2 >) "
@@ -49,7 +49,7 @@ Ket{KroneckerDelta,1,Float64} with 5 state(s):
 # Normalization
 ---
 
-In general, QuDirac objects do not automatically normalize themselves, but normalization functions are provided.
+In general, QuDirac objects do not automatically normalize themselves.
 
 We can normalize a state in-place by using the `normalize!` function:
 
