@@ -23,7 +23,7 @@ The `OuterProduct` type is a lazy representation of the outer product of two sta
 the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
 a *view* onto the factor states.
 
-With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `OpSum` type. This type represents a sum of operators rather than an outer product of states, and is *not* a view. 
+With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `OpSum` type. The `OpSum` type represents a sum of operators rather than an outer product of states, and is *not* a view. 
 
 ---
 # Scalar Multiplication
