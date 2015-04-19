@@ -25,7 +25,7 @@ The arguments to `inner_rule` are, in order:
 Most examples in this documentation show the `KroneckerDelta` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
 
 ```julia
-julia> k = sum(i->i*ket(i), 1:5)
+julia> k = sum(i->d" i * | i > ", 1:5)
 Ket{UndefinedInner,1,Int64} with 5 state(s):
   4 | 4 ⟩
   3 | 3 ⟩
@@ -128,17 +128,17 @@ Evaluation using the `UndefinedInner` type yields objects of type `InnerExpr`. T
 julia> default_inner(UndefinedInner());
 INFO: QuDirac's default inner product type is currently UndefinedInner()
 
-julia> act_on(bra('x'), ket('a','b','c'), 2)
+julia> d" act_on(< 'x' |, | 'a','b','c' >, 2)
 Ket{UndefinedInner,2,Number} with 1 state(s):
   ⟨ 'x' | 'b' ⟩ | 'a','c' ⟩
 
-julia> s = √((bra(1) * ket(3))^2 + 1)
+julia> s = d" √(< 1 |*| 3 >)^2 + 1 "
 (sqrt(((⟨ 1 | 3 ⟩^2) + 1)))
 
 julia> typeof(s)
 InnerExpr (constructor with 4 methods)
 
-julia> s * ket(1,2,3)
+julia> d" s * | 1,2,3 > "
 Ket{UndefinedInner,3,Number} with 1 state(s):
   (sqrt(((⟨ 1 | 3 ⟩^2) + 1))) | 1,2,3 ⟩
 ```
@@ -146,7 +146,7 @@ Ket{UndefinedInner,3,Number} with 1 state(s):
 The `inner_eval` function can be used to re-evaluate `InnerExpr`s by mapping a function to each unresolved inner product:
 
 ```julia
-julia> s = (e^(bra(1,2) * ket(3,4)) + (bra(5,6)*ket(7,8))im)^4
+julia> s = d" (e^( < 1,2 |*| 3,4 > ) + < 5,6 |*| 7,8 > * im)^4 "
 (((exp(⟨ 1,2 | 3,4 ⟩)) + (⟨ 5,6 | 7,8 ⟩ * im))^4)
 
 julia> f(b::StateLabel, k::StateLabel) = sum(k) - sum(b)
@@ -171,7 +171,7 @@ inner_eval(KroneckerDelta(), s)
 Finally, `inner_eval` can be called on states and operators to perform the evaluation on their coefficients:
 
 ```julia
-julia> s = act_on(bra('x') + bra('y'), ket('a','b','c') + ket('d', 'e', 'f'), 2)
+julia> s = d" act_on( < 'x' | + < 'y' |, | 'a','b','c' > + | 'd','e','f' >, 2) "
 Ket{UndefinedInner,2,Number} with 2 state(s):
   (⟨ 'x' | 'e' ⟩ + ⟨ 'y' | 'e' ⟩) | 'd','f' ⟩
   (⟨ 'x' | 'b' ⟩ + ⟨ 'y' | 'b' ⟩) | 'a','c' ⟩

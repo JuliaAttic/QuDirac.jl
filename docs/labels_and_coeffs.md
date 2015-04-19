@@ -20,7 +20,7 @@ There are few important things to keep in mind when working with these structure
 Julia's `getindex` function has been overloaded to allow coefficients of a state to be accessed by the basis states' labels:
 
 ```julia
-julia> k = normalize(sum(i->i*ket(i), 1:3))
+julia> k = normalize(sum(i->d" i * | i > ", 1:3))
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.8017837257372732 | 3 ⟩
   0.5345224838248488 | 2 ⟩
@@ -86,7 +86,7 @@ Operator coefficients are accessed in the same manner as state coefficients,
 except two labels are required; one for the basis Ket, and another for the basis Bra:
 
 ```julia
-julia> k = sum(i->i*ket(i), 1:10); op = k*k'
+julia> k = sum(i->d" i * | i > ", 1:10); op = k*k'
 OuterProduct with 100 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   81 | 9 ⟩⟨ 9 |
   36 | 9 ⟩⟨ 4 |
@@ -146,7 +146,7 @@ julia> gop[(8,1,10),(2,1,2)]
 If a label is not explictly present in a QuDirac object, then calling `getindex` with that label results in an error: 
 
 ```julia
-julia> k = sum(i-> i * ket(i), 1:3)^3
+julia> k = sum(i->d" i * | i > ", 1:3)^3
 Ket{KroneckerDelta,3,Int64}} with 27 state(s):
   12 | 2,2,3 ⟩
   27 | 3,3,3 ⟩

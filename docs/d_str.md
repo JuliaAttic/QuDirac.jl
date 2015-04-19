@@ -1,9 +1,7 @@
 # Natural Dirac notation input syntax
 ---
 
-QuDirac supports an input format that is even more natural than using the `ket` or `bra` functions by implementing `d" ... "` and `d""" ... """` syntax. The former is for single-line input, while the latter is for multi-line input.
-
-Seeing this syntax in action:
+QuDirac supports a "natural" input format by implementing `d" ... "` syntax. Seeing this syntax in action:
 
 ```julia
 julia> d" | 0 > "
@@ -11,20 +9,23 @@ Ket{KroneckerDelta,1,Int64} with 1 state(s):
   1 | 0 ⟩
 ```
 
-The macro parses the string for the `|`, `>` and `<` characters, replacing them where appropriate with the `ket` and `bra` functions. Thus, when using this syntax, the `|`, `>` and `<` characters *cannot be used for anything other than as indicators of Kets and Bras*.
+Using `d"..."` calls the macro `@d_str`, which parses the given string for the `|`, `>` and `<` characters, replacing them where appropriate with the `ket` and `bra` functions. Thus, when using this syntax, the `|`, `>` and `<` characters *cannot be used for anything other than as indicators of Kets and Bras*.
 
 Assignments and function calls work as expected, though:
 
 ```julia
-julia> @d_str " ψ = 1/√2 * (| 0,0 > + | 1,1 >); purity(ptrace(ψ*ψ', 2)) "
-0.4999999999999998
+julia> d" A = tensor( | 0 >< 1 |, | 1 >< 0 | ) ";
+
+julia> A
+OuterProduct with 1 operator(s); Ket{UndefinedInner,2,Int64} * Bra{UndefinedInner,2,Int64}:
+  1 | 0,1 ⟩⟨ 1,0 |
 ```
 
 ---
 # Multi-line syntax
 ---
 
-With multi-line support, one can write entire chunks of code using the above notation. Just wrap the code in `d""" ... """`:
+With multi-line support, one can write entire chunks of code using the above notation. Just use triple quotes (`"""`) instead of single quotes:
 
 ```
 julia> d"""

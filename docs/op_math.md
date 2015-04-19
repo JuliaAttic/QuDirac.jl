@@ -4,10 +4,10 @@
 The simplest way to construct a QuDirac operator is to take the outer product of two states:
 
 ```julia
-julia> k = 1/√2 * (ket(0,0) - ket(1,1))
+julia> k = d" 1/√2 * (| 0,0 > - | 1,1 >) "
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
-  -0.7071067811865475 | 1,1 ⟩
   0.7071067811865475 | 0,0 ⟩
+  -0.7071067811865475 | 1,1 ⟩
 
 julia> k*k'
 OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
@@ -32,7 +32,7 @@ With the exception of scaling functions, most mutating functions are not defined
 Like states, operators can be multiplied by a scalar: 
 
 ```julia
-julia> op = ket('a') * bra('b')
+julia> op = d" | 'a' >< 'b' | "
 OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
   1 | 'a' ⟩⟨ 'b' |
 
@@ -56,7 +56,7 @@ julia> op + op
 GenericOp{KroneckerDelta,1,Int64} with 1 operator(s):
   2 | 'a' ⟩⟨ 'b' |
 
-julia> gop = 1/√2 * (op - (ket(0) * bra(1)))
+julia> gop = d" 1/√2 * ( op - (| 0 >< 1 |) ) "
 GenericOp{KroneckerDelta,1,Float64} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
@@ -71,7 +71,7 @@ As you can see, generic sums of operators are represented using the `GenericOp` 
 Similarly to states, one can normalize operators using the `normalize` and `normalize!` functions:
 
 ```julia
-julia> op = normalize(sum(i -> ket(i) * bra(i^2), 1:5))
+julia> op = normalize(sum(i -> d"| i >< i^2 |", 1:5))
 GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
   0.4472135954999579 | 5 ⟩⟨ 25 |
   0.4472135954999579 | 3 ⟩⟨ 9 |
@@ -92,15 +92,15 @@ For QuDirac operators, the `norm` function specifically computes the [Frobenius 
 Take the conjugate transpose of an operator, simply call `ctranspose` on it:
 
 ```julia
-julia> gop #from the earlier example
-GenericOp{KroneckerDelta,1,Float64} with 2 operator(s):
-  0.7071067811865475 | 'a' ⟩⟨ 'b' |
-  -0.7071067811865475 | 0 ⟩⟨ 1 |
+julia> A = d"normalize( (1+3im) * | 1 >< 2 | + (5-2im) * | 3 >< 4 | )"
+GenericOp{KroneckerDelta,1,Complex{Float64}} with 2 operator(s):
+  0.8006407690254357 - 0.32025630761017426im | 3 ⟩⟨ 4 |
+  0.16012815380508713 + 0.48038446141526137im | 1 ⟩⟨ 2 |
 
-julia> gop'
-DualOp{KroneckerDelta,1,Float64} with 2 operator(s):
-  0.7071067811865475 | 'b' ⟩⟨ 'a' |
-  -0.7071067811865475 | 1 ⟩⟨ 0 |
+julia> A'
+DualOp{KroneckerDelta,1,Complex{Float64}} with 2 operator(s):
+  0.8006407690254357 + 0.32025630761017426im | 4 ⟩⟨ 3 |
+  0.16012815380508713 - 0.48038446141526137im | 2 ⟩⟨ 1 |
 ```
 
 Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of a `GenericOp` is a `DualOp`.
@@ -115,22 +115,22 @@ The dual of a `OuterProduct` is simply a `OuterProduct`, and is still a view on 
 Use the `*` function to take the inner product of states/operators: 
 
 ```julia
-julia> k = 1/√2 * (ket(0,0) - ket(1,1)); op = k*k'
+julia> k = d" 1/√2 * (| 0,0 > - | 1,1 >) "; P = k*k'
 OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
 
-julia> op * ket(1,1)
+julia> d" P * | 1,1 > "
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
   -0.4999999999999999 | 0,0 ⟩
   0.4999999999999999 | 1,1 ⟩
 
-julia> bra(0,0) * op * ket(1,1)
+julia> d" < 0,0 | * P * | 1,1 > "
 -0.4999999999999999
 
-julia> op * (ket(1,1) * bra(0,0))
+julia> d" P * (| 1,1 >< 0,0 |) "
 OuterProduct with 2 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Int64}:
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
@@ -139,10 +139,10 @@ OuterProduct with 2 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDe
 Thus, expectation values are naturally obtained in this manner:
 
 ```julia
-julia> bra(1,1)*op*ket(1,1)
+julia> d" < 1,1 | * P * | 1,1 > "
 0.4999999999999999
 
-julia> k'*op*k
+julia> k' * P * k
 0.9999999999999997
 ```
 
@@ -157,7 +157,7 @@ regarding these features.
 One can use the `act_on` function to apply an operator to a specific factor of a Ket:
 
 ```julia
-julia> a = sum(i->sqrt(i) * ket(i-1) * bra(i), 1:5) # lowering operator
+julia> a = sum(i-> d"√i * | i-1 >< i |", 1:5) # lowering operator
 GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
@@ -165,7 +165,7 @@ GenericOp{KroneckerDelta,1,Float64} with 5 operator(s):
   1.4142135623730951 | 1 ⟩⟨ 2 |
   1.7320508075688772 | 2 ⟩⟨ 3 |
 
-julia> k = ket(1,2,3) + 2*ket(3,5,1)
+julia> k = d" | 1,2,3 > + 2 * | 3,5,1> "
 Ket{KroneckerDelta,3,Int64} with 2 state(s):
   1 | 1,2,3 ⟩
   2 | 3,5,1 ⟩
@@ -184,22 +184,21 @@ Unlike states, one does not take the tensor product of operators using `*`; that
 already used for inner products. Thus, one must use the `tensor` function:
 
 ```julia
-julia> tensor(op,op,op,op) # op from previous example
-OuterProduct with 256 operator(s); Ket{KroneckerDelta,8,Float64} * Bra{KroneckerDelta,8,Float64}:
-  0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 1,1,1,1,0,0,0,0 |
-  -0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
-  -0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 1,1,1,1,1,1,0,0 |
-  0.06249999999999996 | 1,1,1,1,0,0,0,0 ⟩⟨ 1,1,0,0,0,0,1,1 |
-  -0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 1,1,1,1,0,0,0,0 |
-  0.06249999999999996 | 0,0,0,0,1,1,0,0 ⟩⟨ 0,0,0,0,1,1,0,0 |
-  ⁞
+julia> op = d" 1/√2 * (| 'a' >< 'b' | + | 'c' >< 'd' |)"
+GenericOp{KroneckerDelta,1,Float64} with 2 operator(s):
+  0.7071067811865475 | 'a' ⟩⟨ 'b' |
+  0.7071067811865475 | 'c' ⟩⟨ 'd' |
 
-julia> tensor(op, ket('a')*bra('b'))
-OuterProduct with 4 operator(s); Ket{KroneckerDelta,3,Float64} * Bra{KroneckerDelta,3,Float64}:
-  0.4999999999999999 | 0,0,'a' ⟩⟨ 0,0,'b' |
-  -0.4999999999999999 | 0,0,'a' ⟩⟨ 1,1,'b' |
-  -0.4999999999999999 | 1,1,'a' ⟩⟨ 0,0,'b' |
-  0.4999999999999999 | 1,1,'a' ⟩⟨ 1,1,'b' |
+julia> tensor(op,op,op)
+GenericOp{KroneckerDelta,3,Float64} with 8 operator(s):
+  0.3535533905932737 | 'c','c','a' ⟩⟨ 'd','d','b' |
+  0.3535533905932737 | 'c','a','a' ⟩⟨ 'd','b','b' |
+  0.3535533905932737 | 'a','c','a' ⟩⟨ 'b','d','b' |
+  0.3535533905932737 | 'a','a','c' ⟩⟨ 'b','b','d' |
+  0.3535533905932737 | 'a','c','c' ⟩⟨ 'b','d','d' |
+  0.3535533905932737 | 'c','c','c' ⟩⟨ 'd','d','d' |
+  0.3535533905932737 | 'a','a','a' ⟩⟨ 'b','b','b' |
+  0.3535533905932737 | 'c','a','c' ⟩⟨ 'd','b','d' |
 ```
 
 ---
@@ -227,7 +226,7 @@ Note that the trace calculation is defined to sum the coefficients for which the
 The partial trace of an operator can be taken using the `ptrace` function:
 
 ```julia
-julia> bell = 1/√2 * (ket('b','a') + ket('a','b'))
+julia> bell = d" 1/√2 * (| 'b','a' > + | 'a','b' >) "
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 'a','b' ⟩
   0.7071067811865475 | 'b','a' ⟩

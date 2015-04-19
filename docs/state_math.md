@@ -26,7 +26,7 @@ true
 julia> ket(0) - ket(0) == 0 * ket(0)
 true
 
-julia> 1/√3 * (ket(0) + ket(1) - ket(2))
+julia> d" 1/√3 * (| 0 > + | 1 > - | 2 >) "
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.5773502691896258 | 0 ⟩
   -0.5773502691896258 | 2 ⟩
@@ -94,7 +94,7 @@ true
 For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra will result in the mutation of the underlying Ket:
 
 ```julia
-julia> k = 2.3*ket(1) + 4.5*ket(2)
+julia> k = d" 2.3*| 1 > + 4.5*| 2 > "
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   4.5 | 2 ⟩
   2.3 | 1 ⟩
@@ -118,7 +118,7 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 If you would like a copy of a state instead, you can explicitly construct one via the `copy` function:
 
 ```julia
-julia> k = (ket(1) + ket(2));
+julia> k = d" | 1 > + | 2 > ";
 
 julia> b = copy(k)';
 
@@ -150,7 +150,7 @@ of the above is the same as if we input `ket(0,0)`. Taking the tensor product of
 more complicated states illustrates the tensor product's cartesian properties:
 
 ```julia
-julia> normalize!(sum(i->i^2*ket(i), 0:3) * sum(i->i/2*ket(i), -3:3))
+julia> d" normalize!(sum(i->i^2 * | i >, 0:3) * sum(i->i/2 * | i >, -3:3)) "
 Ket{KroneckerDelta,2,Float64} with 18 state(s):
   -0.5154323951168185 | 3,-3 ⟩
   0.3436215967445456 | 3,2 ⟩
@@ -168,13 +168,13 @@ Ket{KroneckerDelta,2,Float64} with 18 state(s):
 Similarly to the tensor product, the inner product can be taken simply by multiplying Bras with Kets:
 
 ```julia
-julia> bra(0)*ket(1)
+julia> d" < 0 |*| 1 > "
 0
 
-julia> k = 1/√2 * (ket(0,0) + ket(1,1)); k' * k
+julia> k = d" 1/√2 * ( | 0,0 > + | 1,1 > ) "; k'*k
 0.9999999999999998
 
-julia> bra(0,0) * k
+julia> d" < 0,0 | * k "
 0.7071067811865475
 ```
 
@@ -204,7 +204,7 @@ If these states are orthonormal, our final result is
 QuDirac supports this operation through the use of the `act_on` function:
 
 ```julia
-julia> ψ = normalize!(ket(0,1) + 2*ket(1,0))
+julia> ψ = d" normalize!( | 0,1 > + 2.0 * | 1,0 > ) "
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.4472135954999579 | 0,1 ⟩
   0.8944271909999159 | 1,0 ⟩
@@ -221,7 +221,7 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 This does, of course, work even when the Bra is a superposition of states:
 
 ```julia
-julia> ϕ = 1/√2 * (bra(0) + bra(1))
+julia> ϕ = d" 1/√2 * ( < 0 | + < 1 | ) "
 Bra{KroneckerDelta,1,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 0 |
   0.7071067811865475 ⟨ 1 |
