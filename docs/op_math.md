@@ -103,10 +103,10 @@ DualOpSum{KroneckerDelta,1,Complex{Float64}} with 2 operator(s):
   0.16012815380508713 - 0.48038446141526137im | 2 ⟩⟨ 1 |
 ```
 
-Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of a `OpSum` is a `DualOpSum`.
+Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of an `OpSum` is a `DualOpSum`.
 The `DualOpSum` type is a *view* on the original operator, so mutating a `DualOpSum` will mutate the underlying `OpSum` (one can explicitly make a copy via the `copy` function). 
 
-The dual of a `OuterProduct` is simply a `OuterProduct`, and is still a view on the original factor states.
+The dual of an `OuterProduct` is simply an `OuterProduct`, and is still a view on the original factor states.
 
 ---
 # Inner Product
