@@ -62,12 +62,12 @@ function op_expr(op_name, label_arg, ket_str, basis)
     if isa(label_expr, Expr)
         ex = quote 
             local f($(label_expr.args...)) = $ket_expr * bra($(label_expr.args...))
-            $op_sym = sum(args->apply(f, args), $basis)
+            $op_sym = sum(args->f(args...), $basis)
         end
     else
         ex = quote 
             local f($label_expr) = $ket_expr * bra($label_expr)
-            $op_sym = sum(args->apply(f, args), $basis)
+            $op_sym = sum(args->f(args...), $basis)
         end
     end
     return ex
