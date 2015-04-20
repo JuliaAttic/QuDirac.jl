@@ -3,7 +3,7 @@
 
 This API refers to various types to describe the domain of the included functions. For clarity's sake, here is the type hiearchy for QuDirac objects:
 
-```
+```julia
 abstract AbstractDirac{P<:AbstractInner,N}
 
 abstract DiracOp{P,N} <: AbstractDirac{P,N}
@@ -23,6 +23,13 @@ type DualOpSum{P,N,T} <: AbsOpSum{P,N,T}
 # Constructor functions
 ---
 
+**Ket(dict::Dict{StateLabel{N}, T}),**
+
+**Ket(ptype::AbstractInner, dict::Dict{StateLabel{N}, T})**
+
+Construct a Ket from the provided `dict`.
+
+---
 **ket(labels...)**
 
 Construct a single (i.e. non-superposed) Ket with as many factors as there are `labels`. 
@@ -35,17 +42,41 @@ Construct a single (i.e. non-superposed) Bra with as many factors as there are `
 See the [Constructing Single Bras](constructing_states/#constructing-single-bras) section for more.
 
 ---
+**OpSum(dict::Dict{OpLabel{N}, T}),**
+
+**OpSum(ptype::AbstractInner, dict::Dict{OpLabel{N}, T})**
+
+Construct an operator from the provided `dict`.
+
+---
 **@def_op(str)**
 
 Using the definition given by `str`, generate a function that acts on Kets via the `*` operator. 
-See the [Functionally Defining Operators](adv_cons/#functionally-defining-operators) section for detailed examples.
+See the [Defining Operators as Functions](func_op_def/#defining-operators-as-functions) section for detailed examples.
 
 ---
 **@repr_op(str, basis_labels)**
 
 Generate an operator representation by applying the definition given by `str` to the labels provided by `basis_labels`.
-See the [Functionally Representing Operators](adv_cons/#functionally-representing-operators) section for detailed examples.
+See the [Generating Operator Representations](func_op_def/#generating-operator-representations) section for detailed examples.
 
+---
+**StateLabel(labels::Tuple),**
+
+**StateLabel(labels...)**
+
+Construct a `StateLabel` with the given factor labels.
+`StateLabel`s are iterable, indexable, and mappable.
+
+---
+**OpLabel(ketlabel::StateLabel, bralabel::StateLabel),**
+
+**OpLabel(ketlabel, bralabel)**
+
+Construct an `OpLabel` with the given Ket and Bra labels.
+
+To retrieve an `OpLabel`'s Ket label, call `klabel(::OpLabel)`.
+To retrieve an `OpLabel`'s Bra label, call `blabel(::OpLabel)`.
 
 ---
 # Math Functions
@@ -157,6 +188,40 @@ Ket{KroneckerDelta,3,Int64} with 3 state(s):
 ```
 
 ---
+# Inner Product Evaluation
+---
+
+**inner_eval(f::Function, obj::AbstractDirac),**
+
+**inner_eval(ptype::AbstractInner, obj::AbstractDirac),**
+
+**inner_eval(f::Function, i::InnerExpr),**
+
+**inner_eval(ptype::AbstractInner, i::InnerExpr)**
+
+Evaluate unresolved `InnerExpr`s using the provided function. If a product type is provided instead of a function, use that type's inner product rule.
+
+If a function `f` is provided, it's signature should be `f(::StateLabel, ::StateLabel)` where the first argument is the Bra label and the second argument is the Ket label.
+
+See the [Delayed Inner Product Evaluation](inner_products/#delayed-inner-product-evaluation) section for details.
+
+---
+**default_inner(ptype::AbstractInner)**
+
+Set QuDirac's default inner product type to `ptype`. See [here](inner_products/#assigning-inner-product-types-to-qudirac-objects) for details.
+
+---
+**inner_rule(ptype::AbstractInner, b::StateLabel, k::StateLabel)**
+
+Evaluates the inner product `⟨ b | k ⟩` with product type `ptype`. This function should be overloaded for new inner product types.
+See the [Working with Inner Products](inner_products.md) section for detailed examples.
+
+---
+**inner_rettype(ptype::AbstractInner)**
+
+Returns a guess for the return type of the function `inner_rule(ptype, ::StateLabel, ::StateLabel)`. This is used in some operations to provide better coefficient type inferencing than would otherwise be possible. See [here](inner_products/#custom-inner-product-types) for more.
+
+---
 # Dict-like Functions
 ---
 
@@ -219,15 +284,67 @@ This function is not implemented on `OuterProduct`s.
 
 Maps `f` onto the `(label, coefficient)` pairs of `obj`. For states, `f` is called as `f(::StateLabel,::T)` where `T` is the coefficient type of `obj`. For operators, `f` is called as `f(:OpLabel,::T)`.
 
+Example:
+
+```julia
+julia> k0 = sum(ket, 0:10); 
+
+julia> k1 = map((label, v) -> iseven(label[1]) ? (label, v) : (label, 0), k0)
+Ket{KroneckerDelta,1,Int64} with 11 state(s):
+  1 | 2 ⟩
+  0 | 5 ⟩
+  0 | 1 ⟩
+  1 | 6 ⟩
+  0 | 9 ⟩
+  1 | 8 ⟩
+  0 | 7 ⟩
+  1 | 4 ⟩
+  0 | 3 ⟩
+  1 | 0 ⟩
+  1 | 10 ⟩
+```
 ---
 **maplabels(f::Function, obj::AbstractDirac)**
 
 Maps `f` onto the labels of `obj`. For states, `f` is called as `f(::StateLabel)`. For operators, `f` is called as `f(::OpLabel)`.
 
+Example:
+
+```julia
+julia> k = sum(ket, 0:1)*sum(ket, -1:1)
+Ket{KroneckerDelta,2,Int64} with 6 state(s):
+  1 | 0,0 ⟩
+  1 | 0,-1 ⟩
+  1 | 1,0 ⟩
+  1 | 0,1 ⟩
+  1 | 1,1 ⟩
+  1 | 1,-1 ⟩
+
+# Performs a shift operation such that
+# | 0, j ⟩ -> | 0, j - 1 ⟩
+# | 1, j ⟩ -> | 1, j + 1 ⟩
+julia> shift_label(s) = StateLabel(s[1], s[2] - (-1)^s[1])
+shift_label (generic function with 1 method)
+
+julia> maplabels(shift_label, k)
+Ket{KroneckerDelta,2,Int64} with 6 state(s):
+  1 | 0,-2 ⟩
+  1 | 0,0 ⟩
+  1 | 0,-1 ⟩
+  1 | 1,2 ⟩
+  1 | 1,0 ⟩
+  1 | 1,1 ⟩
+```
 ---
 **mapcoeffs(f::Function, obj::AbstractDirac)**
 
 Maps `f` onto the coefficients of `obj`. An in-place version, `mapcoeffs!`, is also provided. The function `f` will be called as `f(::T)` where `T` is the coefficient type of `obj`.
+
+Example:
+
+```julia
+
+```
 
 ---
 # Filtering Functions
@@ -281,43 +398,8 @@ Removes the zero-valued components of `obj`. An in-place version, `filternz!`, i
 Example:
 
 ```julia
-julia> k0 = sum(ket, 0:10); 
-
-julia> k1 = map((label, v) -> iseven(label[1]) ? (label, v) : (label, 0), k0)
-Ket{KroneckerDelta,1,Int64} with 11 state(s):
-  1 | 2 ⟩
-  0 | 5 ⟩
-  0 | 1 ⟩
-  1 | 6 ⟩
-  0 | 9 ⟩
-  1 | 8 ⟩
-  0 | 7 ⟩
-  1 | 4 ⟩
-  0 | 3 ⟩
-  1 | 0 ⟩
-  1 | 10 ⟩
-
-julia> filternz(k1)
-Ket{KroneckerDelta,1,Int64} with 6 state(s):
-  1 | 2 ⟩
-  1 | 6 ⟩
-  1 | 8 ⟩
-  1 | 4 ⟩
-  1 | 0 ⟩
-  1 | 10 ⟩
+julia> filternz(d" 0*| 'a' > + 2*| 'b' > + 0*| 'c' > + 1.2*| 'd' >")
+Ket{KroneckerDelta,1,Float64} with 2 state(s):
+  2.0 | 'b' ⟩
+  1.2 | 'd' ⟩
 ```
-
----
-# Inner Product Evaluation
----
-
-**inner_eval**
-
----
-**default_inner**
-
----
-**QuDirac.inner_rule**
-
----
-**QuDirac.inner_rettype**

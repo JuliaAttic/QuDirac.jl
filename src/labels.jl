@@ -51,6 +51,7 @@ immutable OpLabel{N}
     OpLabel(k::StateLabel{N}, b::StateLabel{N}, h::Uint64) = new(k, b, h)
 end
 
+OpLabel(op::OpLabel) = op
 OpLabel(::StateLabel, ::StateLabel) = error("OpLabel can only be constructed if both StateLabels have the same number of factors")
 OpLabel{N}(k::StateLabel{N}, b::StateLabel{N}) = OpLabel{N}(k, b)
 OpLabel(k, b) = OpLabel(StateLabel(k), StateLabel(b))

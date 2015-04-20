@@ -1,13 +1,13 @@
 # QuDirac objects as data structures
 ---
 
-Under the hood, QuDirac's Kets, Bras, and operator types use `Dict`s to map labels to coefficients.
+Under the hood, QuDirac's `Ket` and `OpSum` types use `Dict`s to map labels to coefficients.
 
 There are few important things to keep in mind when working with these structures:
 
 - All state labels are of type `StateLabel`.
 - All operator labels are of type `OpLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra).
-- Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
+- Because the label --> coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
 ---
 #  Accessing and assigning coefficients

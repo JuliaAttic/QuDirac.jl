@@ -66,8 +66,7 @@ function op_expr(op_name, label_arg, ket_str, basis)
         end
     else
         ex = quote 
-            local f($label_expr) = $ket_expr * bra($label_expr)
-            $op_sym = sum(args->f(args...), $basis)
+            $op_sym = sum($label_expr -> $ket_expr * bra($label_expr), $basis)
         end
     end
     return ex

@@ -25,6 +25,8 @@ The arguments to `inner_rule` are, in order:
 Most examples in this documentation show the `KroneckerDelta` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
 
 ```julia
+INFO: QuDirac's default inner product type is currently UndefinedInner()
+
 julia> k = sum(i->d" i * | i > ", 1:5)
 Ket{UndefinedInner,1,Int64} with 5 state(s):
   4 | 4 ⟩
@@ -45,7 +47,7 @@ julia> k'*k
 (4 * ⟨ 1 | 4 ⟩)) + ⟨ 1 | 1 ⟩)
 ```
 
-The parens in the above result may look ugly, but are currently necessary for disambiguating the order of evaluation for more complicated expressions (see [below](#scalar-expressions-and-inner_eval) for details). A more elegant pretty-printing strategy would be preferable, of course - feel free to open a pull request on the QuDirac repo if you have one!
+The parens in the above result may look ugly, but are currently necessary for disambiguating the order of evaluation for more complicated expressions (see [below](#delayed-inner-product-evaluation) for details). A more elegant pretty-printing strategy would be preferable, of course - feel free to open a pull request on the QuDirac repo if you have one!
 
 ---
 # Assigning inner product types to QuDirac objects
@@ -128,7 +130,7 @@ Evaluation using the `UndefinedInner` type yields objects of type `InnerExpr`. T
 julia> default_inner(UndefinedInner());
 INFO: QuDirac's default inner product type is currently UndefinedInner()
 
-julia> d" act_on(< 'x' |, | 'a','b','c' >, 2)
+julia> d" act_on(< 'x' |, | 'a','b','c' >, 2) "
 Ket{UndefinedInner,2,Number} with 1 state(s):
   ⟨ 'x' | 'b' ⟩ | 'a','c' ⟩
 

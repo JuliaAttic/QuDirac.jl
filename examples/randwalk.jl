@@ -17,8 +17,8 @@ using QuDirac
 # In this case, we make a function `shift_ket`
 # that maps over the basis labels of the input Ket such that:
 # 
-# shift_state(| 0, j ⟩) -> | 0, j - 1 ⟩
-# shift_state(| 1, j ⟩) -> | 1, j + 1 ⟩
+# shift_ket(| 0, j ⟩) -> | 0, j - 1 ⟩
+# shift_ket(| 1, j ⟩) -> | 1, j + 1 ⟩
 #
 function shift_map(label::StateLabel)
     if label[1] == 0

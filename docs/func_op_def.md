@@ -1,8 +1,4 @@
-# `Dict`-based Construction of States and Operators
----
-
----
-# Functionally Defining Operators
+# Defining Operators as Functions
 ---
 
 Mathematically, one can represent an operator `Ô` with the following definition:
@@ -40,11 +36,9 @@ Ket{KroneckerDelta,1,Float64} with 10 state(s):
   1.4142135623730951 | 1 ⟩
 ```
 
-Being able to apply normal Julia functions to Kets is nice, but the syntax for 
-doing so can be annoying to use.
-
-Enter QuDirac's `@def_op` macro, which allows one to define an operator-function using
-more natural syntax:
+Being able to apply normal Julia functions to Kets is nice, but the syntax for defining
+the operator-like functions isn't as pretty as it could be. Enter QuDirac's `@def_op` macro, which 
+allows one to define an operator-function using more natural syntax:
 
 ```julia
 # define the lowering function as "a"
@@ -84,7 +78,7 @@ The grammar of the string passed to `@def_op` is:
 @def_op "$op_name | $label_args > = f($label_args...) "
 ```
 
-where `f` is an arbitrary expanded function on the `$label_args` that
+where `f` is an arbitrary expanded function that takes in the `$label_args` and
 returns a Ket. Allowable syntax for the right-hand side of the equation
 is exactly the same [syntax allowed by `d"..."`](d_str.md).
 
@@ -106,20 +100,16 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 ```
 
 ---
-# Functionally Representing Operators
+# Generating Operator Representations
 ---
 
 The operator-functions described in the previous example are no doubt useful, 
-but they are just normal Julia functions, with the only additional support 
-being that they can be applied to Kets using `*`. You can't transpose them, 
-or trace over them, etc. They are quite limited when it comes to mimicking 
-the behavior of *actual* quantum operators. 
+but they are just normal Julia functions, and are quite limited when it comes 
+to mimicking the behavior of *actual* quantum operators. You can't transpose them, 
+or trace over them, etc.
 
-What you *can* do is represent these operators in a basis. This will
-yield an `OpSum` object, which can then be treated like an actual operator. 
-
-To generate a representation, we can use the `@repr_op` macro, which acts a lot
-like the `@def_op` macro. Here's a familiar example:
+For those capabilities, we'll need to generate an `OpSum` representation in a basis. To do so, 
+we can use the `@repr_op` macro. Here's a familiar example:
 
 ```julia
 julia> @repr_op " a | n > = √n * | n-1 > " 1:10;
@@ -168,7 +158,7 @@ Ket{KroneckerDelta,2,Float64} with 2 state(s):
 ```
 
 Finally, let's say I already have an operator-function defined, and want
-to represent it in a basis. For example, the Hadamard operator-function 
+to represent it in a basis. For example, take the Hadamard operator-function 
 constructed in the previous section:
 
 ```julia
@@ -179,7 +169,7 @@ h (generic function with 2 methods)
 I can easily generate a representation for this function by using `@repr_op` and 
 calling `h` on the right-hand side:
 
-```
+```julia
 julia> @repr_op " H | n > = h * | n > " 0:1
 OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
   -0.7071067811865475 | 1 ⟩⟨ 0 |
@@ -191,7 +181,7 @@ OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
 The above strategy works to represent any operator-function. Just be aware that
 the function and the actual representation need to have unique names:
 
-```
+```julia
 julia> @repr_op " h | n > = h * | n > " 0:1
 ERROR: invalid redefinition of constant h
  in anonymous at no file:70

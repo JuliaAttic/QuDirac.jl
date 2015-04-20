@@ -9,6 +9,6 @@ pages:
 - ['state_math.md', 'User Guide', 'Math with States']
 - ['op_math.md', 'User Guide', 'Math with Operators']
 - ['labels_and_coeffs.md', 'User Guide', 'Labels and Coefficients']
-- ['adv_cons.md', 'User Guide', 'Advanced Construction of States and Operators']
+- ['func_op_def.md', 'User Guide', 'Constructing Operators with Functions']
 - ['inner_products.md', 'User Guide', 'Working with Inner Products']
 - ['api.md', 'User Guide', 'API']

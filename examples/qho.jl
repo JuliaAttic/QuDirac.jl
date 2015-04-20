@@ -1,4 +1,5 @@
 using QuDirac
+
 ##################
 # Lower Operator #
 ##################
@@ -23,16 +24,17 @@ hermite(n::BigInt, x::Float64) = factorial(n) * sum(m -> hermite_term(BigInt(m),
 # Custom inner 
 immutable QHOInner <: AbstractInner end
 
-immutable PosX
+immutable Pos
     val::Float64
 end
 
 # using natural units
-qho_inner(x::PosX, k::BigInt) = e^((-x.val^2)/2) * hermite(k, x.val) * 1/√(2^k * factorial(k) * √π)
-qho_inner(x::PosX, k::Int) = qho_inner(x, BigInt(k))
+qho_inner(x::Pos, k::BigInt) = e^((-x.val^2)/2) * hermite(k, x.val) * 1/√(2^k * factorial(k) * √π)
+qho_inner(x::Pos, k::Int) = qho_inner(x, BigInt(k))
 qho_inner(n, m) = inner_rule(KroneckerDelta(), n, m)
 
 QuDirac.inner_rule(::QHOInner, b, k) = reduce(*, map(qho_inner, b, k))
 QuDirac.inner_rettype(::QHOInner) = BigFloat
 
 default_inner(QHOInner())
+
