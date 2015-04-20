@@ -1,13 +1,9 @@
 using QuDirac
-
 ##################
 # Lower Operator #
 ##################
-lower(n::StateLabel) = (sqrt(n[1]), StateLabel(n[1]-1))
-
-# construct lower operator on a number basis from 1 to 100
-# just take the transpose to get the raising operator
-const â = func_permop(lower, sum(ket, 1:100))
+# This function can be applied to Kets like "a * k"
+@def_op " a | n > = √n * | n - 1 > "
 
 #################################
 # Hermite Polynomial Evaluation #
@@ -34,8 +30,6 @@ end
 # using natural units
 qho_inner(x::PosX, k::BigInt) = e^((-x.val^2)/2) * hermite(k, x.val) * 1/√(2^k * factorial(k) * √π)
 qho_inner(x::PosX, k::Int) = qho_inner(x, BigInt(k))
-
-
 qho_inner(n, m) = inner_rule(KroneckerDelta(), n, m)
 
 QuDirac.inner_rule(::QHOInner, b, k) = reduce(*, map(qho_inner, b, k))

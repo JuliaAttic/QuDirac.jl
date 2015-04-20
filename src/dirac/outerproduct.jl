@@ -30,7 +30,7 @@ Base.hash(op::OuterProduct, h::Uint64) = hash(hash(op), h)
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
 Base.getindex(op::OuterProduct, k, b) = op.scalar * op.kt[k] * op.br[b]
-Base.getindex(op::OuterProduct, o::OuterLabel) = op[klabel(o), blabel(o)]
+Base.getindex(op::OuterProduct, o::OpLabel) = op[klabel(o), blabel(o)]
 
 # would be great if the below worked with normal indexing
 # notation (e.g. op[k,:]) but the Colon is apparently
@@ -43,18 +43,18 @@ getbra(op::OuterProduct, k) = (op.scalar * get(op.kt,k)) * op.br
 getket(op::OuterProduct, b) = (op.scalar * get(op.br,b)) * op.kt
 
 Base.haskey(op::OuterProduct, k, b) = hasket(op, k) && hasbra(op, b)
-Base.haskey(op::OuterProduct, o::OuterLabel) = haskey(op, klabel(o), blabel(o))
+Base.haskey(op::OuterProduct, o::OpLabel) = haskey(op, klabel(o), blabel(o))
 
 Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
-Base.get(op::OuterProduct, o::OuterLabel, default=0) = get(op, klabel(o), blabel(o), default)
+Base.get(op::OuterProduct, o::OpLabel, default=0) = get(op, klabel(o), blabel(o), default)
 
-Base.collect{P,N}(op::OuterProduct{P,N}) = collect_pairs!(Array((OuterLabel{N}, eltype(op)), length(op)), op)
+Base.collect{P,N}(op::OuterProduct{P,N}) = collect_pairs!(Array((OpLabel{N}, eltype(op)), length(op)), op)
 
 function collect_pairs!(result, op::OuterProduct)
     i = 1
     for (k,kc) in dict(op.kt)
         for (b,bc) in dict(op.br)
-            result[i] = (OuterLabel(k, b), op.scalar * kc * bc')
+            result[i] = (OpLabel(k, b), op.scalar * kc * bc')
             i += 1
         end
     end
@@ -132,7 +132,7 @@ end
 function ptrace_dict!(result, op::OuterProduct, over)
     for k in keys(dict(op.kt)), b in keys(dict(op.br))
         if k[over] == b[over]
-            add_to_dict!(result, OuterLabel(except(k, over), except(b, over)), op[k,b])
+            add_to_dict!(result, OpLabel(except(k, over), except(b, over)), op[k,b])
         end
     end
     return result

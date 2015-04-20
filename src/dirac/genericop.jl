@@ -3,7 +3,7 @@
 ####################
 abstract AbsOpSum{P,N,T} <: DiracOp{P,N}
 
-typealias OpDict{N,T} Dict{OuterLabel{N},T}
+typealias OpDict{N,T} Dict{OpLabel{N},T}
 
 type OpSum{P,N,T} <: AbsOpSum{P,N,T}
     ptype::P
@@ -33,30 +33,11 @@ function cons_outer!(result, kt, br)
         for (b,bc) in dict(br)
             newc = kc * bc'
             if newc != 0
-                result[OuterLabel(k, b)] = newc
+                result[OpLabel(k, b)] = newc
             end
         end
     end
     return OpSum(ptype(kt), result)
-end
-
-func_op(f, kt::Ket) = func_op(f, keys(dict(kt)))
-func_op(f, labels) = sum(label -> f(label) * bra(label), labels)
-
-func_permop(f, kt::Ket) = cons_func_op(f, collect(keys(dict(kt))), kt)
-
-function cons_func_op(f, keys, kt)
-    pairs = map(f, keys)
-    types = eltype(pairs)
-    result = OpDict{nfactors(types[2]), types[1]}()
-    return OpSum(ptype(kt), load_func_dict!(result, keys, pairs))
-end
-
-function load_func_dict!(result, keys, pairs)
-    for j=1:length(pairs)
-        add_to_dict!(result, OuterLabel(pairs[j][2], keys[j]), pairs[j][1])
-    end
-    return result
 end
 
 ######################
@@ -88,32 +69,32 @@ Base.hash(op::AbsOpSum, h::Uint64) = hash(hash(op), h)
 
 Base.length(op::AbsOpSum) = length(dict(op))
 
-Base.getindex(op::OpSum, label::OuterLabel) = op.dict[label]
-Base.getindex(op::OpSum, k::StateLabel, b::StateLabel) = op.dict[OuterLabel(k,b)]
-Base.getindex(opc::DualOpSum, label::OuterLabel) = opc.op[reverse(label)]'
-Base.getindex(opc::DualOpSum, k::StateLabel, b::StateLabel) = opc.op[OuterLabel(b,k)]'
+Base.getindex(op::OpSum, label::OpLabel) = op.dict[label]
+Base.getindex(op::OpSum, k::StateLabel, b::StateLabel) = op.dict[OpLabel(k,b)]
+Base.getindex(opc::DualOpSum, label::OpLabel) = opc.op[reverse(label)]'
+Base.getindex(opc::DualOpSum, k::StateLabel, b::StateLabel) = opc.op[OpLabel(b,k)]'
 Base.getindex(op::AbsOpSum, k, b) = op[StateLabel(k), StateLabel(b)]
 
-Base.setindex!(op::OpSum, c, label::OuterLabel) = (op.dict[label] = c)
-Base.setindex!(op::OpSum, c, k::StateLabel, b::StateLabel) = (op.dict[OuterLabel(k,b)] = c)
-Base.setindex!(opc::DualOpSum, c, label::OuterLabel) = (opc.op[reverse(label)] = c')
-Base.setindex!(opc::DualOpSum, c, k::StateLabel, b::StateLabel) = (opc.op[OuterLabel(b,k)] = c')
+Base.setindex!(op::OpSum, c, label::OpLabel) = (op.dict[label] = c)
+Base.setindex!(op::OpSum, c, k::StateLabel, b::StateLabel) = (op.dict[OpLabel(k,b)] = c)
+Base.setindex!(opc::DualOpSum, c, label::OpLabel) = (opc.op[reverse(label)] = c')
+Base.setindex!(opc::DualOpSum, c, k::StateLabel, b::StateLabel) = (opc.op[OpLabel(b,k)] = c')
 Base.setindex!(op::AbsOpSum, c, k, b) = setindex!(op, c, StateLabel(k), StateLabel(b))
 
-Base.haskey(op::OpSum, label::OuterLabel) = haskey(dict(op), label)
-Base.haskey(opc::DualOpSum, label::OuterLabel) = haskey(opc.op, reverse(label))
-Base.haskey(op::AbsOpSum, k, b) = haskey(op, OuterLabel(k, b))
+Base.haskey(op::OpSum, label::OpLabel) = haskey(dict(op), label)
+Base.haskey(opc::DualOpSum, label::OpLabel) = haskey(opc.op, reverse(label))
+Base.haskey(op::AbsOpSum, k, b) = haskey(op, OpLabel(k, b))
 
-Base.get(op::OpSum, label::OuterLabel, default=0) = get(dict(op), label, default)
-Base.get(opc::DualOpSum, label::OuterLabel, default=0) = get(dict(opc), label, default')'
-Base.get(op::AbsOpSum, k, b, default=0) = get(op, OuterLabel(k, b), default)
+Base.get(op::OpSum, label::OpLabel, default=0) = get(dict(op), label, default)
+Base.get(opc::DualOpSum, label::OpLabel, default=0) = get(dict(opc), label, default')'
+Base.get(op::AbsOpSum, k, b, default=0) = get(op, OpLabel(k, b), default)
 
-Base.delete!(op::OpSum, label::OuterLabel) = (delete!(dict(op), label); return op)
-Base.delete!(opc::DualOpSum, label::OuterLabel) = delete!(opc.op, reverse(label))
-Base.delete!(op::AbsOpSum, k, b) = delete!(op, OuterLabel(k, b))
+Base.delete!(op::OpSum, label::OpLabel) = (delete!(dict(op), label); return op)
+Base.delete!(opc::DualOpSum, label::OpLabel) = delete!(opc.op, reverse(label))
+Base.delete!(op::AbsOpSum, k, b) = delete!(op, OpLabel(k, b))
 
 Base.collect(op::OpSum) = collect(dict(op))
-Base.collect{P,N,T}(opc::DualOpSum{P,N,T}) = collect_pairs!(Array((OuterLabel{N}, T), length(opc)), opc)
+Base.collect{P,N,T}(opc::DualOpSum{P,N,T}) = collect_pairs!(Array((OpLabel{N}, T), length(opc)), opc)
 
 function collect_pairs!(result, opc::DualOpSum)
     i = 1
@@ -172,7 +153,7 @@ inner(a::DualOpSum, b::DualOpSum) = inner(b.op, a.op)'
 function inner_load!(result, a::OpSum, b::OpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
-                     OuterLabel(klabel(o1), blabel(o2)),
+                     OpLabel(klabel(o1), blabel(o2)),
                      inner_mul(v, c, prodtype, blabel(o1), klabel(o2)))
     end
     return result
@@ -181,7 +162,7 @@ end
 function inner_load!(result, a::OpSum, b::DualOpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result, 
-                     OuterLabel(klabel(o1), klabel(o2)),
+                     OpLabel(klabel(o1), klabel(o2)),
                      inner_mul(v, c', prodtype, blabel(o1), blabel(o2)))
     end
     return result
@@ -190,7 +171,7 @@ end
 function inner_load!(result, a::DualOpSum, b::OpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
         add_to_dict!(result,
-                     OuterLabel(blabel(o1), blabel(o2)),
+                     OpLabel(blabel(o1), blabel(o2)),
                      inner_mul(v', c, prodtype, klabel(o1), klabel(o2)))
     end
     return result
@@ -230,9 +211,11 @@ Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
 Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
 Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 
-##########
-# act_on #
-##########
+##############
+# act/act_on #
+##############
+Base.(:*)(f::Function, kt::Ket) = sum(pair -> pair[2]*f(pair[1]), dict(kt))
+
 act_on(op::AbsOpSum, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
 
 # clear up ambiguity warnings
@@ -343,7 +326,7 @@ ptrace{P,N}(op::DiracOp{P,N}, over) = OpSum(ptype(op), ptrace_dict!(OpDict{N-1,e
 function ptrace_dict!(result, op::OpSum, over)
     for (o,v) in dict(op)
         if klabel(o)[over] == blabel(o)[over]
-            add_to_dict!(result, OuterLabel(except(klabel(o), over), except(blabel(o), over)), v)
+            add_to_dict!(result, OpLabel(except(klabel(o), over), except(blabel(o), over)), v)
         end
     end
     return result
@@ -352,7 +335,7 @@ end
 function ptrace_dict!(result, opc::DualOpSum, over)
     for (o,v) in dict(opc)
         if blabel(o)[over] == klabel(o)[over]
-            add_to_dict!(result, OuterLabel(except(blabel(o), over), except(klabel(o), over)), v')
+            add_to_dict!(result, OpLabel(except(blabel(o), over), except(klabel(o), over)), v')
         end
     end
     return result
@@ -377,8 +360,8 @@ inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 ######################
 # Printing Functions #
 ######################
-labelrepr(op::OpSum, o::OuterLabel, pad) = "$pad$(op[o]) $(ktstr(klabel(o)))$(brstr(blabel(o)))"
-labelrepr(opc::DualOpSum, o::OuterLabel, pad) = "$pad$(opc[reverse(o)]) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
+labelrepr(op::OpSum, o::OpLabel, pad) = "$pad$(op[o]) $(ktstr(klabel(o)))$(brstr(blabel(o)))"
+labelrepr(opc::DualOpSum, o::OpLabel, pad) = "$pad$(opc[reverse(o)]) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
 
 Base.summary(op::DiracOp) = "$(typeof(op)) with $(length(op)) operator(s)"
 Base.show(io::IO, op::AbsOpSum) = dirac_show(io, op)
@@ -397,6 +380,4 @@ export OpSum,
     filternz!,
     purity,
     act_on,
-    inner_eval,
-    func_op,
-    func_permop
+    inner_eval

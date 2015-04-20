@@ -41,41 +41,41 @@ Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"
 Base.show(io::IO, s::StateLabel) = print(io, repr(s))
 
 ##############
-# OuterLabel #
+# OpLabel #
 ##############
-immutable OuterLabel{N}
+immutable OpLabel{N}
     k::StateLabel{N}
     b::StateLabel{N}
     hash::Uint64
-    OuterLabel(k::StateLabel{N}, b::StateLabel{N}) = new(k, b, hash(k, hash(b)))
-    OuterLabel(k::StateLabel{N}, b::StateLabel{N}, h::Uint64) = new(k, b, h)
+    OpLabel(k::StateLabel{N}, b::StateLabel{N}) = new(k, b, hash(k, hash(b)))
+    OpLabel(k::StateLabel{N}, b::StateLabel{N}, h::Uint64) = new(k, b, h)
 end
 
-OuterLabel(::StateLabel, ::StateLabel) = error("OuterLabel can only be constructed if both StateLabels have the same number of factors")
-OuterLabel{N}(k::StateLabel{N}, b::StateLabel{N}) = OuterLabel{N}(k, b)
-OuterLabel(k, b) = OuterLabel(StateLabel(k), StateLabel(b))
+OpLabel(::StateLabel, ::StateLabel) = error("OpLabel can only be constructed if both StateLabels have the same number of factors")
+OpLabel{N}(k::StateLabel{N}, b::StateLabel{N}) = OpLabel{N}(k, b)
+OpLabel(k, b) = OpLabel(StateLabel(k), StateLabel(b))
 
-klabel(o::OuterLabel) = o.k
-blabel(o::OuterLabel) = o.b
+klabel(o::OpLabel) = o.k
+blabel(o::OpLabel) = o.b
 
-Base.copy{N}(o::OuterLabel{N}) = OuterLabel{N}(o.k, o.b, o.hash)
-Base.hash(o::OuterLabel) = o.hash
-Base.hash(o::OuterLabel, h::Uint64) = hash(hash(o), h)
+Base.copy{N}(o::OpLabel{N}) = OpLabel{N}(o.k, o.b, o.hash)
+Base.hash(o::OpLabel) = o.hash
+Base.hash(o::OpLabel, h::Uint64) = hash(hash(o), h)
 
-Base.(:(==)){N}(a::OuterLabel{N}, b::OuterLabel{N}) = hash(a) == hash(b)
+Base.(:(==)){N}(a::OpLabel{N}, b::OpLabel{N}) = hash(a) == hash(b)
 
-Base.length{N}(::OuterLabel{N}) = N
+Base.length{N}(::OpLabel{N}) = N
 
-Base.reverse(o::OuterLabel) = OuterLabel(o.b, o.k)
-tensor(o1::OuterLabel, o2::OuterLabel) = OuterLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
+Base.reverse(o::OpLabel) = OpLabel(o.b, o.k)
+tensor(o1::OpLabel, o2::OpLabel) = OpLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
 
-Base.repr(o::OuterLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
-Base.show(io::IO, o::OuterLabel) = print(io, repr(o))
+Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
+Base.show(io::IO, o::OpLabel) = print(io, repr(o))
 
 ####################
 # Helper Functions #
 ####################
-is_sum_x(o::OuterLabel, x) = sum(klabel(o))==sum(blabel(o))==x
+is_sum_x(o::OpLabel, x) = sum(klabel(o))==sum(blabel(o))==x
 is_sum_x(s::StateLabel, x) = sum(s) == x
 
 ctpair(k,v) = (reverse(k), v')
@@ -85,7 +85,7 @@ except(label::StateLabel, i) = StateLabel(label[1:i-1]..., label[i+1:end]...)
 setindex(label::StateLabel, x, y) = StateLabel(label[1:y-1]..., x, label[y+1:end]...)
 
 permute{N}(label::StateLabel{N}, perm::Vector) = StateLabel{N}(label[perm])
-permute(o::OuterLabel, perm::Vector) = OuterLabel(permute(o.k, perm), permute(o.b, perm))
+permute(o::OpLabel, perm::Vector) = OpLabel(permute(o.k, perm), permute(o.b, perm))
 
 function switch!(arr, i, j)
     tmp = arr[i]
@@ -95,10 +95,10 @@ function switch!(arr, i, j)
 end
 switch{N}(label::StateLabel{N}, i, j) =  StateLabel{N}(label[switch!([1:N], i, j)])
 
-switch(o::OuterLabel, i, j) = OuterLabel(switch(o.k, i, j), switch(o.b, i, j))
+switch(o::OpLabel, i, j) = OpLabel(switch(o.k, i, j), switch(o.b, i, j))
 
 export StateLabel,
-    OuterLabel,
+    OpLabel,
     klabel,
     blabel
 

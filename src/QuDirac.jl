@@ -47,6 +47,7 @@ module QuDirac
     include("printfuncs.jl")
     include("dictfuncs.jl")
     include("mapfuncs.jl")
+    include("str_macros.jl")
     
     #################
     # default_inner #
@@ -57,49 +58,23 @@ module QuDirac
     #
     # Also, global optimization is poor, so we don't want
     # to use that either. Thus, we go for a function that
-    # straight-up redefines the default convenience 
-    # constructors for the relevant objects. This is
-    # hacky, but works for now, seeing as how only a few 
-    # functions actually "use" the default ptype.
+    # straight-up redefines the default constructors for 
+    # the relevant objects. This is hacky, but works for now, 
+    # seeing as how only a few functions actually "use" 
+    # the default ptype.
     function default_inner(ptype::AbstractInner)
-        QuDirac.ket(items...) = ket(ptype, StateLabel(items))
+        QuDirac.OpSum(dict::Dict) = OpSum(ptype, dict)
+        QuDirac.Ket(dict::Dict) = Ket(ptype, dict)
         QuDirac.ket(label::StateLabel) = ket(ptype, label)
+        QuDirac.ket(items...) = ket(ptype, StateLabel(items))
         info("QuDirac's default inner product type is currently $ptype")
     end
 
     default_inner(KroneckerDelta());
 
-    ##########
-    # @d_str #
-    ##########
-    const ktpat = r"\|.*?\>"
-    const brpat = r"\<.*?\|"
-
-    ktrep(str) = "ket("*str[2:end-1]*")"
-    brrep(str) = "bra("*str[2:end-1]*")"
-
-    function prune_dirac(str)
-        return replace(replace(str, brpat, brrep), ktpat, ktrep)
-    end
-
-    macro d_str(str)
-        return esc(parse(prune_dirac(str)))
-    end
-
-    macro d_mstr(str)
-        return esc(quote
-            local s;
-            for s in filter(x -> ! isempty(x), split(strip($str), '\n'))
-                eval(parse(QuDirac.prune_dirac(s)))
-            end
-        end)
-    end
-
     export AbstractInner,
         UndefinedInner,
         KroneckerDelta,
-        @d_str,
-        @d_mstr,
         default_inner,
         AbstractDirac,
         DiracState,

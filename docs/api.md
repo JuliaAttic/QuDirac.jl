@@ -33,23 +33,23 @@ Construct a single (i.e. non-superposed) Bra with as many factors as there are `
 See the [Constructing Single Bras](constructing_states/#constructing-single-bras) section for more.
 
 ---
-*func_op(f::Function, k::Ket)*
+*repr_op(f::Function, k::Ket)*
 
 Generate the representation for the operator specified by the function `f` acting on `k`'s basis. 
 
-See the [Functionally Defining Operators](func_op_def.md) section for detailed examples.
+See the [Functionally Defining Operators](repr_op_def.md) section for detailed examples.
 
 ---
-*func_op(f::Function, k::Ket)*
+*repr_op(f::Function, k::Ket)*
 
 Generate the representation for the operator specified by the function `f` acting on `k`'s basis. 
 
-See the [Functionally Defining Operators](func_op_def.md) section for detailed examples.
+See the [Functionally Defining Operators](repr_op_def.md) section for detailed examples.
 
 ---
-*func_permop(f::Function, k::Ket)*
+*repr_permop(f::Function, k::Ket)*
 
-Similar to `func_op`, but has the restriction that the action of an operator on a Ket 
+Similar to `repr_op`, but has the restriction that the action of an operator on a Ket 
 returns a basis Ket, not a superpositional state. This restriction can be stated as
 
 ```
@@ -58,9 +58,9 @@ returns a basis Ket, not a superpositional state. This restriction can be stated
 
 ...where both `| i ⟩` and `| j ⟩` are basis states, i.e. *not* superpositional states.
 
-This function is much more efficient than `func_op` for constructing generalized permutation operators.
+This function is much more efficient than `repr_op` for constructing generalized permutation operators.
 
-See the [Permutative Operator Representation](func_op_def/#permutative-operator-representation) section for detailed examples.
+See the [Permutative Operator Representation](repr_op_def/#permutative-operator-representation) section for detailed examples.
 
 ---
 # Math Functions

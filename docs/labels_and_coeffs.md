@@ -6,7 +6,7 @@ Under the hood, QuDirac's Kets, Bras, and operator types use `Dict`s to map labe
 There are few important things to keep in mind when working with these structures:
 
 - All state labels are of type `StateLabel`.
-- All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra).
+- All operator labels are of type `OpLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra).
 - Because the label-to-coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
 ---

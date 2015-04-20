@@ -65,42 +65,55 @@ julia> bra(π) * ket(e) # eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
 2.420717761749361
 ```
 
-#### Generate operator representations from user-defined functions
+#### Functional Operator Construction
 
-For example, here's the functional generation of a lowering operator: 
+For example, here's the functional definition of a lowering operator 
+on the second factor of a 3-factor number basis: 
 
 ```julia
-# State in a number basis
-julia> k = normalize(sum(ket, 1:5))
-Ket{KroneckerDelta,1,Float64} with 5 state(s):
-  0.4472135954999579 | 4 ⟩
-  0.4472135954999579 | 3 ⟩
-  0.4472135954999579 | 2 ⟩
-  0.4472135954999579 | 0 ⟩
-  0.4472135954999579 | 1 ⟩
+julia> @def_op " â₂ | x, y, z > = √y * | x, y - 1, z > "
+â₂ (generic function with 2 methods)
 
-julia> lower(n) = (sqrt(n[1]), StateLabel(n[1]-1))
-lower (generic function with 1 method)
+julia> k = sum(i -> ket(i, i, i), 1:10)
+Ket{KroneckerDelta,3,Int64} with 10 state(s):
+  1 | 8,8,8 ⟩
+  1 | 9,9,9 ⟩
+  1 | 10,10,10 ⟩
+  1 | 2,2,2 ⟩
+  1 | 7,7,7 ⟩
+  ⁞
 
-julia> â = func_permop(lower, k)
-OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
-  2.23606797749979 | 4 ⟩⟨ 5 |
-  2.0 | 3 ⟩⟨ 4 |
-  1.0 | 0 ⟩⟨ 1 |
-  1.4142135623730951 | 1 ⟩⟨ 2 |
-  1.7320508075688772 | 2 ⟩⟨ 3 |
+# functions generated using @def_op can be applied 
+# to states via the * operator
+julia> â₂ * k
+Ket{KroneckerDelta,3,Float64} with 10 state(s):
+  1.7320508075688772 | 3,2,3 ⟩
+  3.0 | 9,8,9 ⟩
+  2.23606797749979 | 5,4,5 ⟩
+  2.449489742783178 | 6,5,6 ⟩
+  3.1622776601683795 | 10,9,10 ⟩
+  ⁞
+```
 
-julia> â*k
-Ket{KroneckerDelta,1,Float64} with 5 state(s):
-  1.0 | 4 ⟩
-  0.8944271909999159 | 3 ⟩
-  0.7745966692414833 | 2 ⟩
-  0.4472135954999579 | 0 ⟩
-  0.6324555320336759 | 1 ⟩
+We can represent this operator in a basis using the `@repr_op` macro:
 
-julia> â*ket(4)
-Ket{KroneckerDelta,1,Float64} with 1 state(s):
-  2.0 | 3 ⟩
+```
+julia> basis_labels = [(i,j,k) for i=1:10, j=1:10, k=1:10];
+
+# using a different name, "a2_rep", for the representation
+julia> @repr_op " a2_rep | x, y, z > = â₂ * | x, y, z > " basis_labels
+OpSum{KroneckerDelta,3,Float64} with 1000 operator(s):
+  3.0 | 5,8,7 ⟩⟨ 5,9,7 |
+  3.0 | 8,8,7 ⟩⟨ 8,9,7 |
+  1.4142135623730951 | 7,1,2 ⟩⟨ 7,2,2 |
+  2.0 | 2,3,8 ⟩⟨ 2,4,8 |
+  2.8284271247461903 | 4,7,6 ⟩⟨ 4,8,6 |
+  2.8284271247461903 | 4,7,4 ⟩⟨ 4,8,4 |
+  3.0 | 9,8,2 ⟩⟨ 9,9,2 |
+  1.0 | 5,0,4 ⟩⟨ 5,1,4 |
+  2.8284271247461903 | 8,7,4 ⟩⟨ 8,8,4 |
+  1.4142135623730951 | 9,1,3 ⟩⟨ 9,2,3 |
+  ⁞
 ```
 
 #### `d" ... "` syntax for natural Dirac notation input
