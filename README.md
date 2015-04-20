@@ -95,25 +95,18 @@ Ket{KroneckerDelta,3,Float64} with 10 state(s):
   ⁞
 ```
 
-We can represent this operator in a basis using the `@repr_op` macro:
+We can represent an operator in a basis using the `@repr_op` macro:
 
 ```julia
-julia> basis_labels = [(i,j,k) for i=1:10, j=1:10, k=1:10];
+# Hadamard operator
+julia> @repr_op " H | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > ) " 0:1;
 
-# using a different name, "a2_rep", for the representation
-julia> @repr_op " a2_rep | x, y, z > = â₂ * | x, y, z > " basis_labels
-OpSum{KroneckerDelta,3,Float64} with 1000 operator(s):
-  3.0 | 5,8,7 ⟩⟨ 5,9,7 |
-  3.0 | 8,8,7 ⟩⟨ 8,9,7 |
-  1.4142135623730951 | 7,1,2 ⟩⟨ 7,2,2 |
-  2.0 | 2,3,8 ⟩⟨ 2,4,8 |
-  2.8284271247461903 | 4,7,6 ⟩⟨ 4,8,6 |
-  2.8284271247461903 | 4,7,4 ⟩⟨ 4,8,4 |
-  3.0 | 9,8,2 ⟩⟨ 9,9,2 |
-  1.0 | 5,0,4 ⟩⟨ 5,1,4 |
-  2.8284271247461903 | 8,7,4 ⟩⟨ 8,8,4 |
-  1.4142135623730951 | 9,1,3 ⟩⟨ 9,2,3 |
-  ⁞
+julia> H
+OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
+  -0.7071067811865475 | 1 ⟩⟨ 0 |
+  0.7071067811865475 | 0 ⟩⟨ 0 |
+  0.7071067811865475 | 0 ⟩⟨ 1 |
+  0.7071067811865475 | 1 ⟩⟨ 1 |
 ```
 
 #### `d" ... "` syntax for natural Dirac notation input
