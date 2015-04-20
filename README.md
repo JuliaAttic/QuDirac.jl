@@ -6,7 +6,7 @@ quantum mechanics computations.
 
 ## Features
 
-Below are some toy examples. See [here](##Examples) for loading more involved examplesMore involved examples can be found [here](https://github.com/JuliaQuantum/QuDirac.jl/tree/master/examples).
+Below are some toy examples. See [below for more involved examples](#examples).
 
 #### State types (`Ket`,`Bra`) and Operator types (`OpSum`,`OuterProduct`)
 
