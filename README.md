@@ -6,7 +6,7 @@ quantum mechanics computations.
 
 ## Features
 
-Below are some toy examples; actual documentation is coming soon! 
+Below are some toy examples. See [here](##Examples) for loading more involved examplesMore involved examples can be found [here](https://github.com/JuliaQuantum/QuDirac.jl/tree/master/examples).
 
 #### State types (`Ket`,`Bra`) and Operator types (`OpSum`,`OuterProduct`)
 
@@ -144,3 +144,16 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 - `permute` and `switch` allows generic permutation of factor labels for states
 - `filter`/`filter!` are supported on both the labels and coefficients of operators/states
 - Arbitrary mapping functions (`map`/`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
+
+## Examples
+
+There are currently two example files, `qho.jl` and `randwalk.jl`. The former sets up some functions for plotting general wave functions in a harmonic well using Plotly. The latter is a simple implementation of a quantum random 
+walk.
+
+To run the examples, one can do the following (using `qho.jl` as an example):
+
+```
+julia> cd(Pkg.dir("QuDirac"))
+
+julia> include("examples/qho.jl")
+```
