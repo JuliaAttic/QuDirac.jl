@@ -97,7 +97,7 @@ Ket{KroneckerDelta,3,Float64} with 10 state(s):
 
 We can represent this operator in a basis using the `@repr_op` macro:
 
-```
+```julia
 julia> basis_labels = [(i,j,k) for i=1:10, j=1:10, k=1:10];
 
 # using a different name, "a2_rep", for the representation
