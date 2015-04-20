@@ -122,7 +122,7 @@ Assigning coefficients, however, only works with `OpSum`s (due to the
 julia> op[(8,1,10),(2,1,2)] = 1
 ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3,Int64,Ket{KroneckerDelta,3,Int64},Bra{KroneckerDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
 
-julia> gop = convert(OpSum, op)
+julia> ops = convert(OpSum, op)
 OpSum{KroneckerDelta,3,Int64} with 1000000 operator(s):
   168 | 7,4,1 ⟩⟨ 1,6,1 |
   90 | 1,1,9 ⟩⟨ 5,1,2 |
@@ -132,10 +132,10 @@ OpSum{KroneckerDelta,3,Int64} with 1000000 operator(s):
   26460 | 9,3,7 ⟩⟨ 7,10,2 |
   ⁞
 
-julia> gop[(8,1,10),(2,1,2)] = 1
+julia> ops[(8,1,10),(2,1,2)] = 1
 1
 
-julia> gop[(8,1,10),(2,1,2)]
+julia> ops[(8,1,10),(2,1,2)]
 1
 ```
 

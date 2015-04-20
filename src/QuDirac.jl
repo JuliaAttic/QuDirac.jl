@@ -41,7 +41,7 @@ module QuDirac
     
     include("dirac/scalar.jl")
     include("dirac/state.jl")
-    include("dirac/genericop.jl")
+    include("dirac/opsum.jl")
     include("dirac/outerproduct.jl")
 
     include("printfuncs.jl")

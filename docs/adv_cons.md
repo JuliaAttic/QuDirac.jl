@@ -1,8 +1,4 @@
-# Constructing States with `Dict`s
----
-
----
-# Constructing Operators with `Dict`s
+# `Dict`-based Construction of States and Operators
 ---
 
 ---
@@ -15,10 +11,10 @@ Mathematically, one can represent an operator `Ô` with the following definition
 Ô | i ⟩ = ∑ⱼ cᵢⱼ | j ⟩
 ```
 
-In QuDirac, we can define functions that act like `Ô` above on Kets. These 
-functions are normal Julia functions, and can be applied to Kets via the `*`
-operator. The only requirement of these functions is that their argument 
-be a singular `StateLabel`, and that they produce a Ket.
+In QuDirac, we can define functions that act like `Ô`. These functions are normal 
+Julia functions, and can be applied to Kets via the `*` operator. The only 
+requirement of these functions is that their argument be a singular `StateLabel`, 
+and that they produce a Ket.
 
 Thus, we can define a lowering function like so:
 
@@ -44,13 +40,11 @@ Ket{KroneckerDelta,1,Float64} with 10 state(s):
   1.4142135623730951 | 1 ⟩
 ```
 
-Being able to apply normal Julia functions to Kets is nice, but it can be annoying to 
-define to the functions in the first place. 
+Being able to apply normal Julia functions to Kets is nice, but the syntax for 
+doing so can be annoying to use.
 
 Enter QuDirac's `@def_op` macro, which allows one to define an operator-function using
-more natural syntax.
-
-Before digging into the mechanics of the macro, let's see an example of it in action:
+more natural syntax:
 
 ```julia
 # define the lowering function as "a"
@@ -73,11 +67,8 @@ Ket{KroneckerDelta,1,Float64} with 10 state(s):
   2.449489742783178 | 5 ⟩
   1.0 | 0 ⟩
   1.4142135623730951 | 1 ⟩
-```
 
-One can define functions this way on product states as well:
-
-```julia
+# works with product states
 julia> @def_op " a₂ | x,y,z >  = √y * | x,y-1,z >"
 a₂ (generic function with 2 methods)
 
@@ -95,7 +86,7 @@ The grammar of the string passed to `@def_op` is:
 
 where `f` is an arbitrary expanded function on the `$label_args` that
 returns a Ket. Allowable syntax for the right-hand side of the equation
-is exactly the same syntax allowed by [`d"..."` syntax](d_str.md).
+is exactly the same [syntax allowed by `d"..."`](d_str.md).
 
 For a final example, let's build a function emulating a Hadamard operator:
 
@@ -185,7 +176,7 @@ julia> @def_op " h | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > )"
 h (generic function with 2 methods)
 ```
 
-I can easily generate a representation this function by using `@repr_op` and 
+I can easily generate a representation for this function by using `@repr_op` and 
 calling `h` on the right-hand side:
 
 ```

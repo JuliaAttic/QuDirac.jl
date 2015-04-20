@@ -232,7 +232,6 @@ Base.showcompact(io::IO, s::DiracState) = dirac_showcompact(io, s)
 Base.repr(s::DiracState) = dirac_repr(s)
 
 export Ket,
-    Bra,
     ket,
     bra,
     nfactors,
