@@ -10,7 +10,7 @@ brrep(str) = "bra("*str[2:end-1]*")"
 
 function inrep(str)
     i = split(str, '|')
-    return "bra("i[1][2:end]")*ket("*i[2][1:end-1]*")"
+    return "(bra("i[1][2:end]")*ket("*i[2][1:end-1]*"))"
 end
 
 function prune_dirac(str)
