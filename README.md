@@ -152,8 +152,7 @@ walk.
 
 To run the examples, one can do the following (using `qho.jl` as an example):
 
-```
+```julia
 julia> cd(Pkg.dir("QuDirac"))
-
 julia> include("examples/qho.jl")
 ```
