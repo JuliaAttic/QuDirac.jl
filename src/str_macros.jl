@@ -3,12 +3,18 @@
 ##########
 const ktpat = r"\|.*?\>"
 const brpat = r"\<.*?\|"
+const inpat = r"\<[^\|]*\|[^\|]*\>"
 
 ktrep(str) = "ket("*str[2:end-1]*")"
 brrep(str) = "bra("*str[2:end-1]*")"
 
+function inrep(str)
+    i = split(str, '|')
+    return "bra("i[1][2:end]")*ket("*i[2][1:end-1]*")"
+end
+
 function prune_dirac(str)
-    return replace(replace(str, brpat, brrep), ktpat, ktrep)
+    return replace(replace(replace(str, inpat, inrep), brpat, brrep), ktpat, ktrep)
 end
 
 macro d_str(str)
