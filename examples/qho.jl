@@ -6,6 +6,10 @@ using QuDirac
 # Ladder Operators #
 ####################
 # These functions can be applied to Kets like "lower * k"
+# Note these are in fact *functions*, not actual operators.
+# One can build an operator representation if they wish
+# by using the @repr_op macro. See the "Constructing Operators 
+# with Functions" section of the QuDirac docs for more info. 
 @def_op " lower | n > = √n * | n - 1 > "
 @def_op " raise | n > = √(n + 1) * | n + 1 > "
 

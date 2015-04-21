@@ -1,23 +1,12 @@
-# QuDirac objects as data structures
----
-
-Under the hood, QuDirac's `Ket` and `OpSum` types use `Dict`s to map labels to coefficients.
-
-There are few important things to keep in mind when working with these structures:
-
-- All state labels are of type `StateLabel`.
-- All operator labels are of type `OpLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra).
-- Because the label --> coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
-
----
-#  Accessing and assigning coefficients
+#  Accessing/Assigning Coefficients of QuDirac Objects
 ---
 
 **States**
 
 ---
 
-Julia's `getindex` function has been overloaded to allow coefficients of a state to be accessed by the basis states' labels, and is generally faster than using inner products for coefficient selection:
+Given a state `k`, one can access the coefficient of one of `k`'s basis states by calling `getindex(k, label)` where `label` is the label of the desired basis state. 
+This is generally faster than using inner products for coefficient selection:
 
 ```julia
 julia> k = normalize(sum(i->d" i * | i > ", 1:3))
@@ -26,12 +15,12 @@ Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.5345224838248488 | 2 ⟩
   0.2672612419124244 | 1 ⟩
 
-# getindex time complexity is O(1)
+# getindex time complexity is O(1) in Ket length
 julia> @time k[3]
 elapsed time: 4.308e-6 seconds (168 bytes allocated)
 0.8017837257372732
 
-# Inner product time complexity is generally O(length(Bra) * length(Ket))
+# Inner product time complexity is O(length(Bra) * length(Ket))
 julia> @time bra(3) * k
 elapsed time: 1.4497e-5 seconds (776 bytes allocated)
 0.8017837257372732
@@ -50,32 +39,31 @@ Ket{KroneckerDelta,4,Float64} with 81 state(s):
   0.06122448979591838 | 1,2,3,2 ⟩
   ⁞
 
-julia> k4[3,2,3,3]
-0.2755102040816327
-
+julia> k4[2,2,3,3]
+0.18367346938775514
 ```
-
-
 
 One can also use `setindex!` on states: 
 
 ```julia
-julia> k = 0.0*ket(0)
+julia> k = d" 0.0| 0 > "
 Ket{KroneckerDelta,1,Float64} with 1 state(s):
   0.0 | 0 ⟩
 
-julia> k[0] = 1; k[1] = 1/2; k[2] = 1/4; normalize!(k)
+julia> k[0] = 1; k[1] = 1/2; k[2] = 1/4; 
+
+julia> k
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
-  0.2182178902359924 | 2 ⟩
-  0.8728715609439696 | 0 ⟩
-  0.4364357804719848 | 1 ⟩
+  0.25 | 2 ⟩
+  1.0 | 0 ⟩
+  0.5 | 1 ⟩
 ```
 
 Performing a `setindex!` operation on a state is faster than constructing new states 
 for the sake of addition/subtraction, but is a mutation of the orginal state:
 
 ```julia
-julia> k + ket(0) # this requires constructing a new instance of | 0 ⟩
+julia> d" k + | 0 > " # this requires constructing a new instance of | 0 ⟩
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.2182178902359924 | 2 ⟩
   1.8728715609439694 | 0 ⟩
@@ -166,14 +154,12 @@ Ket{KroneckerDelta,3,Int64}} with 27 state(s):
 
 julia> k['a', 'b', 'c']
 ERROR: key not found: StateLabel{3}('a','b','c')
- in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:58
- in getindex at /Users/jarrettrevels/.julia/QuDirac/src/dirac/state.jl:61
 ```
 
 QuDirac overloads Julia's `get` method in order to provide more flexibility in the above scenario. By default, `get` is defined to return a `0` instead of an error if the label it's given isn't found:
 
 ```julia
-julia> get(k, ('a', 'b', 'c'))
+julia> get(k, ('a','b','c'))
 0
 
 julia> get(k, (2,3,3))
@@ -189,11 +175,23 @@ One can pass in an extra argument to `get` that replaces `0` as the default retu
 julia> get(k, ('a', 'b', 'c'), "Not here")
 "Not here"
 ```
+---
+# QuDirac Objects as Data Structures
+---
+
+Under the hood, QuDirac's `Ket` and `OpSum` types use `Dict`s to map labels to coefficients.
+
+There are few important things to keep in mind when working with these structures:
+
+- All state labels are of type `StateLabel`. 
+    - `StateLabel`s are wrappers around tuples, and are indexable, iterable, and mappable. 
+- All operator labels are of type `OpLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra). 
+    - The function `klabel(opl::OpLabel)` returns `opl`'s Ket label, and the function `blabel(opl::OpLabel)` returns `opl`'s Bra label.
+- Because the label --> coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
 ---
 #  Mapping & Filtering Functions
 ---
 
 QuDirac supports filtering out states' components via arbitrary predicate functions, as well as mapping functions
-over an object's coefficients and labels. For more, see the [Filtering Functions](api/#filtering-functions) and 
-[Mapping Functions](api/#mapping-functions) sections of QuDirac's [API](api.md).
+over an object's coefficients and labels. For more, see the [Mapping Functions](api/#mapping-functions) and [Filtering Functions](api/#filtering-functions) sections of QuDirac's [API](api.md).

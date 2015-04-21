@@ -4,7 +4,7 @@
 Multiplying a state by a scalar modifies the coefficient appropriately:
 
 ```julia
-julia> k = (1+3.4im) * ket(0)
+julia> k = d" (1+3.4im)| 0 > "
 Ket{KroneckerDelta,1,Complex{Float64}} with 1 state(s):
   1.0 + 3.4im | 0 ⟩
 
@@ -20,10 +20,10 @@ Ket{KroneckerDelta,1,Complex{Float64}} with 1 state(s):
 States can be also be added and subtracted:
 
 ```julia
-julia> d" | 0 > + | 0 > == 2 * | 0 > "
+julia> d" | 0 > + | 0 > == 2| 0 > "
 true
 
-julia> d" | 0 > - | 0 > == 0 * | 0 > "
+julia> d" | 0 > - | 0 > == 0| 0 > "
 true
 
 julia> d" 1/√3 * (| 0 > + | 1 > - | 2 >) "
@@ -54,7 +54,7 @@ In general, QuDirac objects do not automatically normalize themselves.
 We can normalize a state in-place by using the `normalize!` function:
 
 ```julia
-julia> k = sum(i -> float(i)*ket(i), 1:3)
+julia> k = sum(i -> d" float(i)| i > ", 1:3)
 Ket{KroneckerDelta,1,Float64} with 3 state(s):
   3.0 | 3 ⟩
   2.0 | 2 ⟩
@@ -79,7 +79,7 @@ The `normalize` function (without the trailing "!") is also provided, which norm
 One can use the `ctranspose` function to construct the dual of a given state:
 
 ```julia
-julia> k = im * ket(0)
+julia> k = d" (im)| 0 > "
 Ket{KroneckerDelta,1,Complex{Int64}} with 1 state(s):
   0 + 1im | 0 ⟩
 
@@ -94,7 +94,7 @@ true
 For efficiency's sake, Bras are *views* onto their Kets, not copies. Thus, mutating a Bra will result in the mutation of the underlying Ket:
 
 ```julia
-julia> k = d" 2.3*| 1 > + 4.5*| 2 > "
+julia> k = d" 2.3| 1 > + 4.5| 2 > "
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   4.5 | 2 ⟩
   2.3 | 1 ⟩
@@ -140,7 +140,7 @@ Ket{KroneckerDelta,1,Int64} with 2 state(s):
 One can take a tensor product of states simply by multiplying them:
 
 ```julia
-julia> ket(0) * ket(0)
+julia> d" | 0 > * | 0 > "
 Ket{KroneckerDelta,2,Int64} with 1 state(s):
   1 | 0,0 ⟩
 ```
@@ -150,7 +150,7 @@ of the above is the same as if we input `ket(0,0)`. Taking the tensor product of
 more complicated states illustrates the tensor product's cartesian properties:
 
 ```julia
-julia> d" normalize!(sum(i->i^2 * | i >, 0:3) * sum(i->i/2 * | i >, -3:3)) "
+julia> d" normalize!(sum(i -> (i^2)| i >, 0:3) * sum(i -> (i/2)| i >, -3:3)) "
 Ket{KroneckerDelta,2,Float64} with 18 state(s):
   -0.5154323951168185 | 3,-3 ⟩
   0.3436215967445456 | 3,2 ⟩
@@ -168,7 +168,10 @@ Ket{KroneckerDelta,2,Float64} with 18 state(s):
 Similarly to the tensor product, the inner product can be taken simply by multiplying Bras with Kets:
 
 ```julia
-julia> d" < 0 |*| 1 > "
+julia> bra(0) * ket(1)
+0
+
+julia> d" < 0 | 1 > " # same as above
 0
 
 julia> k = d" 1/√2 * ( | 0,0 > + | 1,1 > ) "; k'*k
@@ -204,7 +207,7 @@ If these states are orthonormal, our final result is
 QuDirac supports this operation through the use of the `act_on` function:
 
 ```julia
-julia> ψ = d" normalize!( | 0,1 > + 2.0 * | 1,0 > ) "
+julia> ψ = d" normalize!( | 0,1 > + 2.0| 1,0 > ) "
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.4472135954999579 | 0,1 ⟩
   0.8944271909999159 | 1,0 ⟩
@@ -221,7 +224,7 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 This does, of course, work even when the Bra is a superposition of states:
 
 ```julia
-julia> ϕ = d" 1/√2 * ( < 0 | + < 1 | ) "
+julia> ϕ = d" 1/√2 * (< 0 | + < 1 |) "
 Bra{KroneckerDelta,1,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 0 |
   0.7071067811865475 ⟨ 1 |
@@ -232,4 +235,4 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.6324555320336758 | 1 ⟩
 ```
 
-As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is stored in the state's type information (e.g. `KroneckerDelta` in `Ket{KroneckerDelta,1}`). QuDirac also has support for both custom and lazily evaluated inner products as well. To learn more, see the [Working with Inner Products](inner_products.md) section.
+As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is indicated by the state's type (e.g. `KroneckerDelta` in `Ket{KroneckerDelta,1}`). QuDirac has support for other kinds of inner products as well. To learn more, see the [Working with Inner Products](inner_products.md) section.

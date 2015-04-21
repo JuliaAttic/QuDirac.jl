@@ -84,7 +84,7 @@ To retrieve an `OpLabel`'s Bra label, call `blabel(::OpLabel)`.
 
 **nfactors(obj::AbstractDirac)**
 
-Returns the number of factor systems of `obj`. This information is also parameterized in the
+Returns the number of factors of `obj`. This information is also parameterized in the
 type of `obj`, e.g. an instance of type `Ket{KroneckerDelta,3}` has 3 factors.
 
 ---
@@ -153,7 +153,7 @@ Switch the `i`th and `j`th factors in the labels of `obj`.
 Example:
 
 ```
-julia> k = sum(i -> i * ket(i, i+1, i+2), 1:3)
+julia> k = sum(i ->d" i * | i,i+1,i+2 > ", 1:3)
 Ket{KroneckerDelta,3,Int64} with 3 state(s):
   1 | 1,2,3 ⟩
   2 | 2,3,4 ⟩
@@ -174,7 +174,7 @@ Apply the given permutation, `perm`, to the labels of `obj`
 Example:
 
 ```
-julia> k = sum(i -> i * ket(i, i+1, i+2), 1:3)
+julia> k = sum(i -> d" i * | i,i+1,i+2 > ", 1:3)
 Ket{KroneckerDelta,3,Int64} with 3 state(s):
   1 | 1,2,3 ⟩
   2 | 2,3,4 ⟩
@@ -343,7 +343,23 @@ Maps `f` onto the coefficients of `obj`. An in-place version, `mapcoeffs!`, is a
 Example:
 
 ```julia
+julia> k = sum(i->d" i * | i > ", 1:6)
+Ket{KroneckerDelta,1,Int64} with 6 state(s):
+  4 | 4 ⟩
+  3 | 3 ⟩
+  6 | 6 ⟩
+  2 | 2 ⟩
+  5 | 5 ⟩
+  1 | 1 ⟩
 
+julia> mapcoeffs(i->i^2,k)
+Ket{KroneckerDelta,1,Int64} with 6 state(s):
+  16 | 4 ⟩
+  9 | 3 ⟩
+  36 | 6 ⟩
+  4 | 2 ⟩
+  25 | 5 ⟩
+  1 | 1 ⟩
 ```
 
 ---
@@ -373,7 +389,7 @@ Ket{KroneckerDelta,3} with 25 state(s):
 ---
 **xsubspace(obj::AbstractDirac, x)**
 
-Extracts the elements of `obj` whose labels sum to `x`
+Extracts the elements of `obj` whose labels sum to `x`.
 
 Example:
 

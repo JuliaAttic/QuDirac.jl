@@ -11,7 +11,7 @@ These are toy examples for demoing features. See [below for more involved exampl
 #### State types (`Ket`,`Bra`) and Operator types (`OpSum`,`OuterProduct`)
 
 ```julia
-julia> bell = 1/√2 * (ket(0,0) + ket(1,1))
+julia> bell = d" 1/√2 * (| 0,0 > + | 1,1 >) "
 Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 0,0 ⟩
   0.7071067811865475 | 1,1 ⟩
@@ -41,7 +41,7 @@ OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
 julia> default_inner(UndefinedInner())
 INFO: QuDirac's default inner product type is currently UndefinedInner()
 
-julia> k = 1/√2 * (ket('a') + ket('b'))
+julia> k = d" 1/√2 * (| 'a' > + | 'b' >) "
 Ket{UndefinedInner,1,Float64} with 2 state(s):
   0.7071067811865475 | 'b' ⟩
   0.7071067811865475 | 'a' ⟩
@@ -61,7 +61,8 @@ inner_rule (generic function with 3 methods)
 julia> default_inner(MyInner())
 INFO: QuDirac's default inner product type is currently MyInner()
 
-julia> bra(π) * ket(e) # eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
+# eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
+julia> d" < π | e > "
 2.420717761749361
 ```
 
@@ -74,7 +75,7 @@ on the second factor of a 3-factor number basis:
 julia> @def_op " â₂ | x, y, z > = √y * | x, y - 1, z > "
 â₂ (generic function with 2 methods)
 
-julia> k = sum(i -> ket(i, i, i), 1:10)
+julia> k = sum(i -> d" | i, i, i > ", 1:10)
 Ket{KroneckerDelta,3,Int64} with 10 state(s):
   1 | 8,8,8 ⟩
   1 | 9,9,9 ⟩
@@ -120,11 +121,7 @@ INFO: QuDirac's default inner product type is currently UndefinedInner()
 
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)
-```
-
-Multi-line support:
-
-```julia
+ d
 julia> d"""
        ψ = 1/√2 * (| :↑,:↑ > + | :↓,:↓ >)
        a = purity(ptrace(ψ*ψ', 2))

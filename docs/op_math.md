@@ -56,7 +56,7 @@ julia> op + op
 OpSum{KroneckerDelta,1,Int64} with 1 operator(s):
   2 | 'a' ⟩⟨ 'b' |
 
-julia> d" 1/√2 * ( op - (| 0 >< 1 |) ) "
+julia> d" 1/√2 * (op - | 0 >< 1 |) "
 OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
@@ -92,7 +92,7 @@ For QuDirac operators, the `norm` function specifically computes the [Frobenius 
 Take the conjugate transpose of an operator, simply call `ctranspose` on it:
 
 ```julia
-julia> A = d"normalize( (1+3im) * | 1 >< 2 | + (5-2im) * | 3 >< 4 | )"
+julia> A = normalize(d"(1+3im)| 1 >< 2 | + (5-2im)| 3 >< 4 |")
 OpSum{KroneckerDelta,1,Complex{Float64}} with 2 operator(s):
   0.8006407690254357 - 0.32025630761017426im | 3 ⟩⟨ 4 |
   0.16012815380508713 + 0.48038446141526137im | 1 ⟩⟨ 2 |
@@ -157,7 +157,7 @@ regarding these features.
 One can use the `act_on` function to apply an operator to a specific factor of a Ket:
 
 ```julia
-julia> a = sum(i-> d"√i * | i-1 >< i |", 1:5) # lowering operator
+julia> a = sum(i-> d"(√i)| i-1 >< i |", 1:5) # lowering operator
 OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
@@ -165,7 +165,7 @@ OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
   1.4142135623730951 | 1 ⟩⟨ 2 |
   1.7320508075688772 | 2 ⟩⟨ 3 |
 
-julia> k = d" | 1,2,3 > + 2 * | 3,5,1> "
+julia> k = d" | 1,2,3 > + 2| 3,5,1> "
 Ket{KroneckerDelta,3,Int64} with 2 state(s):
   1 | 1,2,3 ⟩
   2 | 3,5,1 ⟩

@@ -1,7 +1,7 @@
 # Intro to Inner Products in QuDirac
 ---
 
-Every QuDirac state or operator has a type parameter `P<:AbstractInner` which describes the inner product behavior for the object. QuDirac comes with two such inner product types:
+Every QuDirac state or operator has a type parameter `P<:AbstractInner` which denotes the inner product behavior for the object. QuDirac comes with two such inner product types:
 
 ```julia
 abstract AbstractInner
@@ -9,7 +9,7 @@ immutable KroneckerDelta <: AbstractInner end
 immutable UndefinedInner <: AbstractInner end
 ```
 
-Inner products are then evaluated differently based on these types by referring to the `inner_rule` function. This function evaluates the inner product of two basis states given a product type and the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
+For each inner product type, a method of the `inner_rule` function is defined which evaluates the inner product of two basis states given the states' labels. For example, the definitions of `inner_rule` for the two types above are similar to the following:
 
 ```julia
 inner_rule(p::UndefinedInner, b::StateLabel, k::StateLabel) = InnerExpr(InnerProduct(p, b, k)) # lazy evaluation of inner product
@@ -22,32 +22,7 @@ The arguments to `inner_rule` are, in order:
 2. `b::StateLabel` -> The Bra label of the inner product being evaluated.
 3. `k::StateLabel` -> The Ket label of the inner product being evaluated.
 
-Most examples in this documentation show the `KroneckerDelta` rule in action. To contrast, the following example illustrates the inner product rule for `UndefinedInner`:
-
-```julia
-INFO: QuDirac's default inner product type is currently UndefinedInner()
-
-julia> k = sum(i->d" i * | i > ", 1:5)
-Ket{UndefinedInner,1,Int64} with 5 state(s):
-  4 | 4 ⟩
-  3 | 3 ⟩
-  2 | 2 ⟩
-  5 | 5 ⟩
-  1 | 1 ⟩
-
-julia> k'*k
-(((((((((((((((((((((((((4 * ⟨ 2 | 2 ⟩) + (6 * ⟨ 2 | 3 ⟩)) + 
-(10 * ⟨ 2 | 5 ⟩)) + (8 * ⟨ 2 | 4 ⟩)) + (2 * ⟨ 2 | 1 ⟩)) + 
-(6 * ⟨ 3 | 2 ⟩)) + (9 * ⟨ 3 | 3 ⟩)) + (15 * ⟨ 3 | 5 ⟩)) + 
-(12 * ⟨ 3 | 4 ⟩)) + (3 * ⟨ 3 | 1 ⟩)) + (10 * ⟨ 5 | 2 ⟩)) + 
-(15 * ⟨ 5 | 3 ⟩)) + (25 * ⟨ 5 | 5 ⟩)) + (20 * ⟨ 5 | 4 ⟩)) + 
-(5 * ⟨ 5 | 1 ⟩)) + (8 * ⟨ 4 | 2 ⟩)) + (12 * ⟨ 4 | 3 ⟩)) + 
-(20 * ⟨ 4 | 5 ⟩)) + (16 * ⟨ 4 | 4 ⟩)) + (4 * ⟨ 4 | 1 ⟩)) + 
-(2 * ⟨ 1 | 2 ⟩)) + (3 * ⟨ 1 | 3 ⟩)) + (5 * ⟨ 1 | 5 ⟩)) + 
-(4 * ⟨ 1 | 4 ⟩)) + ⟨ 1 | 1 ⟩)
-```
-
-The parens in the above result may look ugly, but are currently necessary for disambiguating the order of evaluation for more complicated expressions (see [below](#delayed-inner-product-evaluation) for details). A more elegant pretty-printing strategy would be preferable, of course - feel free to open a pull request on the QuDirac repo if you have one!
+Later, we'll examine how to overload this function for new inner product types. There's one thing to learn before we get there, however: how to switch between existing inner product types.
 
 ---
 # Assigning inner product types to QuDirac objects
@@ -66,7 +41,7 @@ If you don't explicitly select a type, a default inner product type is used. The
 
 ```julia
 julia> default_inner(UndefinedInner())
-INFO: QuDirac's default inner product type is currently UndefinedInner()
+INFO: QuDirac default inner product type is currently UndefinedInner()
 
 julia> ket(1,2)
 Ket{UndefinedInner,2,Int64} with 1 state(s):
@@ -83,7 +58,7 @@ As you've probably noticed from previous examples, the out-of-the-box default in
 
 ---
 
-One can easily define their own inner product type in order to overload QuDirac's built-in behavior:
+Defining a new inner product type is as easy as doing the following:
 
 ```julia
 julia> immutable SumInner <: AbstractInner end
@@ -94,10 +69,10 @@ inner_rule (generic function with 4 methods)
 julia> default_inner(SumInner());
 INFO: QuDirac's default inner product type is currently SumInner()
 
-julia> bra(1)*ket(1)
+julia> d" < 1 | 1 > "
 2
 
-julia> bra(1,2,3)*ket(4,-5,6)
+julia> d" < 1,2,3 | 4,-5,6 > "
 11
 ```
 
@@ -124,17 +99,17 @@ inner_rettype (generic function with 4 methods)
 # Delayed Inner Product Evaluation
 ---
 
-Evaluation using the `UndefinedInner` type yields objects of type `InnerExpr`. These objects are merely representations of unevaluated inner products, and can be treated like numbers in most respects:
+Taking inner products with the `UndefinedInner` type will yield `InnerExpr`s, QuDirac's representations of unevaluated inner products. Instances of `InnerExpr` can be treated like numbers in most respects:
 
 ```julia
 julia> default_inner(UndefinedInner());
-INFO: QuDirac's default inner product type is currently UndefinedInner()
+INFO: QuDirac default inner product type is currently UndefinedInner()
 
 julia> d" act_on(< 'x' |, | 'a','b','c' >, 2) "
 Ket{UndefinedInner,2,Number} with 1 state(s):
   ⟨ 'x' | 'b' ⟩ | 'a','c' ⟩
 
-julia> s = d" √(< 1 |*| 3 >)^2 + 1 "
+julia> s = d" √(< 1 | 3 >)^2 + 1 "
 (sqrt(((⟨ 1 | 3 ⟩^2) + 1)))
 
 julia> typeof(s)
@@ -148,11 +123,10 @@ Ket{UndefinedInner,3,Number} with 1 state(s):
 The `inner_eval` function can be used to re-evaluate `InnerExpr`s by mapping a function to each unresolved inner product:
 
 ```julia
-julia> s = d" (e^( < 1,2 |*| 3,4 > ) + < 5,6 |*| 7,8 > * im)^4 "
+julia> s = d" (e^( < 1,2 | 3,4 > ) + < 5,6 | 7,8 > * im)^4 "
 (((exp(⟨ 1,2 | 3,4 ⟩)) + (⟨ 5,6 | 7,8 ⟩ * im))^4)
 
-julia> f(b::StateLabel, k::StateLabel) = sum(k) - sum(b)
-f (generic function with 1 method)
+julia> f(b::StateLabel, k::StateLabel) = sum(k) - sum(b);
 
 julia> inner_eval(f, s)
 8.600194553751864e6 + 2.5900995362955774e6im
