@@ -34,10 +34,6 @@ end
 # the QHO problem
 immutable QHOInner <: AbstractInner end
 
-# Here we're establishing three standards with the below definitions: 
-# 1. If the label's an Int, it's labeling an energy level.
-# 2. If it's a Float64, that's a label for position.
-# 3. Positional labels can only be Bra labels.
 qho_inner(x::Float64, k::Int) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
 qho_inner(n::Int, m::Int) = n==m ? 1.0 : 0.0
 qho_inner(pair) = qho_inner(pair[1], pair[2])
@@ -46,6 +42,12 @@ QuDirac.inner_rule(::QHOInner, b, k) = mapreduce(qho_inner, *, zip(b, k))
 QuDirac.inner_rettype(::QHOInner) = Float64
 
 default_inner(QHOInner())
+
+# With the above, we've defined this behavior for basis states:
+#
+# < i::Int | * | j::Int > = ∫ ψᵢ'ψⱼ dx =  δᵢⱼ
+#
+# < x::Float64 | * | n::Int > = ψᵢ(x)
 
 ####################
 # Make Some Plots! #
@@ -57,7 +59,7 @@ default_inner(QHOInner())
 
 # Given an iterable of x and y points, generate a
 # distribution for the state by taking the inner product
-gen_z{P}(kt::Ket{P,2}, xpoints, ypoints, s) = Float64[s*d" < x, y | * kt " for x in xpoints, y in ypoints]
+gen_z{P}(kt::Ket{P,2}, xpoints, ypoints, s) = inner_rettype(QHOInner())[s*d" < x, y | * kt " for x in xpoints, y in ypoints]
 
 # Generate the distribution above, and package it for a Plotly surface plot
 function gen_plot_data{P}(kt::Ket{P,2}, xpoints, ypoints, s=1.0)
@@ -99,10 +101,8 @@ will build your plot and return the URL you should go to to
 view the result. Here are some examples: 
 
 # Basis state:
-julia> plot_wave(d\" | 1, 1 > \", xpoints, ypoints)
+julia> plot_wave2D(d\" | 1, 1 > \", xpoints, ypoints)
 
-# Random superposition of 10 basis states:
-julia> genlabels(n) = int(round(abs(rand(0:n, n))))
-       labels = zip(genlabels(10), genlabels(10))
-       randkt = normalize!(sum(pair -> rand() * ket(pair...), labels))
+# Random superposition of the first 4 basis states:
+julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
        plot_wave2D(randkt, xpoints, ypoints)""")
