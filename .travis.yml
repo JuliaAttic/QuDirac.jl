@@ -1,9 +1,9 @@
 language: julia
 julia:
     - release
+    - nightly
 notifications:
     email: false
 script:
-    - julia -e 'Pkg.clone("https://github.com/JuliaQuantum/QuBase.jl"); Pkg.build("QuBase")';
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
     - julia -e 'Pkg.clone(pwd()); Pkg.build("QuDirac"); Pkg.test("QuDirac")';
