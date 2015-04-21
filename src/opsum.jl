@@ -352,8 +352,8 @@ switch(op::AbsOpSum, i, j) = maplabels(label->switch(label,i,j), op)
 permute(op::AbsOpSum, perm::Vector) = maplabels(label->permute(label,perm), op)
 
 purity(op::DiracOp) = trace(op^2)
-commutator(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
-anticommutator(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
+commute(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
+anticommute(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 
 inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 

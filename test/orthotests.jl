@@ -18,8 +18,8 @@
 @assert act_on(bra(0), bell_unbal, 2)[1] == bell_unbal[1,0]
 @assert act_on(bra(0), bell_unbal, 1)[1] == bell_unbal[0,1]
 
-@assert anticommutator(op,op) == 2 * op^2
-@assert commutator(op,op) == op^2 - op^2
+@assert anticommute(op,op) == 2 * op^2
+@assert commute(op,op) == op^2 - op^2
 
 b = d" 1/√2 * (< 0 | + < 1 |) "
 itest = act_on(b, bell_unbal, 2)

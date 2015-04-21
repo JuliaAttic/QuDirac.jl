@@ -83,8 +83,8 @@ module QuDirac
         # with QuBase should be exported 
         # below:
         tensor,
-        commutator,
-        anticommutator,
+        commute,
+        anticommute,
         normalize,
         normalize!
 

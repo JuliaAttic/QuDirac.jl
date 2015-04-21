@@ -136,12 +136,12 @@ Take the trace of `op`. See [here](op_math/#trace-and-partial-trace) for details
 Take the partial trace of `op` over the `i`th subsystem. See [here](op_math/#trace-and-partial-trace) for details.
 
 ---
-**commmutator(a::DiracOp, b::DiracOp)**
+**commmute(a::DiracOp, b::DiracOp)**
 
 Calculate the commutator `a*b - b*a`. 
 
 ---
-**anticommmutator(a::DiracOp, b::DiracOp)**
+**anticommmute(a::DiracOp, b::DiracOp)**
 
 Calculate the anticommutator `a*b + b*a`. 
 
