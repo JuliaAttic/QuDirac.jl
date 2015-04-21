@@ -6,6 +6,7 @@ quantum mechanics computations.
 Current Features:
 
 - Implementations of state types (`Ket`,`Bra`), and a variety of operator types (`OpSum`,`OuterProduct`)
+- Treat states and operators as map-like data structures to enable label-based analysis and transformation schemes
 - Support for abstract/undefined inner products
 - User-definable custom inner product rules
 - Subspace selection/transformation via functions on state labels and coefficients:

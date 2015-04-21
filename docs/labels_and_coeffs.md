@@ -17,7 +17,7 @@ There are few important things to keep in mind when working with these structure
 
 ---
 
-Julia's `getindex` function has been overloaded to allow coefficients of a state to be accessed by the basis states' labels:
+Julia's `getindex` function has been overloaded to allow coefficients of a state to be accessed by the basis states' labels, and is generally faster than using inner products for coefficient selection:
 
 ```julia
 julia> k = normalize(sum(i->d" i * | i > ", 1:3))
@@ -26,9 +26,15 @@ Ket{KroneckerDelta,1,Float64} with 3 state(s):
   0.5345224838248488 | 2 ⟩
   0.2672612419124244 | 1 ⟩
 
-julia> k[3]
+# getindex time complexity is O(1)
+julia> @time k[3]
+elapsed time: 4.308e-6 seconds (168 bytes allocated)
 0.8017837257372732
 
+# Inner product time complexity is generally O(length(Bra) * length(Ket))
+julia> @time bra(3) * k
+elapsed time: 1.4497e-5 seconds (776 bytes allocated)
+0.8017837257372732
 ```
 
 The coefficients of product states are accessed in the same fashion:
@@ -48,6 +54,8 @@ julia> k4[3,2,3,3]
 0.2755102040816327
 
 ```
+
+
 
 One can also use `setindex!` on states: 
 

@@ -138,11 +138,12 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.24253562503633297 | :↑ ⟩
 ```
 
-#### ...and other stuff (examples and documentation coming soon)
+#### ...and other stuff
 
+- Treat states and operators as map-like data structures to enable label-based analysis and transformation schemes
 - `xsubspace` allows easy selection of excitation subspaces of states and operators
 - `permute` and `switch` allows generic permutation of factor labels for states
-- `filter`/`filter!` are supported on both the labels and coefficients of operators/states
+- `filter`/`filter!` are supported for the (label,coefficient) pairs that make up operators/states
 - Arbitrary mapping functions (`map`/`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
 
 ## Examples
