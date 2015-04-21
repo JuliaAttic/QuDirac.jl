@@ -39,10 +39,10 @@ module QuDirac
     ######################
     include("labels.jl")
     
-    include("dirac/scalar.jl")
-    include("dirac/state.jl")
-    include("dirac/opsum.jl")
-    include("dirac/outerproduct.jl")
+    include("scalar.jl")
+    include("state.jl")
+    include("opsum.jl")
+    include("outerproduct.jl")
 
     include("printfuncs.jl")
     include("dictfuncs.jl")
