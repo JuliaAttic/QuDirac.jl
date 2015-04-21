@@ -57,7 +57,7 @@ default_inner(QHOInner())
 
 # Given an iterable of x and y points, generate a
 # distribution for the state by taking the inner product
-gen_z{P}(kt::Ket{P,2}, xpoints, ypoints, s) = Float64[s*d" < x, y | * kt "^2 for x in xpoints, y in ypoints]
+gen_z{P}(kt::Ket{P,2}, xpoints, ypoints, s) = Float64[s*d" < x, y | * kt " for x in xpoints, y in ypoints]
 
 # Generate the distribution above, and package it for a Plotly surface plot
 function gen_plot_data{P}(kt::Ket{P,2}, xpoints, ypoints, s=1.0)
