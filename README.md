@@ -148,7 +148,7 @@ Ket{KroneckerDelta,1,Float64} with 2 state(s):
 
 ## Examples
 
-There are currently two example files, `qho.jl` and `randwalk.jl`. The former sets up some functions for plotting general wave functions in a harmonic well using Plotly. The latter is a simple implementation of a quantum random 
+There are currently two example files, `qho.jl` and `randwalk.jl`. The former sets up some functions for plotting wave functions in a quantum harmonic well using Plotly. The latter is a simple implementation of a quantum random 
 walk.
 
 To run the examples, one can do the following (using `qho.jl` as an example):
