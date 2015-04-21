@@ -1,7 +1,7 @@
 module QuDirac
     
     if !(v"0.3-" <= VERSION < v"0.4-")
-        warn("QuDirac is only tested for the current v0.3 release of Julia. Your version is $VERSION.")
+        warn("QuDirac only officially supports the current v0.3 release of Julia. Your version is $VERSION.")
     end
     
     ####################
