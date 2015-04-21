@@ -46,3 +46,16 @@ function walk_nsteps(steps)
 
     return results
 end
+
+println(""" 
+This example provides the `walk_nsteps` function, which takes in the 
+number of steps to walk and returns an array containing the result of
+each step. The initial state is | 0,0 ⟩.
+
+For example, here's the result of 2 steps:
+
+julia> walk_nsteps(2)
+3-element Array{Ket{KroneckerDelta,2,Float64},1}:
+  1.0 | 0,0 ⟩
+  0.7071067811865475 | 0,-1 ⟩ + -0.7071067811865475 | 1,1 ⟩
+  0.4999999999999999 | 0,-2 ⟩ + -0.4999999999999999 | 0,0 ⟩ + -0.4999999999999999 | 1,2 ⟩ + -0.4999999999999999 | 1,0 ⟩""")

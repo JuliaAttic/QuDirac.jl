@@ -6,7 +6,7 @@ quantum mechanics computations.
 
 ## Features
 
-Below are some toy examples. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
+Below are some toy examples for previewing features. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
 
 #### State types (`Ket`,`Bra`) and Operator types (`OpSum`,`OuterProduct`)
 
@@ -65,7 +65,7 @@ julia> bra(π) * ket(e) # eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
 2.420717761749361
 ```
 
-#### Functional Operator Construction
+#### Functional operator construction
 
 For example, here's the functional definition of a lowering operator 
 on the second factor of a 3-factor number basis: 
