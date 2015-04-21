@@ -67,7 +67,7 @@ Base.(:(==)){N}(a::OpLabel{N}, b::OpLabel{N}) = hash(a) == hash(b)
 
 Base.length{N}(::OpLabel{N}) = N
 
-Base.reverse(o::OpLabel) = OpLabel(o.b, o.k)
+Base.ctranspose(o::OpLabel) = OpLabel(o.b, o.k)
 tensor(o1::OpLabel, o2::OpLabel) = OpLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
 
 Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
@@ -79,7 +79,7 @@ Base.show(io::IO, o::OpLabel) = print(io, repr(o))
 is_sum_x(o::OpLabel, x) = sum(klabel(o))==sum(blabel(o))==x
 is_sum_x(s::StateLabel, x) = sum(s) == x
 
-ctpair(k,v) = (reverse(k), v')
+ctpair(k,v) = (k', v')
 nzcoeff(k,v) = v!=0
 second(t) = t[2]
 except(label::StateLabel, i) = StateLabel(label[1:i-1]..., label[i+1:end]...)

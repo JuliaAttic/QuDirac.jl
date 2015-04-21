@@ -71,18 +71,18 @@ Base.length(op::AbsOpSum) = length(dict(op))
 
 Base.getindex(op::OpSum, label::OpLabel) = op.dict[label]
 Base.getindex(op::OpSum, k::StateLabel, b::StateLabel) = op.dict[OpLabel(k,b)]
-Base.getindex(opc::DualOpSum, label::OpLabel) = opc.op[reverse(label)]'
+Base.getindex(opc::DualOpSum, label::OpLabel) = opc.op[label']'
 Base.getindex(opc::DualOpSum, k::StateLabel, b::StateLabel) = opc.op[OpLabel(b,k)]'
 Base.getindex(op::AbsOpSum, k, b) = op[StateLabel(k), StateLabel(b)]
 
 Base.setindex!(op::OpSum, c, label::OpLabel) = (op.dict[label] = c)
 Base.setindex!(op::OpSum, c, k::StateLabel, b::StateLabel) = (op.dict[OpLabel(k,b)] = c)
-Base.setindex!(opc::DualOpSum, c, label::OpLabel) = (opc.op[reverse(label)] = c')
+Base.setindex!(opc::DualOpSum, c, label::OpLabel) = (opc.op[label'] = c')
 Base.setindex!(opc::DualOpSum, c, k::StateLabel, b::StateLabel) = (opc.op[OpLabel(b,k)] = c')
 Base.setindex!(op::AbsOpSum, c, k, b) = setindex!(op, c, StateLabel(k), StateLabel(b))
 
 Base.haskey(op::OpSum, label::OpLabel) = haskey(dict(op), label)
-Base.haskey(opc::DualOpSum, label::OpLabel) = haskey(opc.op, reverse(label))
+Base.haskey(opc::DualOpSum, label::OpLabel) = haskey(opc.op, label')
 Base.haskey(op::AbsOpSum, k, b) = haskey(op, OpLabel(k, b))
 
 Base.get(op::OpSum, label::OpLabel, default=0) = get(dict(op), label, default)
@@ -90,7 +90,7 @@ Base.get(opc::DualOpSum, label::OpLabel, default=0) = get(dict(opc), label, defa
 Base.get(op::AbsOpSum, k, b, default=0) = get(op, OpLabel(k, b), default)
 
 Base.delete!(op::OpSum, label::OpLabel) = (delete!(dict(op), label); return op)
-Base.delete!(opc::DualOpSum, label::OpLabel) = delete!(opc.op, reverse(label))
+Base.delete!(opc::DualOpSum, label::OpLabel) = delete!(opc.op, label')
 Base.delete!(op::AbsOpSum, k, b) = delete!(op, OpLabel(k, b))
 
 Base.collect(op::OpSum) = collect(dict(op))
@@ -99,7 +99,7 @@ Base.collect{P,N,T}(opc::DualOpSum{P,N,T}) = collect_pairs!(Array((OpLabel{N}, T
 function collect_pairs!(result, opc::DualOpSum)
     i = 1
     for (k,v) in dict(opc)
-        result[i] = (reverse(k), v')
+        result[i] = ctpair(k,v)
         i += 1
     end
     return result
@@ -108,7 +108,7 @@ end
 #############
 # ctranpose #
 #############
-eager_ctran(op::OpSum) = map(ctpair, op)
+eager_ctran(op::OpSum) = similar(op, Dict(collect(op')))
 
 Base.ctranspose(op::OpSum) = DualOpSum(op)
 Base.ctranspose(opc::DualOpSum) = opc.op
@@ -361,7 +361,7 @@ inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 # Printing Functions #
 ######################
 labelrepr(op::OpSum, o::OpLabel, pad) = "$pad$(op[o]) $(ktstr(klabel(o)))$(brstr(blabel(o)))"
-labelrepr(opc::DualOpSum, o::OpLabel, pad) = "$pad$(opc[reverse(o)]) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
+labelrepr(opc::DualOpSum, o::OpLabel, pad) = "$pad$(opc[o']) $(ktstr(blabel(o)))$(brstr(klabel(o)))"
 
 Base.summary(op::DiracOp) = "$(typeof(op)) with $(length(op)) operator(s)"
 Base.show(io::IO, op::AbsOpSum) = dirac_show(io, op)
