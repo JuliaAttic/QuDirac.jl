@@ -1,5 +1,5 @@
-@assert (3-im) * simpk' ==  (3-im) * ((1-3im) * bra(1))
-@assert (3-im) * simpk' == ((3+im)*(1+3im)*ket(1))'
+@assert (3-im) * simpk' ==  d"(3-im) * (1-3im)< 1 |"
+@assert (3-im) * simpk' == (d"(3+im)*(1+3im)| 1 >")'
 @assert (-im * projop')[1,1] == 0-10im
 
 @assert length(filter((o,v) -> klabel(o)==StateLabel(3), op')) == 3
@@ -12,7 +12,7 @@
 @assert op+op == 2 * op
 @assert op-op == 0 * op
 @assert op-op+op == op
-@assert filternz!(xsubspace(tensor(op,op,op),3)) == (16 - 88im) * ket(1,1,1) * bra(1,1,1) 
+@assert filternz!(xsubspace(tensor(op,op,op),3)) == d"(16 - 88im)| 1,1,1 >< 1,1,1 |" 
 
 op_copy = copy(op)
 op_copy[3,0] = 32+im
@@ -22,4 +22,4 @@ op_copy[3,0] = 32+im
 @test_approx_eq norm(qubits) 1
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)
 
-@assert act_on(bra(1), ket('a','b','c'), 2) == (bra(1) * ket('b')) * ket('a','c')
+@assert d" act_on(< 1 |, | 'a','b','c' >, 2) == < 1 | 'b' >| 'a','c' > "

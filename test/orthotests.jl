@@ -21,7 +21,7 @@
 @assert anticommutator(op,op) == 2 * op^2
 @assert commutator(op,op) == op^2 - op^2
 
-b = 1/√2 * (bra(0) + bra(1))
+b = d" 1/√2 * (< 0 | + < 1 |) "
 itest = act_on(b, bell_unbal, 2)
 
 @assert itest[0] == b[1]*bell_unbal[0,1]
