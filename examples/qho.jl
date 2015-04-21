@@ -72,8 +72,6 @@ function gen_plot_data{P}(kt::Ket{P,2}, xpoints, ypoints, s=1.0)
 end
 
 # some default stuff
-bell(c1,c2) = d" 1/√2 * (c1 * | 0,0 > + c2 * | 1,1 >) "
-
 len = 50
 max = pi
 xpoints = linspace(-max, max, len)
@@ -93,19 +91,12 @@ end
 
 info("Finished loading Plotly. Make sure you're signed in before trying to plot!")
 
-
 println("""
 
 To generate a plot of a wave function for a 2-factor Ket, 
 just call plot_wave2D(kt, xpoints, ypoints). This function
 will build your plot and return the URL you should go to to
 view the result. Here are some examples: 
-
-# Symmetric bell state:
-julia> plot_wave(bell(1,1), xpoints, ypoints)
-
-# Asymmetric bell state:
-julia> plot_wave(bell(5,2), xpoints, ypoints)
 
 # Basis state:
 julia> plot_wave(d\" | 1, 1 > \", xpoints, ypoints)
