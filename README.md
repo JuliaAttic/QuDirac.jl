@@ -8,7 +8,7 @@ quantum mechanics computations.
 
 These are toy examples for demoing features. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
 
-#### State types (`Ket`,`Bra`) and Operator types (`OpSum`,`OuterProduct`)
+#### Ket, Bra, and Operator types
 
 ```julia
 julia> bell = d" 1/√2 * (| 0,0 > + | 1,1 >) "
@@ -21,14 +21,7 @@ Bra{KroneckerDelta,2,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 0,0 |
   0.7071067811865475 ⟨ 1,1 |
 
-julia> op = bell * bell'
-OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:  
-  0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
-  0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
-  0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
-  0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
-
-julia> ptrace(op, 1)
+julia> ptrace(bell * bell', 1)
 OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 0 ⟩⟨ 0 |
   0.4999999999999999 | 1 ⟩⟨ 1 |
@@ -41,13 +34,13 @@ OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
 julia> default_inner(UndefinedInner())
 INFO: QuDirac's default inner product type is currently UndefinedInner()
 
-julia> k = d" 1/√2 * (| 'a' > + | 'b' >) "
-Ket{UndefinedInner,1,Float64} with 2 state(s):
-  0.7071067811865475 | 'b' ⟩
-  0.7071067811865475 | 'a' ⟩
+julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
+((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)
 
-julia> bra('a') * k
-((0.7071067811865475 * ⟨ 'a' | 'b' ⟩) + (0.7071067811865475 * ⟨ 'a' | 'a' ⟩))
+julia> s = d" (e^( < 1,2 | 3,4 > ) + < 5,6 | 7,8 > * im)^4 "
+
+julia> inner_eval((b, k) -> sum(k) - sum(b), s)
+8.600194553751864e6 + 2.5900995362955774e6im
 ```
 
 #### Custom inner product rules
@@ -68,37 +61,14 @@ julia> d" < π | e > "
 
 #### Functional operator construction
 
-For example, here's the functional definition of a lowering operator 
-on the second factor of a 3-factor number basis: 
-
 ```julia
 julia> @def_op " â₂ | x, y, z > = √y * | x, y - 1, z > "
 â₂ (generic function with 2 methods)
 
-julia> k = sum(i -> d" | i, i, i > ", 1:10)
-Ket{KroneckerDelta,3,Int64} with 10 state(s):
-  1 | 8,8,8 ⟩
-  1 | 9,9,9 ⟩
-  1 | 10,10,10 ⟩
-  1 | 2,2,2 ⟩
-  1 | 7,7,7 ⟩
-  ⁞
+julia> d" â₂ * | 3,5,6 > "
+Ket{KroneckerDelta,3,Float64} with 1 state(s):
+  2.23606797749979 | 3,4,6 ⟩
 
-# functions generated using @def_op can be applied 
-# to states via the * operator
-julia> â₂ * k
-Ket{KroneckerDelta,3,Float64} with 10 state(s):
-  1.7320508075688772 | 3,2,3 ⟩
-  3.0 | 9,8,9 ⟩
-  2.23606797749979 | 5,4,5 ⟩
-  2.449489742783178 | 6,5,6 ⟩
-  3.1622776601683795 | 10,9,10 ⟩
-  ⁞
-```
-
-We can represent an operator in a basis using the `@repr_op` macro:
-
-```julia
 # Hadamard operator
 julia> @repr_op " H | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > ) " 0:1;
 
@@ -110,38 +80,13 @@ OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 1 |
 ```
 
-#### `d" ... "` syntax for natural Dirac notation input
-
-```julia
-julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
-0.7071067811865475
-
-julia> default_inner(UndefinedInner())
-INFO: QuDirac's default inner product type is currently UndefinedInner()
-
-julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
-((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)
- d
-julia> d"""
-       ψ = 1/√2 * (| :↑,:↑ > + | :↓,:↓ >)
-       a = purity(ptrace(ψ*ψ', 2))
-       ϕ = normalize!( 1/5 * < :↑ | + 4/5 * < :↓ | )
-       result = normalize!(a * act_on(ϕ, ψ, 2))
-       """
-
-julia> result
-Ket{KroneckerDelta,1,Float64} with 2 state(s):
-  0.9701425001453319 | :↓ ⟩
-  0.24253562503633297 | :↑ ⟩
-```
-
 #### ...and other stuff
 
-- Treat states and operators as map-like data structures to enable label-based analysis and transformation schemes
+- Treat states and operators as map-like data structures to enable label-based analysis
 - `xsubspace` allows easy selection of excitation subspaces of states and operators
 - `permute` and `switch` allows generic permutation of factor labels for states
-- `filter`/`filter!` are supported for the (label,coefficient) pairs that make up operators/states
-- Arbitrary mapping functions (`map`/`maplabels`/`mapcoeffs`) are also provided for applying functions to labels and coefficients
+- `filter`/`filter!` for the filtering out component states/operators via predicate functions
+- Arbitrary mapping functions (`map`/`maplabels`/`mapcoeffs`) for applying functions to labels and coefficients
 
 ## Examples
 
