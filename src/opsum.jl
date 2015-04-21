@@ -60,7 +60,7 @@ Base.copy(opc::DualOpSum) = DualOpSum(copy(opc.op))
 Base.similar(op::OpSum, d=similar(dict(kt)); P=ptype(op)) = OpSum(P, d)
 Base.similar(opc::DualOpSum, d=similar(dict(br)); P=ptype(opc)) = DualOpSum(P, d)
 
-Base.(:(==)){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = dict(filternz(a)) == dict(filternz(b))
+Base.(:(==)){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
 Base.(:(==)){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
 Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
 
@@ -94,7 +94,7 @@ Base.delete!(opc::DualOpSum, label::OpLabel) = delete!(opc.op, label')
 Base.delete!(op::AbsOpSum, k, b) = delete!(op, OpLabel(k, b))
 
 Base.collect(op::OpSum) = collect(dict(op))
-Base.collect{P,N,T}(opc::DualOpSum{P,N,T}) = collect_pairs!(Array((OpLabel{N}, T), length(opc)), opc)
+Base.collect{P,N,T}(opc::DualOpSum{P,N,T}) = collect_pairs!(Array(@compat(Tuple{OpLabel{N}, T}), length(opc)), opc)
 
 function collect_pairs!(result, opc::DualOpSum)
     i = 1
@@ -104,6 +104,17 @@ function collect_pairs!(result, opc::DualOpSum)
     end
     return result
 end
+
+Base.start(op::AbsOpSum) = start(dict(op))
+Base.next(op::OpSum, i) = next(dict(op), i)
+
+function Base.next(opc::DualOpSum, i)
+    (k,v), n = next(dict(opc), i)
+    return ((k',v'), n)
+end
+
+Base.done(op::AbsOpSum, i) = done(dict(op), i)
+Base.first(op::AbsOpSum) = next(op, start(op))
 
 #############
 # ctranpose #

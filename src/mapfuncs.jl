@@ -7,9 +7,9 @@ function mapvals!(f, d)
     end
     return d
 end
-mapvals(f, d) = Dict(collect(keys(d)), map(f, collect(values(d))))
+mapvals(f, d) = Dict(zip(collect(keys(d)), map(f, collect(values(d)))))
 
-mapkeys(f, d) = Dict(map(f, collect(keys(d))), collect(values(d)))
+mapkeys(f, d) = Dict(zip(map(f, collect(keys(d))), collect(values(d))))
 mapkv(f, d) = Dict(map(f, collect(d)))
 
 #############

@@ -1,5 +1,7 @@
 module QuDirac
     
+    using Compat
+
     if !(v"0.3-" <= VERSION < v"0.4-")
         warn("QuDirac only officially supports the current v0.3 release of Julia. Your version is $VERSION.")
     end
@@ -38,12 +40,10 @@ module QuDirac
     # Include Statements #
     ######################
     include("labels.jl")
-    
     include("scalar.jl")
     include("state.jl")
     include("opsum.jl")
     include("outerproduct.jl")
-
     include("printfuncs.jl")
     include("dictfuncs.jl")
     include("mapfuncs.jl")

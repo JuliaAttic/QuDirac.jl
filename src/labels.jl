@@ -34,7 +34,7 @@ Base.length{N}(::StateLabel{N}) = N
 
 Base.map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, s.label))
 
-tensor(s::StateLabel...) = StateLabel(apply(tuple, s...))
+tensor(a::StateLabel, b::StateLabel) = StateLabel(tuple(a.label..., b.label...))
 
 labelstr(s::StateLabel) = join(map(repr, s.label), ',')
 Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"

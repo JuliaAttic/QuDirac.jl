@@ -12,7 +12,7 @@ end
 
 Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
 
-ket(ptype::AbstractInner, label::StateLabel) = Ket(ptype, [label => 1])
+ket(ptype::AbstractInner, label::StateLabel) = Ket(ptype, @compat(Dict(label => 1)))
 ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
 
 type Bra{P,N,T} <: DiracState{P,N}
@@ -44,7 +44,7 @@ Base.copy(br::Bra) = Bra(copy(br.kt))
 Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
 Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 
-Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(filternz(a)) == dict(filternz(b))
+Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.hash(s::DiracState) = hash(dict(filternz(s)), hash(ptype(s)))
 Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
@@ -82,6 +82,18 @@ function collect_pairs!(result, br::Bra)
     end
     return result
 end
+
+Base.start(state::DiracState) = start(dict(state))
+Base.next(kt::Ket, i) = next(dict(kt), i)
+
+function Base.next(br::Bra, i)
+    (k,v), n = next(dict(br), i)
+    return ((k,v'), n)
+end
+
+Base.done(state::DiracState, i) = done(dict(state), i)
+
+Base.first(state::DiracState) = next(state, start(state))
 
 ##############
 # ctranspose #
@@ -123,10 +135,11 @@ end
 
 Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
 
+inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
+
 ##########
 # act_on #
 ##########
-
 act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
 
 function act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i)
@@ -206,16 +219,32 @@ permute(s::DiracState, perm::Vector) = maplabels(label->permute(label,perm), s)
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 
-function wavefunc(f::Function, kt::Ket)
-    return (args...) -> sum(pair->pair[2]*f(pair[1])(args...), dict(kt))
-end
-
 # should always be pure, of course,
 # but makes a good sanity check function
 purity(kt::Ket) = purity(kt*kt')
 purity(br::Bra) = purity(br.kt)
 
-inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
+ladderdict{P,N}(state::DiracState{P,N}) = StateDict{N, promote_type(Float64, eltype(state))}()
+
+lower{P}(state::DiracState{P,1}) = lower(state, 1)
+lower(state::DiracState, i) = similar(state, lowerdict!(ladderdict(state), dict(state), i))
+
+raise{P}(state::DiracState{P,1}) = raise(state, 1)
+raise(state::DiracState, i) = similar(state, raisedict!(ladderdict(state), dict(state), i))
+
+function lowerdict!(result, d, i)
+    for (k,v) in d
+        add_to_dict!(result, setindex(k, k[i] - 1, i), sqrt(k[i])*v)
+    end
+    return result
+end
+
+function raisedict!(result, d, i)
+    for (k,v) in d
+        add_to_dict!(result, setindex(k, k[i] + 1, i), sqrt(k[i]+1)*v)
+    end
+    return result
+end
 
 ######################
 # Printing Functions #
@@ -243,6 +272,7 @@ export Ket,
     filternz!,
     filternz,
     purity,
-    wavefunc,
+    lower,
+    raise,
     act_on,
     inner_eval

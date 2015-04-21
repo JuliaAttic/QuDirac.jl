@@ -46,7 +46,7 @@ end
 rm_whspace(str) = join(split(str, r"\s"))
 
 function sep_leftside(str)
-    op_name, label_arg = split(str, '|', 2)
+    op_name, label_arg = @compat split(str, '|'; limit=2)
     if last(label_arg) == '>'
         return op_name, label_arg[1:end-1]
     else
@@ -56,7 +56,7 @@ end
 
 function parse_defstr(str)
     str = rm_whspace(str)
-    left, right = split(str, '=', 2)
+    left, right = @compat split(str, '='; limit=2)
     op_name, label_arg = sep_leftside(left)
     return (op_name, label_arg, prune_dirac(right))
 end
