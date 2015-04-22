@@ -81,13 +81,13 @@ default_inner(QHOInner())
 
 # Given an iterable of x and y points, generate a
 # distribution for the state by taking the inner product
-gen_z{P}(kt::Ket{P,2}, xpoints, ypoints, s) = inner_rettype(QHOInner())[s*d" < x, y | * kt " for x in xpoints, y in ypoints]
+gen_z{P}(kt::Ket{P,2}, xpoints, ypoints) = inner_rettype(QHOInner())[d" < x, y | * kt " for x in xpoints, y in ypoints]
 
 # Generate the distribution above, and package it for a Plotly surface plot
-function gen_plot_data{P}(kt::Ket{P,2}, xpoints, ypoints, s=1.0)
+function gen_plot_data{P}(kt::Ket{P,2}, xpoints, ypoints)
     return [
       [
-        "z" => gen_z(kt, xpoints, ypoints, s), 
+        "z" => gen_z(kt, xpoints, ypoints), 
         "x" => xpoints, 
         "y" => ypoints, 
         "type" => "surface"
@@ -121,8 +121,8 @@ using Plotly
 # julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
 #        plot_wave2D(randkt, xpoints, ypoints)
 #
-function plot_wave2D{P}(kt::Ket{P,2}, xpoints, ypoints, s=1.0)
-    response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints, s))
+function plot_wave2D{P}(kt::Ket{P,2}, xpoints, ypoints)
+    response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints))
     return response["url"]
 end
 
