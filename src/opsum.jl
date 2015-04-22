@@ -350,7 +350,7 @@ ptrace{P,N}(op::DiracOp{P,N}, over) = OpSum(ptype(op), ptrace_dict!(OpDict{N-1,e
 function ptrace_dict!(result, op::OpSum, over)
     for (o,v) in dict(op)
         if klabel(o)[over] == blabel(o)[over]
-            add_to_dict!(result, OpLabel(except(klabel(o), over), except(blabel(o), over)), v)
+            add_to_dict!(result, traceout(o, over), v)
         end
     end
     return result
@@ -359,8 +359,27 @@ end
 function ptrace_dict!(result, opc::DualOpSum, over)
     for (o,v) in dict(opc)
         if blabel(o)[over] == klabel(o)[over]
-            add_to_dict!(result, OpLabel(except(blabel(o), over), except(klabel(o), over)), v')
+            add_to_dict!(result, traceout_dual(o, over), v')
         end
+    end
+    return result
+end
+
+#####################
+# Partial Transpose #
+#####################
+ptranspose{P,N}(op::DiracOp{P,N}, over) = OpSum(ptype(op), ptrans_dict!(OpDict{N,eltype(op)}(), op, over))
+
+function ptrans_dict!(result, op::OpSum, over)
+    for (o,v) in dict(op)
+        add_to_dict!(result, ptranspose(o, over), v)
+    end
+    return result
+end
+
+function ptrans_dict!(result, opc::DualOpSum, over)
+    for (o,v) in dict(opc)
+        add_to_dict!(result, ptranspose_dual(o, over), v')
     end
     return result
 end
@@ -394,6 +413,7 @@ Base.repr(op::AbsOpSum) = dirac_repr(op)
 
 export OpSum,
     ptrace,
+    ptranspose,
     xsubspace,
     nfactors,
     maplabels!,

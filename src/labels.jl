@@ -70,6 +70,14 @@ Base.length{N}(::OpLabel{N}) = N
 Base.ctranspose(o::OpLabel) = OpLabel(o.b, o.k)
 tensor(o1::OpLabel, o2::OpLabel) = OpLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b))
 
+ptranspose{N}(k::StateLabel{N}, b::StateLabel{N}, i) = OpLabel{N}(setindex(k, b[i], i), setindex(b, k[i], i))
+ptranspose(o::OpLabel, i) = ptranspose(o.k, o.b, i)
+ptranspose_dual(o::OpLabel, i) = ptranspose(o.b, o.k, i)
+
+traceout(k::StateLabel, b::StateLabel, i) = OpLabel(except(k, i), except(b, i))
+traceout(o::OpLabel, i) = traceout(o.k, o.b, i)
+traceout_dual(o::OpLabel, i) = traceout(o.b, o.k, i)
+
 Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
 Base.show(io::IO, o::OpLabel) = print(io, repr(o))
 

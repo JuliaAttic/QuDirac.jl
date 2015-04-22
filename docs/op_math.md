@@ -246,3 +246,21 @@ OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
 julia> purity(ans) # get the purity of the previous result
 0.4999999999999998
 ```
+
+---
+# Partial Transpose
+---
+
+Take the partial transpose of an operator via the `ptranspose` function:
+
+```
+julia> op = normalize(d" | 'a','b','c' >< 'd','e','f' | + 2 * | 'i','j','k' >< 'l','m','n' | ")
+OpSum{KroneckerDelta,3,Float64} with 2 operator(s):
+  0.8944271909999159 | 'i','j','k' ⟩⟨ 'l','m','n' |
+  0.4472135954999579 | 'a','b','c' ⟩⟨ 'd','e','f' |
+
+julia> ptranspose(op, 2) # transpose the 2nd subsystem
+OpSum{KroneckerDelta,3,Float64} with 2 operator(s):
+  0.4472135954999579 | 'a','e','c' ⟩⟨ 'd','b','f' |
+  0.8944271909999159 | 'i','m','k' ⟩⟨ 'l','j','n' |
+```

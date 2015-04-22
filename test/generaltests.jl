@@ -23,3 +23,6 @@ op_copy[3,0] = 32+im
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)
 
 @assert d" act_on(< 1 |, | 'a','b','c' >, 2) == < 1 | 'b' >| 'a','c' > "
+
+tranop = d" | 'a','b','c' >< 'd','e','f' | + 2 * | 'i','j','k' >< 'l','m','n' | "
+@assert ptranspose(tranop, 2) == d" | 'a','e','c' >< 'd','b','f' | + 2 * | 'i','m','k' >< 'l','j','n' | "

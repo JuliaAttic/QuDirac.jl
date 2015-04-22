@@ -136,6 +136,11 @@ Take the trace of `op`. See [here](op_math/#trace-and-partial-trace) for details
 Take the partial trace of `op` over the `i`th subsystem. See [here](op_math/#trace-and-partial-trace) for details.
 
 ---
+**ptranspose(op::DiracOp, i::Int)**
+
+Take the partial transpose of `op` over the `i`th subsystem. See [here](op_math/#partial-transpose) for details.
+
+---
 **commmute(a::DiracOp, b::DiracOp)**
 
 Calculate the commutator `a*b - b*a`. 
