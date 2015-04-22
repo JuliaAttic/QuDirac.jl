@@ -186,6 +186,21 @@ Ket{KroneckerDelta,3,Int64} with 3 state(s):
   1 | 2,3,1 ⟩
   2 | 3,4,2 ⟩
 ```
+---
+**raise(state::DiracState)**
+
+Calculate the action of the raising operator on `state`.
+
+This is generally faster than actually constructing and
+applying a raising operator.
+
+---
+**lower(state::DiracState)**
+
+Calculate the action of the lowering operator on `state`.
+
+This is generally faster than actually constructing and
+applying a lowering operator.
 
 ---
 # Inner Product Evaluation

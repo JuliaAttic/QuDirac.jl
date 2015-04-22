@@ -5,7 +5,7 @@ theme: readthedocs
 pages:
 - ['index.md', 'Introduction']
 - ['constructing_states.md', 'User Guide', 'Constructing Single States']
-- ['d_str.md', 'User Guide', 'd" ... " syntax']
+- ['d_str.md', 'User Guide', 'd" ... " literals']
 - ['state_math.md', 'User Guide', 'Math with States']
 - ['op_math.md', 'User Guide', 'Math with Operators']
 - ['labels_and_coeffs.md', 'User Guide', 'Labels and Coefficients']

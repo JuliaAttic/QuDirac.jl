@@ -15,4 +15,4 @@ Current Features:
     - `filter`/`filter!` are supported on both the labels and coefficients of operators/states
     - Mapping functions (`map`/`maplabels`/`mapcoeffs`) for applying arbitrary functions to labels and coefficients
 - Functional generation of operators using `@def_op` and `@rep_op`
-- `d" ... "` syntax for natural Dirac notation input
+- `d" ... "` literals for natural Dirac notation input syntax

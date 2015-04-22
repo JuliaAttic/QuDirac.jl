@@ -1,7 +1,7 @@
 # Natural Dirac notation input syntax
 ---
 
-QuDirac supports a "natural" input format by implementing `d"..."` syntax. Seeing this syntax in action:
+QuDirac supports a "natural" input format by implementing `d"..."` literals. Seeing this syntax in action:
 
 ```julia
 julia> d" | 0 > "
@@ -18,7 +18,19 @@ given string:
 
 ...then parses the resulting string into an `Expr`, which is returned back to the calling environment and evaluated.
 
-When using `d"..."` syntax, the `|`, `>` and `<` characters *cannot be used for anything other than as symbols for Kets, Bras, and inner products*. Other than that, any other Julia syntax should evaluate properly. For example, assignments and function calls work as expected:
+For example, this statement:
+
+```julia
+d" < :a | :b > * | 1 > + 3 * | 2 > "
+```
+
+...translates to this code:
+
+```julia
+(bra(:a) * ket(:b)) * ket(1) + 3 * ket(2)
+```
+
+When using `d"..."` literals, the `|`, `>` and `<` characters *cannot be used for anything other than as symbols for Kets, Bras, and inner products*. Other than that, any other Julia syntax should evaluate properly. For example, assignments and function calls work as expected:
 
 ```julia
 julia> d" A = tensor(| 0 >< 1 |, | 1 >< 0 |) ";
