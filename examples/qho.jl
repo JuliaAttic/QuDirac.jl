@@ -5,13 +5,31 @@ using QuDirac
 ####################
 # Ladder Operators #
 ####################
-# These functions can be applied to Kets like "lower * k"
-# Note these are in fact *functions*, not actual operators.
-# One can build an operator representation if they wish
-# by using the @rep_op macro. See the "Constructing Operators 
-# with Functions" section of the QuDirac docs for more info. 
-@def_op " lower | n > = √n * | n - 1 > "
-@def_op " raise | n > = √(n + 1) * | n + 1 > "
+#
+# `a` and `a_dag` are defined as the lowering and raising operators
+# on individual states. `X` and `P` are defined as the position 
+# and momentum operators on individual states.
+#
+# See the "Constructing Operators with Functions" section 
+# of the QuDirac docs for more info on the use of the `@def_op`
+# macro. 
+#
+# Note that in practice, it is generally faster to use QuDirac's 
+# built-in `lower` and `raise` functions to apply ladder operations
+# to states. The following simply serves to demonstrate the capabilities
+# of the `@def_op` macro.
+
+@def_op " a | n > = √n * | n - 1 >"
+@def_op " < n | a = √(n + 1) * < n + 1 |"
+
+a_dag = a'
+
+# `X` and `P` are Hermitian, so:
+@def_op " X | n > = √(1/2) * (a * | n > +  a_dag * | n >)"
+@def_op " < n | X = √(1/2) * (< n | * a +  < n | * a_dag)"
+
+@def_op " P | n > = im * √(1/2) * (a_dag * | n > - a * | n >)"
+@def_op " < n | P = im * √(1/2) * (< n | * a_dag - < n | * a)"
 
 #################################
 # Hermite Polynomial Evaluation #
@@ -40,7 +58,7 @@ immutable QHOInner <: AbstractInner end
 
 qho_inner(x::Float64, k::Int) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
 qho_inner(n::Int, m::Int) = n==m ? 1.0 : 0.0
-qho_inner(pair) = qho_inner(pair[1], pair[2])
+qho_inner(pair) = qho_inner(pair...)
 
 QuDirac.inner_rule(::QHOInner, b, k) = mapreduce(qho_inner, *, zip(b, k))
 QuDirac.inner_rettype(::QHOInner) = Float64
@@ -90,23 +108,22 @@ using Plotly
 # Generate the distribution, sending it to Plotly.
 # Return the response URL, which you can then go to
 # to see and interact with your plot.
+#
+# To generate a plot of a wave function for a 2-factor Ket, 
+# just call plot_wave2D(kt, xpoints, ypoints). This function
+# will build your plot and return the URL you should go to to
+# view the result. Here are some examples: 
+#
+# Basis state:
+# julia> plot_wave2D(d\" | 1, 1 > \", xpoints, ypoints)
+#
+# Random superposition of the first 4 basis states:
+# julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
+#        plot_wave2D(randkt, xpoints, ypoints)
+#
 function plot_wave2D{P}(kt::Ket{P,2}, xpoints, ypoints, s=1.0)
     response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints, s))
     return response["url"]
 end
 
 info("Finished loading Plotly. Make sure you're signed in before trying to plot!")
-
-println("""
-
-To generate a plot of a wave function for a 2-factor Ket, 
-just call plot_wave2D(kt, xpoints, ypoints). This function
-will build your plot and return the URL you should go to to
-view the result. Here are some examples: 
-
-# Basis state:
-julia> plot_wave2D(d\" | 1, 1 > \", xpoints, ypoints)
-
-# Random superposition of the first 4 basis states:
-julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
-       plot_wave2D(randkt, xpoints, ypoints)""")
