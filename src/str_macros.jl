@@ -129,12 +129,18 @@ function def_op_expr(op_name, label_args, def_str, type_str)
         end
     end
 
+    if type_sym == :Ket
+        coeff_sym = :c
+    else
+        coeff_sym = :(c')
+    end
+    
     result = quote
         $func_label_def
 
         function $(func_pair)(pair::Tuple)
           label, c = pair
-          return c * $(func_label)(label)
+          return $(coeff_sym) * $(func_label)(label)
         end  
 
         $(op_sym)(state::$(type_sym)) = sum($(func_pair), QuDirac.dict(state))

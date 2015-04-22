@@ -222,12 +222,18 @@ Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
 Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
 Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 
-##############
-# act/act_on #
-##############
+###################################
+# Functional Operator Application #
+###################################
 Base.(:*)(op::Function, kt::Ket) = op(kt)
 Base.(:*)(br::Bra, op::Function) = op(br)
 
+Base.Ac_mul_B(op::Function, kt::Ket) = (kt' * op)'
+Base.A_mul_Bc(br::Bra, op::Function) = (op  * br')'
+
+##############
+# act/act_on #
+##############
 act_on(op::AbsOpSum, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
 
 # clear up ambiguity warnings
