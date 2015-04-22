@@ -75,18 +75,18 @@ For an example of an operator that throws its basis Kets into superpositions,
 here's a function emulating a Hadamard operator:
 
 ```julia
-julia> @def_op " h | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > )"
+julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
 h (generic function with 2 methods)
 
 julia> d" h * | 0 > "
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.7071067811865475 | 0 ⟩
-  -0.7071067811865475 | 1 ⟩
+  0.7071067811865475 | 1 ⟩
 
 julia> d" h * | 1 > "
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.7071067811865475 | 0 ⟩
-  0.7071067811865475 | 1 ⟩
+  -0.7071067811865475 | 1 ⟩
 ```
 
 ---
@@ -175,7 +175,7 @@ to represent it in a basis. For example, take the Hadamard operator-function
 `h`, constructed in the previous section as:
 
 ```julia
-julia> @def_op " h | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > )"
+julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
 h (generic function with 2 methods)
 ```
 
@@ -185,10 +185,10 @@ calling `h` on the right-hand side:
 ```julia
 julia> @rep_op " H | n > = h * | n > " 0:1
 OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
-  -0.7071067811865475 | 1 ⟩⟨ 0 |
+  0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |
-  0.7071067811865475 | 1 ⟩⟨ 1 |
+  -0.7071067811865475 | 1 ⟩⟨ 1 |
 ```
 
 The above strategy works to represent any operator-function. Just be aware that
