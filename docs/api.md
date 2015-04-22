@@ -114,7 +114,7 @@ Normalize `obj`, i.e. scale it by `1/norm(obj)`. The in-place version, `normaliz
 
 **act_on(a::DiracOp, b::DiracState, i::Int)**
 
-Act `a` on the `i`th subsystem of `b`. For states acting on states, this method is discussed in detail [here](state_math/#acting-a-bra-on-a-specific-ket-factor-and-vice-versa). For an operator acting on a state, details can be found [here](op_math/#acting-an-operator-on-a-specific-state-factor)
+Act `a` on the `i`th subsystem of `b`. For states acting on states, this method is discussed in detail [here](state_math/#acting-a-bra-on-a-specific-ket-factor-and-vice-versa). For an operator acting on a state, details can be found [here](op_math/#acting-an-operator-on-a-specific-state-factor).
 
 ---
 **tensor{P}(ops::DiracOp{P}...),**
