@@ -225,7 +225,8 @@ Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 ##############
 # act/act_on #
 ##############
-Base.(:*)(f::Function, kt::Ket) = sum(pair -> pair[2]*f(pair[1]), dict(kt))
+Base.(:*)(op::Function, kt::Ket) = op(kt)
+Base.(:*)(br::Bra, op::Function) = op(br)
 
 act_on(op::AbsOpSum, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
 

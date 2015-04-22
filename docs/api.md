@@ -55,7 +55,7 @@ Using the definition given by `str`, generate a function that acts on Kets via t
 See the [Defining Operators as Functions](func_op_def/#defining-operators-as-functions) section for detailed examples.
 
 ---
-**@repr_op(str, basis_labels)**
+**@rep_op(str, basis_labels)**
 
 Generate an operator representation by applying the definition given by `str` to the labels provided by `basis_labels`.
 See the [Generating Operator Representations](func_op_def/#generating-operator-representations) section for detailed examples.

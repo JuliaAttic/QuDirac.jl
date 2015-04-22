@@ -70,7 +70,7 @@ Ket{KroneckerDelta,3,Float64} with 1 state(s):
   2.23606797749979 | 3,4,6 ⟩
 
 # Hadamard operator
-julia> @repr_op " H | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > ) " 0:1;
+julia> @rep_op " H | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > ) " 0:1;
 
 julia> H
 OpSum{KroneckerDelta,1,Float64} with 4 operator(s):

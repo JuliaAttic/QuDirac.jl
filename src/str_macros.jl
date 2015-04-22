@@ -30,38 +30,58 @@ macro d_mstr(str)
     end)
 end
 
-############
-# @repr_op #
-############
+###########
+# @rep_op #
+###########
 
-# Accepted grammar is:
-# @repr_op " OP_NAME | LABEL_ARG > = KET " basis_iterable
-
-macro repr_op(str, basis)
-    op_name, label_arg, ket_str = parse_defstr(str)
-    result_expr = op_expr(op_name, label_arg, ket_str, basis)
+macro rep_op(str, basis)
+    op_name, label_args, def_str = parse_defstr(str)
+    result_expr = rep_op_expr(op_name, label_args, def_str, basis)
     return esc(result_expr)
 end 
 
 rm_whspace(str) = join(split(str, r"\s"))
 
-function sep_leftside(str)
-    op_name, label_arg = @compat split(str, '|'; limit=2)
-    if last(label_arg) == '>'
-        return op_name, label_arg[1:end-1]
+function leftside_ket(str)
+    op_name, label_args = @compat(split(str, '|'; limit=2))
+    if last(label_args) == '>'
+        return op_name, label_args[1:end-1]
     else
         error("Left side of definition string is malformed; couldn't find terminating '>' for the Ket.")
     end
 end
 
-function parse_defstr(str)
-    str = rm_whspace(str)
-    left, right = @compat split(str, '='; limit=2)
-    op_name, label_arg = sep_leftside(left)
-    return (op_name, label_arg, prune_dirac(right))
+function leftside_bra(str)
+    label_args, op_name = @compat(split(str, '|'; limit=2))
+    if first(label_args) == '<'
+        return op_name, label_args[2:end]
+    else
+        error("Left side of definition string is malformed; couldn't find initial '<' for the Bra.")
+    end
 end
 
-function op_expr(op_name, label_arg, ket_str, basis)
+function parse_defstr(str)
+    str = rm_whspace(str)
+    left, right = @compat(split(str, '='; limit=2))
+
+    if ismatch(ktpat, left)
+        type_str = "Ket"
+    elseif ismatch(brpat, left)
+        type_str = "Bra"
+    else
+        error("Couldn't detect whether operator is acting on Bra or Ket...")
+    end
+
+    if type_str == "Ket"
+        op_name, label_arg = leftside_ket(left)
+    else # type_str == "Bra"
+        op_name, label_arg = leftside_bra(left)
+    end
+
+    return (op_name, label_arg, prune_dirac(right), type_str)
+end
+
+function rep_op_expr(op_name, label_arg, ket_str, basis)
     op_sym = symbol(op_name)
     label_expr = parse(label_arg)
     ket_expr = parse(ket_str)
@@ -78,38 +98,52 @@ function op_expr(op_name, label_arg, ket_str, basis)
     return ex
 end
 
-############
+###########
 # @def_op #
-############
-
-# Accepted grammar is:
-# @def_op " OP_NAME | LABEL_ARG > = KET "
+###########
 
 macro def_op(str)
-    op_name, label_arg, ket_str = parse_defstr(str)
-    result_expr = func_op_expr(op_name, label_arg, ket_str)
+    op_name, label_args, def_str, type_str = parse_defstr(str)
+    result_expr = def_op_expr(op_name, label_args, def_str, type_str)
     return esc(result_expr)
 end 
 
-function func_op_expr(op_name, label_arg, ket_str)
+function def_op_expr(op_name, label_args, def_str, type_str)
     op_sym = symbol(op_name)
-    label_expr = parse(label_arg)
-    ket_expr = parse(ket_str)
+    type_sym = symbol(type_str)
+    label_expr = parse(label_args)
+    def_expr = parse(def_str)
+
+    func_label = symbol("_" * op_name * "_on_" * type_str * "_label")
+    func_pair = symbol("_" * op_name * "_on_" * type_str * "_pair")
+
     if isa(label_expr, Expr)
-        ex = quote 
-            $(op_sym)($(label_expr.args...)) = $ket_expr
-            $(op_sym)(s::StateLabel) = $(op_sym)(s...)
+        func_label_def = quote 
+            $(func_label)($(label_expr.args...)) = $def_expr 
+            $(func_label)(label::StateLabel) = $(func_label)(label...)
         end
-    else
-        ex = quote 
-            $(op_sym)($label_expr) = $ket_expr
-            $(op_sym)(s::StateLabel) = $(op_sym)(s...)
+    else # isa(label_expr, Symbol)
+        func_label_def = quote 
+            $(func_label)($label_expr) = $def_expr 
+            $(func_label)(label::StateLabel) = $(func_label)(first(label))
         end
     end
-    return ex
+
+    result = quote
+        $func_label_def
+
+        function $(func_pair)(pair::Tuple)
+          label, c = pair
+          return c * $(func_label)(label)
+        end  
+
+        $(op_sym)(state::$(type_sym)) = sum($(func_pair), QuDirac.dict(state))
+    end
+
+    return result
 end
 
 export @d_str,
        @d_mstr,
-       @repr_op,
+       @rep_op,
        @def_op
