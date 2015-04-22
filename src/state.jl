@@ -7,7 +7,7 @@ type Ket{P,N,T} <: DiracState{P,N}
     ptype::P
     dict::StateDict{N,T}
     Ket(ptype, dict) = new(ptype, dict)
-    Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state; did you mean to construct a scalar?")
+    Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state.")
 end
 
 Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)

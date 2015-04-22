@@ -34,11 +34,14 @@ end
 # @rep_op #
 ###########
 
-macro rep_op(str, basis)
-    op_name, label_args, def_str = parse_defstr(str)
-    result_expr = rep_op_expr(op_name, label_args, def_str, basis)
+macro rep_op(str, bases...)
+    op_name, label_args, def_str, type_str = parse_defstr(str)
+    result_expr = rep_op_expr(op_name, label_args, def_str, type_str, build_prod_basis(bases...))
     return esc(result_expr)
 end 
+
+build_prod_basis(basis) = basis
+build_prod_basis(first, bases...) = :(Iterators.product($first, $(bases...)))
 
 rm_whspace(str) = join(split(str, r"\s"))
 
@@ -81,10 +84,19 @@ function parse_defstr(str)
     return (op_name, label_arg, prune_dirac(right), type_str)
 end
 
-function rep_op_expr(op_name, label_arg, ket_str, basis)
+function rep_op_expr(op_name, label_arg, def_str, type_str, basis)
     op_sym = symbol(op_name)
     label_expr = parse(label_arg)
-    ket_expr = parse(ket_str)
+    def_expr = parse(def_str)
+    if type_str == "Ket"
+        return gen_ket_repr_expr(op_sym, label_expr, def_expr, basis)
+    else
+        return gen_bra_repr_expr(op_sym, label_expr, def_expr, basis)
+    end
+    return ex
+end
+
+function gen_ket_repr_expr(op_sym, label_expr, ket_expr, basis)
     if isa(label_expr, Expr)
         ex = quote 
             local f($(label_expr.args...)) = $ket_expr * bra($(label_expr.args...))
@@ -93,6 +105,20 @@ function rep_op_expr(op_name, label_arg, ket_str, basis)
     else
         ex = quote 
             $op_sym = sum($label_expr -> $ket_expr * bra($label_expr), $basis)
+        end
+    end
+    return ex
+end
+
+function gen_bra_repr_expr(op_sym, label_expr, bra_expr, basis)
+    if isa(label_expr, Expr)
+        ex = quote 
+            local f($(label_expr.args...)) = ket($(label_expr.args...)) * $bra_expr
+            $op_sym = sum(args->f(args...), $basis)
+        end
+    else
+        ex = quote 
+            $op_sym = sum($label_expr -> ket($label_expr) * $bra_expr, $basis)
         end
     end
     return ex
@@ -134,7 +160,7 @@ function def_op_expr(op_name, label_args, def_str, type_str)
     else
         coeff_sym = :(c')
     end
-    
+
     result = quote
         $func_label_def
 

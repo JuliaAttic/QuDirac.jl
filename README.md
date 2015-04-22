@@ -62,12 +62,24 @@ julia> d" < π | e > "
 #### Functional operator construction
 
 ```julia
-julia> @def_op " â₂ | x, y, z > = √y * | x, y - 1, z > "
-â₂ (generic function with 2 methods)
+# define a₂ on Ket
+julia> @def_op " a₂ | x, y, z > = √y * | x, y - 1, z > "
+a₂ (generic function with 1 method)
 
-julia> d" â₂ * | 3,5,6 > "
+# define a₂ on Bra
+julia> @def_op " < x, y, z | a₂ = √(y + 1) * < x, y + 1, z | "
+a₂ (generic function with 2 methods)
+
+julia> d" a₂ * | 3,5,5 > "
 Ket{KroneckerDelta,3,Float64} with 1 state(s):
-  2.23606797749979 | 3,4,6 ⟩
+  2.23606797749979 | 3,4,5 ⟩
+
+julia> d" a₂' * | 3,4,5 > "
+Ket{KroneckerDelta,3,Float64} with 1 state(s):
+  2.23606797749979 | 3,5,5 ⟩
+
+julia> d" < 3,4,5 | * a₂ * | 3,5,5 > "
+2.23606797749979
 
 # Hadamard operator
 julia> @rep_op " H | n > = 1/√2 * ( | 0 > - (-1)^n *| 1 > ) " 0:1;

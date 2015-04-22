@@ -225,11 +225,17 @@ Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 ###################################
 # Functional Operator Application #
 ###################################
+immutable DualFunc
+    f::Function
+end
+
 Base.(:*)(op::Function, kt::Ket) = op(kt)
 Base.(:*)(br::Bra, op::Function) = op(br)
+Base.(:*)(op::DualFunc, kt::Ket) = (kt' * op.f)'
+Base.(:*)(br::Bra, op::DualFunc) = (op.f * br')'
 
-Base.Ac_mul_B(op::Function, kt::Ket) = (kt' * op)'
-Base.A_mul_Bc(br::Bra, op::Function) = (op  * br')'
+Base.ctranspose(f::Function) = DualFunc(f)
+Base.ctranspose(fc::DualFunc) = fc.f
 
 ##############
 # act/act_on #
