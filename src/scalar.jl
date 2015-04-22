@@ -44,7 +44,6 @@ inner_rettype(::KroneckerDelta) = Int64
 # very common operation for state/operator inner products
 inner_mul(v,c,prodtype,b,k) = v * c * eval_inner_rule(prodtype, b, k)
 
-
 ##############
 # InnerExpr #
 ##############
@@ -56,11 +55,6 @@ inner_mul(v,c,prodtype,b,k) = v * c * eval_inner_rule(prodtype, b, k)
 #   (< a | b >^2 + < c | d >^2 - 3.13+im) / 2
 #
 # is representable as a InnerExpr.
-#
-# One can then use the inner_eval(::Function, ::InnerExpr) 
-# function to map an evaluation function onto all InnerProducts
-# contained in the InnerExpr, and evaluate the expression
-# arthimetically.
 
 immutable InnerExpr <: DiracScalar
     ex::Expr

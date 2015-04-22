@@ -76,7 +76,7 @@ here's a function emulating a Hadamard operator:
 
 ```julia
 julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
-h (generic function with 2 methods)
+h (generic function with 1 methods)
 
 julia> d" h * | 0 > "
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
@@ -176,7 +176,7 @@ to represent it in a basis. For example, take the Hadamard operator-function
 
 ```julia
 julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
-h (generic function with 2 methods)
+h (generic function with 1 methods)
 ```
 
 I can easily generate a representation for this function by using `@rep_op` and 

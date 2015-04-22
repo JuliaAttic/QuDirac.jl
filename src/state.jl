@@ -140,15 +140,9 @@ inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 ##########
 # act_on #
 ##########
-act_on(br::Bra, kt::Ket, i) = error("inner(b::Bra,k::Ket,i) is only defined when nfactors(b) == 1")
+act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
 
-function act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i)
-    if i==1
-        return inner(br, kt)
-    else
-        throw(BoundsError())
-    end
-end
+act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 
 function act_on{P,N,A,B}(br::Bra{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(br)

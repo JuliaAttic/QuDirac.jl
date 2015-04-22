@@ -240,7 +240,7 @@ Base.ctranspose(fc::DualFunc) = fc.f
 ##############
 # act/act_on #
 ##############
-act_on(op::AbsOpSum, kt::Ket, i) = error("inner(op::DiracOp,k::Ket,i) is only defined when nfactors(op) == 1")
+act_on(op::AbsOpSum, br::Bra, i) = act_on(op', br', i)'
 
 # clear up ambiguity warnings
 act_on{P}(op::OpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(op, kt) : throw(BoundsError())

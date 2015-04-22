@@ -51,13 +51,13 @@ Construct an operator from the provided `dict`.
 ---
 **@def_op(str)**
 
-Using the definition given by `str`, generate a function that acts on Kets via the `*` operator. 
+Using the definition given by `str`, generate a function that acts on states via the `*` operator. 
 See the [Defining Operators as Functions](func_op_def/#defining-operators-as-functions) section for detailed examples.
 
 ---
 **@rep_op(str, basis_labels)**
 
-Generate an operator representation by applying the definition given by `str` to the labels provided by `basis_labels`.
+Generate an operator representation by applying the definition given by `str` to the labels given by the iterable `basis_labels`.
 See the [Generating Operator Representations](func_op_def/#generating-operator-representations) section for detailed examples.
 
 ---
@@ -110,13 +110,11 @@ Multiply `obj` by the scalar `c`. The in-place version, `scale!`, is also define
 Normalize `obj`, i.e. scale it by `1/norm(obj)`. The in-place version, `normalize!`, is also defined.
 
 ---
-**act_on{P}(br::Bra{P,1}, kt::Ket{P}, i::Int)**
+**act_on(a::DiracState, b::DiracState, i::Int),**
 
-Act `br` on the `i`th factor of `kt`. This method is discussed in detail [here](state_math/#acting-a-bra-on-a-specific-ket-factor).
+**act_on(a::DiracOp, b::DiracState, i::Int)**
 
-**act_on{P}(op::DiracOp{P,1}, kt::Ket{P}, i::Int)**
-
-Act `op` on the `i`th factor of `kt`. This method is discussed in detail [here](op_math/#acting-an-operator-on-a-specific-ket-factor).
+Act `a` on the `i`th subsystem of `b`. For states acting on states, this method is discussed in detail [here](state_math/#acting-a-bra-on-a-specific-ket-factor-and-vice-versa). For an operator acting on a state, details can be found [here](op_math/#acting-an-operator-on-a-specific-state-factor)
 
 ---
 **tensor{P}(ops::DiracOp{P}...),**

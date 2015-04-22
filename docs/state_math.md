@@ -182,7 +182,7 @@ julia> d" < 0,0 | * k "
 ```
 
 ---
-# Acting a Bra on a specific Ket factor
+# Acting a Bra on a specific Ket factor and vice versa
 ---
 
 It is sometimes useful to take the inner product between a Bra and a *specific factor* of a Ket.
@@ -212,11 +212,11 @@ Ket{KroneckerDelta,2,Float64} with 2 state(s):
   0.4472135954999579 | 0,1 ⟩
   0.8944271909999159 | 1,0 ⟩
 
-julia> act_on(bra(0), ψ, 2) # ⟨ 0₂ | ψ ⟩
+julia> act_on(d" < 0 | ", ψ, 2) # ⟨ 0₂ | ψ ⟩
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.8944271909999159 | 1 ⟩
 
-julia> act_on(bra(0), ψ, 1) # ⟨ 0₁ | ψ ⟩
+julia> act_on(d" < 0 | ", ψ, 1) # ⟨ 0₁ | ψ ⟩
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.4472135954999579 | 1 ⟩
 ```
@@ -233,6 +233,14 @@ julia> act_on(ϕ, ψ, 2)
 Ket{KroneckerDelta,1,Float64} with 2 state(s):
   0.3162277660168379 | 0 ⟩
   0.6324555320336758 | 1 ⟩
+```
+
+Additionally, one can call `act_on(k::Ket, b::Bra, i)` to compute `⟨ b | kᵢ ⟩`:
+
+```julia
+julia> act_on(d" | 0 > ", ψ', 2)
+Bra{KroneckerDelta,1,Float64} with 1 state(s):
+  0.8944271909999159 ⟨ 1 |
 ```
 
 As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is indicated by the state's type (e.g. `KroneckerDelta` in `Ket{KroneckerDelta,1}`). QuDirac has support for other kinds of inner products as well. To learn more, see the [Working with Inner Products](inner_products.md) section.

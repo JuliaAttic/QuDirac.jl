@@ -151,13 +151,14 @@ See the [Working with Inner Products](inner_products.md) section for information
 regarding these features.
 
 ---
-# Acting an operator on a specific Ket factor
+# Acting an operator on a specific state factor
 ---
 
-One can use the `act_on` function to apply an operator to a specific factor of a Ket:
+One can use the `act_on` function to apply an operator to a specific factor of a state,
+i.e. computing `Oᵢ | k ⟩`.
 
 ```julia
-julia> a = sum(i-> d"(√i)| i-1 >< i |", 1:5) # lowering operator
+julia> a = sum(i-> d"(√i)| i-1 >< i |", 1:5)
 OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
@@ -174,6 +175,14 @@ julia> act_on(a, k, 2)
 Ket{KroneckerDelta,3,Float64} with 2 state(s):
   4.47213595499958 | 3,4,1 ⟩
   1.4142135623730951 | 1,1,3 ⟩
+```
+
+This works on Bras as well, i.e. computing `⟨ b | Oᵢ` :
+
+```
+julia> act_on(a, d" < 1,2,3 |  ", 2)
+Bra{KroneckerDelta,3,Float64} with 1 state(s):
+  1.7320508075688772 ⟨ 1,3,3 |
 ```
 
 ---

@@ -54,11 +54,7 @@ As you've probably noticed from previous examples, the out-of-the-box default in
 # Custom inner product types
 ---
 
-**inner_rule**
-
----
-
-Defining a new inner product type is as easy as doing the following:
+Defining a new inner product type is as easy as creating the type and its `inner_rule`:
 
 ```julia
 julia> immutable SumInner <: AbstractInner end
