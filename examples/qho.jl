@@ -69,7 +69,7 @@ default_inner(QHOInner())
 #
 # < i::Int | * | j::Int > = ∫ ψᵢ'ψⱼ dx =  δᵢⱼ
 #
-# < x::Float64 | * | n::Int > = ψᵢ(x)
+# < x::Float64 | * | i::Int > = ψᵢ(x)
 
 ####################
 # Make Some Plots! #
