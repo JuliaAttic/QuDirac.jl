@@ -43,7 +43,7 @@ end
 rm_whspace(str) = join(split(str, r"\s"))
 
 function leftside_ket(str)
-    op_name, label_args = @compat(split(str, '|'; limit=2))
+    op_name, label_args = @compat(split(str, '|', limit=2))
     if last(label_args) == '>'
         return op_name, label_args[1:end-1]
     else
@@ -52,7 +52,7 @@ function leftside_ket(str)
 end
 
 function leftside_bra(str)
-    label_args, op_name = @compat(split(str, '|'; limit=2))
+    label_args, op_name = @compat(split(str, '|', limit=2))
     if first(label_args) == '<'
         return op_name, label_args[2:end]
     else
@@ -62,7 +62,7 @@ end
 
 function parse_defstr(str)
     str = rm_whspace(str)
-    left, right = @compat(split(str, '='; limit=2))
+    left, right = @compat(split(str, '=', limit=2))
 
     if ismatch(ktpat, left)
         type_str = "Ket"
