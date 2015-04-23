@@ -4,6 +4,10 @@
 QuDirac.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
 quantum mechanics computations. 
 
+[*Current Version (v0.1) Docs*](http://qudiracjl.readthedocs.org/en/release-0.1/)
+
+[*Development Version Docs*](http://qudiracjl.readthedocs.org/en/latest/)
+
 ## Features
 
 These are toy examples for demoing features. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
