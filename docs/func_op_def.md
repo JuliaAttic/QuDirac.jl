@@ -110,7 +110,7 @@ The grammar of the string passed to `@def_op` is:
       returns a Bra.
 
 Allowable syntax for the right-hand side of the equation
-is exactly the same [syntax allowed by `d"..."`](d_str.md).
+is [exactly the same syntax allowed by `d"..."`](d_str.md).
 
 ---
 # Generating Operator Representations
