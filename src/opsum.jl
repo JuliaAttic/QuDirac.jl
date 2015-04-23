@@ -15,19 +15,6 @@ end
 OpSum{P,N,T}(ptype::P, dict::OpDict{N,T}) = OpSum{P,N,T}(ptype, dict)
 OpSum{P,N,A,B}(kt::Ket{P,N,A}, br::Bra{P,N,B}) = cons_outer!(OpDict{N,promote_type(A,B)}(), kt, br)
 
-type DualOpSum{P,N,T} <: AbsOpSum{P,N,T}
-    op::OpSum{P,N,T}
-end
-
-DualOpSum{P,N,T}(op::OpSum{P,N,T}) = DualOpSum{P,N,T}(op)
-DualOpSum(items...) = DualOpSum(OpSum(items...))
-
-Base.convert(::Type{OpSum}, opc::DualOpSum) = eager_ctran(opc.op)
-Base.promote_rule{G<:OpSum, D<:DualOpSum}(::Type{G}, ::Type{D}) = OpSum
-
-################
-# Constructors #
-################
 function cons_outer!(result, kt, br)
     for (k,kc) in dict(kt)
         for (b,bc) in dict(br)
@@ -39,6 +26,16 @@ function cons_outer!(result, kt, br)
     end
     return OpSum(ptype(kt), result)
 end
+
+type DualOpSum{P,N,T} <: AbsOpSum{P,N,T}
+    op::OpSum{P,N,T}
+end
+
+DualOpSum{P,N,T}(op::OpSum{P,N,T}) = DualOpSum{P,N,T}(op)
+DualOpSum(items...) = DualOpSum(OpSum(items...))
+
+Base.convert(::Type{OpSum}, opc::DualOpSum) = eager_ctran(opc.op)
+Base.promote_rule{O<:OpSum, D<:DualOpSum}(::Type{O}, ::Type{D}) = OpSum
 
 ######################
 # Accessor functions #

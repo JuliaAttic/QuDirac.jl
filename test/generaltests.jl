@@ -5,7 +5,7 @@
 @assert length(filter((o,v) -> klabel(o)==StateLabel(3), op')) == 3
 @assert b'*b'*b' == (b^3)'
 @assert (op'*op') == (op*op)'
-@assert op' == maplabels(ctranspose, mapcoeffs(ctranspose, op)) 
+@assert convert(OpSum, op') == maplabels(ctranspose, mapcoeffs(ctranspose, op))
 @assert op' == map((k,v)->(k', v'), op)
 @assert op[2,1] == 8-4im
 @assert (k*k)*(b*b) == tensor(k*b,k*b)
