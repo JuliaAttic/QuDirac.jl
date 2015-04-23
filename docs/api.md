@@ -193,7 +193,6 @@ Ket{KroneckerDelta,3,Int64} with 3 state(s):
 **raise(state::DiracState)**
 
 Calculate the action of the raising operator on `state`.
-
 This is generally faster than actually constructing and
 applying a raising operator.
 
@@ -201,7 +200,6 @@ applying a raising operator.
 **lower(state::DiracState)**
 
 Calculate the action of the lowering operator on `state`.
-
 This is generally faster than actually constructing and
 applying a lowering operator.
 
@@ -262,17 +260,11 @@ julia> vecrep(state', 'a':'c')
 # Inner Product Evaluation
 ---
 
-**inner_eval(f::Function, obj::AbstractDirac),**
+**inner_eval(f::Union(Function, AbstractInner), obj::AbstractDirac),**
 
-**inner_eval(ptype::AbstractInner, obj::AbstractDirac),**
+**inner_eval(f::Union(Function, AbstractInner), i::InnerExpr),**
 
-**inner_eval(f::Function, i::InnerExpr),**
-
-**inner_eval(ptype::AbstractInner, i::InnerExpr)**
-
-Evaluate unresolved `InnerExpr`s using the provided function. If a product type is provided instead of a function, use that type's inner product rule.
-
-If a function `f` is provided, it's signature should be `f(::StateLabel, ::StateLabel)` where the first argument is the Bra label and the second argument is the Ket label.
+Evaluate unresolved `InnerExpr`s using the provided function, whose signature should be `f(bralabel::StateLabel, ketlabel::StateLabel)`. If a product type is provided instead of a function, use that type's `inner_rule` method for evaluation.
 
 See the [Delayed Inner Product Evaluation](inner_products/#delayed-inner-product-evaluation) section for details.
 
