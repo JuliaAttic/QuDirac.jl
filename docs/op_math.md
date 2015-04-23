@@ -263,7 +263,7 @@ julia> purity(ans) # get the purity of the previous result
 Take the partial transpose of an operator via the `ptranspose` function:
 
 ```
-julia> op = normalize(d" | 'a','b','c' >< 'd','e','f' | + 2 * | 'i','j','k' >< 'l','m','n' | ")
+julia> op = normalize(d" | 'a','b','c' >< 'd','e','f' | + 2| 'i','j','k' >< 'l','m','n' | ")
 OpSum{KroneckerDelta,3,Float64} with 2 operator(s):
   0.8944271909999159 | 'i','j','k' ⟩⟨ 'l','m','n' |
   0.4472135954999579 | 'a','b','c' ⟩⟨ 'd','e','f' |
