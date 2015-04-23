@@ -97,14 +97,14 @@ The grammar of the string passed to `@def_op` is:
 
 1. Defining action on Kets:
   
-        @def_op "$op_name | $label_args > = f($label_args...) "
+        @def_op " $op_name | $label_args > = f($label_args...) "
 
       where `f` is an arbitrary expanded function that takes in the `$label_args` and
       returns a Ket.
 
 2. Defining action on Bras:
 
-        @def_op "< $label_args | $op_name  = f($label_args...) "
+        @def_op " < $label_args | $op_name  = f($label_args...) "
       
       where `f` is an arbitrary expanded function that takes in the `$label_args` and
       returns a Bra.
