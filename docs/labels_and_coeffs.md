@@ -189,6 +189,43 @@ There are few important things to keep in mind when working with these structure
     - The function `klabel(opl::OpLabel)` returns `opl`'s Ket label, and the function `blabel(opl::OpLabel)` returns `opl`'s Bra label.
 - Because the label --> coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
+
+---
+# Iterating through States and `OpSum`s
+---
+
+States, `OpSum`s, and `DualOpSum`s are iterable:
+
+```julia
+julia> k = normalize(sum(i -> d" i * im * | i > ", 1:3));
+
+# iterating through a Ket
+julia> for (label, c) in k println(label, ", ", c) end
+StateLabel{1}(3), 0.0 + 0.8017837257372732im
+StateLabel{1}(2), 0.0 + 0.5345224838248488im
+StateLabel{1}(1), 0.0 + 0.2672612419124244im
+
+# iterating through a Bra
+julia> for (label, c) in k' println(label, ", ", c) end
+StateLabel{1}(3), 0.0 - 0.8017837257372732im
+StateLabel{1}(2), 0.0 - 0.5345224838248488im
+StateLabel{1}(1), 0.0 - 0.2672612419124244im
+
+julia> op = OpSum(k, k');
+
+# iterating through an OpSum
+julia> for (label, c) in op println(label, ", ", c) end
+OpLabel{1}(| 2 ⟩,⟨ 1 |), 0.14285714285714288 + 0.0im
+OpLabel{1}(| 3 ⟩,⟨ 3 |), 0.6428571428571429 + 0.0im
+OpLabel{1}(| 1 ⟩,⟨ 3 |), 0.2142857142857143 + 0.0im
+OpLabel{1}(| 1 ⟩,⟨ 1 |), 0.07142857142857144 + 0.0im
+OpLabel{1}(| 3 ⟩,⟨ 1 |), 0.2142857142857143 + 0.0im
+OpLabel{1}(| 3 ⟩,⟨ 2 |), 0.4285714285714286 + 0.0im
+OpLabel{1}(| 2 ⟩,⟨ 2 |), 0.28571428571428575 + 0.0im
+OpLabel{1}(| 1 ⟩,⟨ 2 |), 0.14285714285714288 + 0.0im
+OpLabel{1}(| 2 ⟩,⟨ 3 |), 0.4285714285714286 + 0.0im
+```
+
 ---
 #  Mapping & Filtering Functions
 ---

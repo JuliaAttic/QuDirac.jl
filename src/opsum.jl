@@ -1,6 +1,6 @@
-####################
+###################
 # OpSum/DualOpSum #
-####################
+###################
 abstract AbsOpSum{P,N,T} <: DiracOp{P,N}
 
 typealias OpDict{N,T} Dict{OpLabel{N},T}
