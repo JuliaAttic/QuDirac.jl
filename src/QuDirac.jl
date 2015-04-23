@@ -4,7 +4,7 @@ module QuDirac
     using Iterators.product
 
     if !(v"0.3-" <= VERSION < v"0.4-")
-        warn("QuDirac only officially supports the current v0.3 release of Julia. Your version is $VERSION.")
+        warn("QuDirac v0.1 only officially supports the v0.3 release of Julia. Your version of Julia is $VERSION.")
     end
     
     ####################
