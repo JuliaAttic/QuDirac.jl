@@ -8,7 +8,7 @@ Action of Ô on Ket:
 Ô | i ⟩ = ∑ⱼ cᵢⱼ | j ⟩ 
 
 Action of Ô on Bra:
-⟨ i | Ô  = ∑ⱼ cᵢⱼ ⟨ j |
+⟨ u | Ô  = ∑ᵥ cᵤᵥ ⟨ v |
 ```
 
 QuDirac allows us to define normal Julia functions that act like `Ô` using 
