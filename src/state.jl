@@ -92,7 +92,6 @@ function Base.next(br::Bra, i)
 end
 
 Base.done(state::DiracState, i) = done(dict(state), i)
-
 Base.first(state::DiracState) = next(state, start(state))
 
 ##############
@@ -213,6 +212,19 @@ permute(s::DiracState, perm::Vector) = maplabels(label->permute(label,perm), s)
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 
+function vecrep(kt::Ket, labels)
+    T = promote_type(inner_rettype(ptype(kt)), eltype(kt))
+    return T[bra(i) * kt for i in labels]
+end
+
+function vecrep(kt::Ket, labels...)
+    iter = product(labels...)
+    T = promote_type(inner_rettype(ptype(kt)), eltype(kt))
+    return T[bra(i...) * kt for i in iter]
+end
+
+vecrep(br::Bra, labels...) = vecrep(br', labels...)'
+
 # should always be pure, of course,
 # but makes a good sanity check function
 purity(kt::Ket) = purity(kt*kt')
@@ -258,6 +270,7 @@ export Ket,
     Bra,
     ket,
     bra,
+    vecrep,
     nfactors,
     xsubspace,
     permute,
