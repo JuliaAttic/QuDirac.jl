@@ -10,7 +10,7 @@ Documentation for the current release version (v0.1) can be found [**here**](htt
 
 To install QuDirac.jl, you should have [a working build of Julia v0.3](https://github.com/JuliaLang/julia#source-download-and-compilation). Then, you can grab QuDirac.jl via the package manager:
 
-```
+```julia
 julia> Pkg.add("QuDirac")
 ```
 
