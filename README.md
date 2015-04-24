@@ -14,8 +14,6 @@ To install QuDirac.jl, you should have [a working build of Julia v0.3](https://g
 julia> Pkg.add("QuDirac")
 ```
 
-All dependencies
-
 ## Features
 
 These are toy examples for demoing features. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
