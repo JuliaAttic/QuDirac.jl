@@ -96,7 +96,8 @@ OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
 
 #### ...and other stuff
 
-- Treat states and operators as map-like data structures to enable label-based analysis
+- Implementation of common operations like partial trace (`ptrace`) and partial transpose (`ptranspose`)
+- Treat states and operators as map-like data structures, enabling label-based analysis for spectroscopy purposes
 - `xsubspace` allows easy selection of excitation subspaces of states and operators
 - `permute` and `switch` allows generic permutation of factor labels for states
 - `filter`/`filter!` for the filtering out component states/operators via predicate functions

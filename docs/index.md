@@ -6,7 +6,8 @@ quantum mechanics computations.
 Current Features:
 
 - Implementations of state types (`Ket`,`Bra`), and a variety of operator types (`OpSum`,`OuterProduct`)
-- Treat states and operators as map-like data structures to enable label-based analysis and transformation schemes
+- Treat states and operators as map-like data structures, enabling label-based analysis for spectroscopy purposes
+- Implementation of common operations like partial trace (`ptrace`) and partial transpose (`ptranspose`)
 - Support for abstract/undefined inner products
 - User-definable custom inner product rules
 - Subspace selection/transformation via functions on state labels and coefficients:
