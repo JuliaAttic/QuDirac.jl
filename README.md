@@ -37,7 +37,7 @@ OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 1 ⟩⟨ 1 |
 ```
 
-#### Support for abstract inner products
+#### Support for undefined inner products
 
 ```julia
 # tells QuDirac to use the rule for undefined inner products
