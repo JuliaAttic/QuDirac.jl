@@ -6,6 +6,16 @@ quantum mechanics computations.
 
 Documentation for the current release version (v0.1) can be found [**here**](http://qudiracjl.readthedocs.org/en/release-0.1/). This release targets Julia's v0.3 release (v0.4 seems to work fine, though).
 
+## Installation
+
+To install QuDirac.jl, you should have [a working build of Julia v0.3](https://github.com/JuliaLang/julia#source-download-and-compilation). Then, you can grab QuDirac.jl via the package manager:
+
+```
+julia> Pkg.add("QuDirac")
+```
+
+All dependencies
+
 ## Features
 
 These are toy examples for demoing features. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
