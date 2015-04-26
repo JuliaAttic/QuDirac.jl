@@ -35,9 +35,9 @@ a_dag = a'
 # Hermite Polynomial Evaluation #
 #################################
 # This is a very naive implementation, 
-# likely prone to numerical error for high n. 
-# It should suffice for this example, however.
-# Implements the expression found here: 
+# likely prone to numerical error and slowness 
+# for high n. It should suffice for this example, 
+# however. Implements the expression found here: 
 # http://en.wikipedia.org/wiki/Hermite_polynomials#Recursion_relation
 function hermite(n, x)
     if n == 0
@@ -56,12 +56,19 @@ end
 # the QHO problem
 immutable QHOInner <: AbstractInner end
 
-qho_inner(x::Float64, k::Int) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
+qho_inner(x::Float64, k::BigInt) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
+qho_inner(x::Float64, k::Int) = qho_inner(x, BigInt(k))
 qho_inner(n::Int, m::Int) = n==m ? 1.0 : 0.0
-qho_inner(pair) = qho_inner(pair...)
 
-QuDirac.inner_rule(::QHOInner, b, k) = mapreduce(qho_inner, *, zip(b, k))
-QuDirac.inner_rettype(::QHOInner) = Float64
+function QuDirac.inner_rule(::QHOInner, b, k)
+    result = 1.0
+    for (b0, k0) in zip(b, k)
+        result *= qho_inner(b0, k0)
+    end
+    return result
+end
+
+QuDirac.inner_rettype(::QHOInner) = BigFloat
 
 default_inner(QHOInner())
 
@@ -81,6 +88,9 @@ default_inner(QHOInner())
 
 # Given an iterable of x and y points, generate a
 # distribution for the state by taking the inner product
+# Julia would correctly type-inferenced this as a BigFloat
+# array, but we're going to convert it to Float64 to send it
+# to Plotly
 gen_z(kt::Ket, xpoints, ypoints) = Float64[d" < x, y | * kt " for x in xpoints, y in ypoints]
 
 # Generate the distribution above, and package it for a Plotly surface plot
