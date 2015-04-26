@@ -199,16 +199,16 @@ function inner_load!(result, op::OpSum, kt::Ket, prodtype)
     return result
 end
 
-function brcoeff(brdict, prodtype, klabel, v)
-    coeff = 0
+function brcoeff{K,V}(brdict::Dict{K,V}, prodtype, klabel, v)
+    coeff = predict_zero(promote_type(V, typeof(v), inner_rettype(prodtype)))
     for (blabel,c) in brdict
         coeff += inner_mul(c', v, prodtype, klabel, blabel) 
     end
     return coeff'
 end
 
-function ktcoeff(ktdict, prodtype, blabel, v)
-    coeff = 0
+function ktcoeff{K,V}(ktdict::Dict{K,V}, prodtype, blabel, v)
+    coeff = predict_zero(promote_type(V, typeof(v), inner_rettype(prodtype)))
     for (klabel,c) in ktdict
         coeff += inner_mul(c, v, prodtype, klabel, blabel)
     end
@@ -327,7 +327,7 @@ normalize!(op::DiracOp) = scale!(1/norm(op), op)
 # Trace #
 #########
 function Base.trace(op::OpSum)
-    result = 0
+    result = predict_zero(eltype(op))
     for (o,v) in dict(op)
         if klabel(o)==blabel(o)
             result += v

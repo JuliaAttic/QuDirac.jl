@@ -64,9 +64,9 @@ Base.setindex!(s::DiracState, c, i...) = setindex!(s, c, StateLabel(i))
 Base.haskey(s::DiracState, label::StateLabel) = haskey(dict(s), label)
 Base.haskey(s::DiracState, label) = haskey(s, StateLabel(label))
 
-Base.get(k::Ket, label::StateLabel, default=0) = get(dict(k), label, default)
-Base.get(b::Bra, label::StateLabel, default=0) = get(dict(b), label, default')'
-Base.get(s::DiracState, label, default=0) = get(s, StateLabel(label), default)
+Base.get(k::Ket, label::StateLabel, default=zero(eltype(k))) = get(dict(k), label, default)
+Base.get(b::Bra, label::StateLabel, default=zero(eltype(b))) = get(dict(b), label, default')'
+Base.get(s::DiracState, label, default=zero(eltype(s))) = get(s, StateLabel(label), default)
 
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
 Base.delete!(s::DiracState, label) = delete!(s, StateLabel(label))
@@ -103,10 +103,14 @@ Base.ctranspose(b::Bra) = b.kt
 #########
 # inner #
 #########
+predict_zero(ptype, a, b) = predict_zero(promote_type(eltype(a), eltype(b), inner_rettype(ptype)))
+predict_zero{T}(::Type{T}) = zero(T)
+predict_zero(::Type{Any}) = 0
+
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
 
-function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
-    result = 0
+function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
+    result = predict_zero(ptype(br), br, kt)
     prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
         result += inner_mul(c',v,prodtype,b,k)
@@ -115,7 +119,7 @@ function inner{P,N}(br::Bra{P,N}, kt::Ket{P,N})
 end
 
 function ortho_inner(a::DiracState{KroneckerDelta}, b::DiracState{KroneckerDelta})
-    result = 0
+    result = predict_zero(ptype(a), a, b)
     for label in keys(dict(b))
         if haskey(a, label)
             result += a[label]*b[label]

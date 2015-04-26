@@ -41,7 +41,7 @@ module QuDirac
     # Include Statements #
     ######################
     include("labels.jl")
-    include("scalar.jl")
+    include("innerexpr.jl")
     include("state.jl")
     include("opsum.jl")
     include("outerproduct.jl")

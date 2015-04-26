@@ -45,8 +45,8 @@ getket(op::OuterProduct, b) = (op.scalar * get(op.br,b)) * op.kt
 Base.haskey(op::OuterProduct, k, b) = hasket(op, k) && hasbra(op, b)
 Base.haskey(op::OuterProduct, o::OpLabel) = haskey(op, klabel(o), blabel(o))
 
-Base.get(op::OuterProduct, k, b, default=0) = haskey(op, k, b) ? op[k,b] : default
-Base.get(op::OuterProduct, o::OpLabel, default=0) = get(op, klabel(o), blabel(o), default)
+Base.get(op::OuterProduct, k, b, default=predict_zero(eltype(op))) = haskey(op, k, b) ? op[k,b] : default
+Base.get(op::OuterProduct, o::OpLabel, default=predict_zero(eltype(op))) = get(op, klabel(o), blabel(o), default)
 
 Base.collect{P,N}(op::OuterProduct{P,N}) = collect_pairs!(Array((OpLabel{N}, eltype(op)), length(op)), op)
 
@@ -107,7 +107,7 @@ Base.(:+)(a::OuterProduct, b::OuterProduct) = convert(OpSum, a) + convert(OpSum,
 # Normalization #
 #################
 function Base.norm(op::OuterProduct)
-    result = 0
+    result = predict_zero(eltype(op))
     for v in values(dict(op.kt)), c in values(dict(op.br))
         result += abs2(op.scalar * v * c')
     end
@@ -118,7 +118,7 @@ end
 # Trace #
 #########
 function Base.trace(op::OuterProduct)
-    result = 0
+    result = predict_zero(eltype(op))
     for (k,v) in dict(op.kt), (b,c) in dict(op.br)
         if b == k
             result += v * c'
