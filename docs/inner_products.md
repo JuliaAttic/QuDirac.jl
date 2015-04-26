@@ -59,7 +59,7 @@ Defining a new inner product type is as easy as creating the type and its `inner
 ```julia
 julia> immutable SumInner <: AbstractInner end
 
-julia> QuDirac.inner_rule(::SumInner, k, b) = sum(k) + sum(b)
+julia> QuDirac.inner_rule(::SumInner, k, b) = int(sum(k) + sum(b))
 inner_rule (generic function with 4 methods)
 
 julia> default_inner(SumInner());
@@ -84,10 +84,12 @@ inner_rettype(::UndefinedInner) = InnerExpr
 inner_rettype(::KroneckerDelta) = Int64
 ```
 
-Another example: If my use of `SumInner` will be restricted to cases where the state labels hold `Int64`s, it's easy to see that evaluations using `SumInner` will always produce `Int64`s. I can then share this assumption with QuDirac by defining the following:
+Another example: It's easy to see that evaluations of `inner_rule` with `SumInner` will always produce `Int64`s (or `Int32`s, if you're on a 32 bit machine), yet Julia isn't necessarily able to inference this (the inferenced return type can be verified using the `code_typed` macro).
+
+Thus, I can manually share the assumption about the return type with QuDirac by defining the following:
 
 ```julia
-julia> QuDirac.inner_rettype(::SumInner) = Int64
+julia> QuDirac.inner_rettype(::SumInner) = Int
 inner_rettype (generic function with 4 methods)
 ```
 
