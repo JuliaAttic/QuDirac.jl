@@ -13,7 +13,7 @@ type OpSum{P,N,T} <: AbsOpSum{P,N,T}
 end
 
 OpSum{P,N,T}(ptype::P, dict::OpDict{N,T}) = OpSum{P,N,T}(ptype, dict)
-OpSum{P,N,A,B}(kt::Ket{P,N,A}, br::Bra{P,N,B}) = cons_outer!(OpDict{N,promote_type(A,B)}(), kt, br)
+OpSum{P,N,A,B}(kt::Ket{P,N,A}, br::Bra{P,N,B}) = OpSum(ptype(kt), cons_outer!(OpDict{N,promote_type(A,B)}(), kt, br))
 
 function cons_outer!(result, kt, br)
     for (k,kc) in dict(kt)
@@ -24,7 +24,7 @@ function cons_outer!(result, kt, br)
             end
         end
     end
-    return OpSum(ptype(kt), result)
+    return result
 end
 
 type DualOpSum{P,N,T} <: AbsOpSum{P,N,T}
