@@ -82,9 +82,9 @@ Base.haskey(op::OpSum, label::OpLabel) = haskey(dict(op), label)
 Base.haskey(opc::DualOpSum, label::OpLabel) = haskey(opc.op, label')
 Base.haskey(op::AbsOpSum, k, b) = haskey(op, OpLabel(k, b))
 
-Base.get(op::OpSum, label::OpLabel, default=0) = get(dict(op), label, default)
-Base.get(opc::DualOpSum, label::OpLabel, default=0) = get(dict(opc), label, default')'
-Base.get(op::AbsOpSum, k, b, default=0) = get(op, OpLabel(k, b), default)
+Base.get(op::OpSum, label::OpLabel, default=predict_zero(eltype(op))) = get(dict(op), label, default)
+Base.get(opc::DualOpSum, label::OpLabel, default=predict_zero(eltype(opc))) = get(dict(opc), label, default')'
+Base.get(op::AbsOpSum, k, b, default=predict_zero(eltype(op))) = get(op, OpLabel(k, b), default)
 
 Base.delete!(op::OpSum, label::OpLabel) = (delete!(dict(op), label); return op)
 Base.delete!(opc::DualOpSum, label::OpLabel) = delete!(opc.op, label')
@@ -126,31 +126,31 @@ Base.ctranspose(opc::DualOpSum) = opc.op
 #########
 function inner{P,N,A,B}(br::Bra{P,N,A}, op::OpSum{P,N,B})
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = StateDict{N, inner_coefftype(br, op)}()
     return Bra(prodtype, inner_load!(result, br, op, prodtype))
 end
 
 function inner{P,N,A,B}(op::OpSum{P,N,A}, kt::Ket{P,N,B})
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = StateDict{N, inner_coefftype(op, kt)}()
     return Ket(prodtype, inner_load!(result, op, kt, prodtype))
 end
 
 function inner{P,N,A,B}(a::OpSum{P,N,A}, b::OpSum{P,N,B})
     prodtype = ptype(a)
-    result = OpDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = OpDict{N, inner_coefftype(a, b)}()
     return OpSum(prodtype, inner_load!(result, a, b, prodtype))
 end
 
 function inner{P,N,A,B}(a::OpSum{P,N,A}, b::DualOpSum{P,N,B})
     prodtype = ptype(a)
-    result = OpDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = OpDict{N, inner_coefftype(a, b)}()
     return OpSum(prodtype, inner_load!(result, a, b, prodtype))
 end
 
 function inner{P,N,A,B}(a::DualOpSum{P,N,A}, b::OpSum{P,N,B})
     prodtype = ptype(a)
-    result = OpDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = OpDict{N, inner_coefftype(a, b)}()
     return OpSum(prodtype, inner_load!(result, a, b, prodtype))
 end
 
@@ -185,30 +185,30 @@ function inner_load!(result, a::DualOpSum, b::OpSum, prodtype)
     return result
 end
 
-function inner_load!(result, br::Bra, op::OpSum, prodtype)
+function inner_load!{K,T}(result::Dict{K,T}, br::Bra, op::OpSum, prodtype)
     for (o,v) in dict(op)
-        add_to_dict!(result, blabel(o), brcoeff(dict(br), prodtype, klabel(o), v))
+        add_to_dict!(result, blabel(o), brcoeff(dict(br), prodtype, klabel(o), v, T))
     end
     return result
 end
 
-function inner_load!(result, op::OpSum, kt::Ket, prodtype)
+function inner_load!{K,T}(result::Dict{K,T}, op::OpSum, kt::Ket, prodtype)
     for (o,v) in dict(op)
-        add_to_dict!(result, klabel(o), ktcoeff(dict(kt), prodtype, blabel(o), v))
+        add_to_dict!(result, klabel(o), ktcoeff(dict(kt), prodtype, blabel(o), v, T))
     end
     return result
 end
 
-function brcoeff{K,V}(brdict::Dict{K,V}, prodtype, klabel, v)
-    coeff = predict_zero(promote_type(V, typeof(v), inner_rettype(prodtype)))
+function brcoeff{T}(brdict, prodtype, klabel, v, ::Type{T})
+    coeff = predict_zero(T)
     for (blabel,c) in brdict
         coeff += inner_mul(c', v, prodtype, klabel, blabel) 
     end
     return coeff'
 end
 
-function ktcoeff{K,V}(ktdict::Dict{K,V}, prodtype, blabel, v)
-    coeff = predict_zero(promote_type(V, typeof(v), inner_rettype(prodtype)))
+function ktcoeff{T}(ktdict, prodtype, blabel, v, ::Type{T})
+    coeff = predict_zero(T)
     for (klabel,c) in ktdict
         coeff += inner_mul(c, v, prodtype, klabel, blabel)
     end
@@ -245,13 +245,13 @@ act_on{P}(opc::DualOpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(opc, kt) : throw(
 
 function act_on{P,N,A,B}(op::OpSum{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = StateDict{N, inner_coefftype(op, kt)}()
     return Ket(prodtype, act_on_dict!(result, op, kt, i, prodtype))
 end
 
 function act_on{P,N,A,B}(op::DualOpSum{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(op)
-    result = StateDict{N, promote_type(A,B,inner_rettype(prodtype))}()
+    result = StateDict{N, inner_coefftype(op, kt)}()
     return Ket(prodtype, act_on_dict!(result, op, kt, i, prodtype))
 end
 
