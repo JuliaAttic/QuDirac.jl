@@ -14,7 +14,11 @@ ptype(op::OuterProduct) = ptype(op.kt)
 
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
 
-Base.convert{P,N}(::Type{OpSum}, op::OuterProduct{P,N}) = scale!(op.scalar, cons_outer!(OpDict{N,eltype(op)}(), op.kt, op.br))
+function Base.convert{P,N}(::Type{OpSum}, op::OuterProduct{P,N})
+    result = OpSum(ptype(op), cons_outer!(OpDict{N,eltype(op)}(), op.kt, op.br))
+    return scale!(op.scalar, result)
+end
+
 Base.promote_rule{G<:OpSum, O<:OuterProduct}(::Type{G}, ::Type{O}) = OpSum
 
 #######################
