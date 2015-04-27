@@ -54,8 +54,8 @@ Base.eltype{P,N,T}(::AbsOpSum{P,N,T}) = T
 Base.copy(op::OpSum) = OpSum(ptype(op), copy(dict(op)))
 Base.copy(opc::DualOpSum) = DualOpSum(copy(opc.op))
 
-Base.similar(op::OpSum, d=similar(dict(kt)); P=ptype(op)) = OpSum(P, d)
-Base.similar(opc::DualOpSum, d=similar(dict(br)); P=ptype(opc)) = DualOpSum(P, d)
+Base.similar(op::OpSum, d=similar(dict(op)); P=ptype(op)) = OpSum(P, d)
+Base.similar(opc::DualOpSum, d=similar(dict(opc)); P=ptype(opc)) = DualOpSum(P, d)
 
 Base.(:(==)){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
 Base.(:(==)){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
