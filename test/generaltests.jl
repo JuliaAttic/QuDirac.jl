@@ -27,3 +27,5 @@ op_copy[3,0] = 32+im
 
 tranop = d" | 'a','b','c' >< 'd','e','f' | + 2 * | 'i','j','k' >< 'l','m','n' | "
 @assert ptranspose(tranop, 2) == d" | 'a','e','c' >< 'd','b','f' | + 2 * | 'i','m','k' >< 'l','j','n' | "
+
+@assert d" act_on(| 'a' >< 1 |, | 1,1,1 >, 2) " == d"| 1 >*| 'a' >*< 1 | 1 >*| 1 >"
