@@ -64,9 +64,9 @@ Base.setindex!(s::DiracState, c, i...) = setindex!(s, c, StateLabel(i))
 Base.haskey(s::DiracState, label::StateLabel) = haskey(dict(s), label)
 Base.haskey(s::DiracState, label) = haskey(s, StateLabel(label))
 
-Base.get(k::Ket, label::StateLabel, default=zero(eltype(k))) = get(dict(k), label, default)
-Base.get(b::Bra, label::StateLabel, default=zero(eltype(b))) = get(dict(b), label, default')'
-Base.get(s::DiracState, label, default=zero(eltype(s))) = get(s, StateLabel(label), default)
+Base.get(k::Ket, label::StateLabel, default=predict_zero(eltype(k))) = get(dict(k), label, default)
+Base.get(b::Bra, label::StateLabel, default=predict_zero(eltype(b))) = get(dict(b), label, default')'
+Base.get(s::DiracState, label, default=predict_zero(eltype(s))) = get(s, StateLabel(label), default)
 
 Base.delete!(s::DiracState, label::StateLabel) = (delete!(dict(s), label); return s)
 Base.delete!(s::DiracState, label) = delete!(s, StateLabel(label))
@@ -103,14 +103,14 @@ Base.ctranspose(b::Bra) = b.kt
 #########
 # inner #
 #########
-predict_zero(ptype, a, b) = predict_zero(promote_type(eltype(a), eltype(b), inner_rettype(ptype)))
+inner_coefftype{P}(a::AbstractDirac{P}, b::AbstractDirac{P}) = promote_type(eltype(a), eltype(b), inner_rettype(ptype(a)))
 predict_zero{T}(::Type{T}) = zero(T)
 predict_zero(::Type{Any}) = 0
 
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
 
 function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
-    result = predict_zero(ptype(br), br, kt)
+    result = predict_zero(inner_coefftype(br, kt))
     prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
         result += inner_mul(c',v,prodtype,b,k)
@@ -119,7 +119,7 @@ function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
 end
 
 function ortho_inner(a::DiracState{KroneckerDelta}, b::DiracState{KroneckerDelta})
-    result = predict_zero(ptype(a), a, b)
+    result = predict_zero(inner_coefftype(a, b))
     for label in keys(dict(b))
         if haskey(a, label)
             result += a[label]*b[label]
@@ -149,7 +149,7 @@ act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsEr
 
 function act_on{P,N,A,B}(br::Bra{P,1,A}, kt::Ket{P,N,B}, i)
     prodtype = ptype(br)
-    result = StateDict{N-1, promote_type(A, B, inner_rettype(prodtype))}()
+    result = StateDict{N-1, inner_coefftype(br,kt)}()
     return Ket(prodtype, act_on_dict!(result, br, kt, i, prodtype))
 end
 
