@@ -10,12 +10,10 @@ end
 
 OuterProduct{P,N,S}(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) = OuterProduct{P,N,S,typeof(kt),typeof(br)}(scalar, kt, br)
 
-ptype(op::OuterProduct) = ptype(op.kt)
-
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
 
 function Base.convert{P,N}(::Type{OpSum}, op::OuterProduct{P,N})
-    result = OpSum(ptype(op), cons_outer!(OpDict{N,eltype(op)}(), op.kt, op.br))
+    result = OpSum(P, cons_outer!(OpDict{N, eltype(op)}(), op.kt, op.br))
     return scale!(op.scalar, result)
 end
 

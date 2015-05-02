@@ -19,10 +19,7 @@ module QuDirac
     # Abstract Types #
     ##################
     abstract AbstractInner
-    
-    immutable UndefinedInner <: AbstractInner end 
-    immutable KroneckerDelta <: AbstractInner end
-    
+
     abstract AbstractDirac{P<:AbstractInner,N}
     abstract DiracOp{P,N} <: AbstractDirac{P,N}
     abstract DiracState{P,N} <: AbstractDirac{P,N}
@@ -32,16 +29,23 @@ module QuDirac
     #############
     # Functions #
     #############
-    # These functions will be in 
+    # tensor() will be in 
     # QuBase when it releases
     tensor() = error("Cannot call tensor function without arguments")
     tensor(s...) = reduce(tensor, s)
+
+    prodtype{P}(::AbstractDirac{P}) = P
+
+    predict_zero{T}(::Type{T}) = zero(T)
+    predict_zero(::Type{Any}) = 0
+    predict_one{T}(::Type{T}) = one(T)
+    predict_one(::Type{Any}) = 1
 
     ######################
     # Include Statements #
     ######################
     include("labels.jl")
-    include("innerexpr.jl")
+    include("inner.jl")
     include("state.jl")
     include("opsum.jl")
     include("outerproduct.jl")
@@ -63,15 +67,15 @@ module QuDirac
     # the relevant objects. This is hacky, but works for now, 
     # seeing as how only a few functions actually "use" 
     # the default ptype.
-    function default_inner(ptype::AbstractInner)
-        QuDirac.OpSum(dict::Dict) = OpSum(ptype, dict)
-        QuDirac.Ket(dict::Dict) = Ket(ptype, dict)
-        QuDirac.ket(label::StateLabel) = ket(ptype, label)
-        QuDirac.ket(items...) = ket(ptype, StateLabel(items))
-        info("QuDirac's default inner product type is currently $ptype")
+    function default_inner{P<:AbstractInner}(::Type{P})
+        QuDirac.OpSum(dict::Dict) = OpSum(P, dict)
+        QuDirac.Ket(dict::Dict) = Ket(P, dict)
+        QuDirac.ket(label::StateLabel) = ket(P, label)
+        QuDirac.ket(items...) = ket(P, StateLabel(items))
+        info("QuDirac's default inner product type is currently $P")
     end
 
-    default_inner(KroneckerDelta());
+    default_inner(KroneckerDelta);
 
     export AbstractInner,
         UndefinedInner,

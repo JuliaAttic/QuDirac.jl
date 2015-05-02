@@ -1,88 +1,25 @@
 ##############
 # InnerLabel #
 ##############
-immutable InnerProduct{N} <: Number
+immutable InnerLabel{N} <: Number
     b::StateLabel{N}
     k::StateLabel{N}
 end
 
-blabel(i::InnerProduct) = i.b
-klabel(i::InnerProduct) = i.k
+blabel(i::InnerLabel) = i.b
+klabel(i::InnerLabel) = i.k
 
-Base.repr(i::InnerProduct) = brstr(blabel(i))*ktstr(klabel(i))[2:end]
-Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
+Base.repr(i::InnerLabel) = brstr(blabel(i))*ktstr(klabel(i))[2:end]
+Base.show(io::IO, i::InnerLabel) = print(io, repr(i))
 
-Base.(:(==))(a::InnerProduct, b::InnerProduct) = blabel(a) == blabel(b) && klabel(a) == klabel(b)                                             
-Base.(:(==))(::InnerProduct, ::Number) = false
-Base.(:(==))(::Number, ::InnerProduct) = false
+Base.(:(==))(a::InnerLabel, b::InnerLabel) = blabel(a) == blabel(b) && klabel(a) == klabel(b)                                             
+Base.(:(==))(::InnerLabel, ::Number) = false
+Base.(:(==))(::Number, ::InnerLabel) = false
 
-Base.hash(i::InnerProduct) = hash(blabel(i), hash(klabel(i)))
-Base.hash(i::InnerProduct, h::Uint64) = hash(hash(i), h)
+Base.hash(i::InnerLabel) = hash(blabel(i), hash(klabel(i)))
+Base.hash(i::InnerLabel, h::Uint64) = hash(hash(i), h)
 
-Base.conj(i::InnerProduct) = InnerProduct(klabel(i), blabel(i))
-
-#############
-# def_inner #
-#############
-# predict_zero{T}(::Type{T}) = zero(T)
-# predict_zero(::Type{Any}) = 0
-predict_one{T}(::Type{T}) = one(T)
-predict_one(::Type{Any}) = 1
-
-return_type() = error("return_type takes args")
-
-# Julia can only inference the 
-# result type properly if the
-# args to $name are specifically 
-# type-annotated, e.g.
-#
-# $name(a,b) = ...
-#
-# will likely result in type
-# instability, while
-#
-# $name(a::Int, b::Float64) = ...
-#
-# can be well-inferenced.
-macro def_inner(name, rettype)
-    one_val = QuDirac.predict_one(eval(rettype))
-    return esc(quote 
-        immutable $name <: AbstractInner
-            function $name{N}(b::StateLabel{N}, k::StateLabel{N})
-                result = $one_val
-                for i=1:length(b)
-                    result *= $name(b[i], k[i])
-                end
-                return result
-            end
-        end
-        QuDirac.return_type(::$name) = $rettype
-        info(string($name, " was defined as an inner product type."))
-    end)
-end
-
-# @def_inner KroneckerDelta Float64
-# KroneckerDelta{N}(a::StateLabel{N},b::StateLabel{N}) = a == b ? 1 : 0 
-# KroneckerDelta(a,b) = a == b ? 1 : 0 
-
-# we can cheat here to avoid tempory StateLabel construction
-# to evaluate KroneckerDelta inner products 
-eval_inner_rule(p::KroneckerDelta, b, k) = inner_rule(p, b, k)
-eval_inner_rule(p::KroneckerDelta, b::StateLabel, k::StateLabel) = inner_rule(p, b, k)
-
-eval_inner_rule(p::AbstractInner, b::StateLabel, k::StateLabel) = inner_rule(p, b, k)
-eval_inner_rule(p::AbstractInner, b, k) = inner_rule(p, StateLabel(b), StateLabel(k))
-
-inner_rule{P<:AbstractInner}(::P, b, k) = error("inner_rule(::$P, ::StateLabel, ::StateLabel) must be defined to evaluate inner products with type $P")
-inner_rule(::UndefinedInner, b, k) = InnerExpr(InnerProduct(b, k))
-inner_rule(::KroneckerDelta, b, k) = b == k ? 1 : 0
-
-inner_rettype{P<:AbstractInner}(::P) = first(Base.return_types(inner_rule, (P, StateLabel, StateLabel)))
-inner_rettype(::UndefinedInner) = InnerExpr
-inner_rettype(::KroneckerDelta) = Int64
-
-# very common operation for state/operator inner products
-inner_mul(v,c,prodtype,b,k) = v * c * eval_inner_rule(prodtype, b, k)
+Base.conj(i::InnerLabel) = InnerLabel(klabel(i), blabel(i))
 
 ##############
 # InnerExpr #
@@ -109,8 +46,8 @@ Base.convert{N<:Number}(::Type{InnerExpr}, n::N) = InnerExpr(Expr(:call, +, n))
 Base.(:(==))(a::InnerExpr, b::InnerExpr) = a.ex == b.ex
 same_num(a::Number, b::Number) = a == b
 same_num(a::InnerExpr, b::InnerExpr) = a == b
-same_num(iex::InnerExpr, i::InnerProduct) = iex == InnerExpr(i)
-same_num(i::InnerProduct, iex::InnerExpr) = iex == i
+same_num(iex::InnerExpr, i::InnerLabel) = iex == InnerExpr(i)
+same_num(i::InnerLabel, iex::InnerExpr) = iex == i
 same_num(iex::InnerExpr, n::Number) = iex == InnerExpr(n)
 same_num(n::Number, iex::InnerExpr) = iex == n
 
@@ -132,8 +69,8 @@ inner_eval(f, iex::InnerExpr) = eval(inner_reduce!(f, copy(iex.ex)))
 inner_eval(f, c) = c
 
 inner_reduce!(f, iex::InnerExpr) = inner_reduce!(f, copy(iex.ex))
-inner_reduce!(f::Function, i::InnerProduct) = f(blabel(i), klabel(i))
-inner_reduce!(p::AbstractInner, i::InnerProduct) = inner_rule(p, blabel(i), klabel(i))
+inner_reduce!(f::Function, i::InnerLabel) = f(blabel(i), klabel(i))
+inner_reduce!{P<:AbstractInner}(::Type{P}, i::InnerLabel) = P(blabel(i), klabel(i))
 inner_reduce!(f, n) = n
 
 function inner_reduce!(f, ex::Expr)
@@ -304,8 +241,53 @@ end
 
 Base.show(io::IO, iex::InnerExpr) = print(io, repr(iex))
 
+#############
+# def_inner #
+#############
+return_type() = error("return_type takes args")
+
+# Julia can only inference the 
+# result type properly if the
+# args to $name are specifically 
+# type-annotated, e.g.
+#
+# $name(a,b) = ...
+#
+# will likely result in type
+# instability, while
+#
+# $name(a::Int, b::Float64) = ...
+#
+# can be well-inferenced.
+macro def_inner(name, rettype)
+    one_val = QuDirac.predict_one(eval(rettype))
+    return esc(quote 
+        immutable $name <: AbstractInner
+            function $name{N}(b::StateLabel{N}, k::StateLabel{N})
+                result = $one_val
+                for i=1:length(b)
+                    result *= $name(b[i], k[i])
+                end
+                return result
+            end
+        end
+        QuDirac.return_type(::Type{$name}) = $rettype
+        string($name, " was defined as an inner product type.")
+    end)
+end
+
+@def_inner KroneckerDelta Int64
+KroneckerDelta{N}(b::StateLabel{N},k::StateLabel{N}) = b == k ? 1 : 0
+KroneckerDelta(b,k) = b == k ? 1 : 0
+
+@def_inner UndefinedInner InnerExpr
+UndefinedInner{N}(b::StateLabel{N},k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
+UndefinedInner(b,k) = UndefinedInner(StateLabel(b), StateLabel(k))
+
+inner_coefftype{P}(a::AbstractDirac{P}, b::AbstractDirac{P}) = promote_type(eltype(a), eltype(b), return_type(P))
+
 export InnerExpr,
+    UndefinedInner,
+    KroneckerDelta,
     inner_eval,
-    inner_rule,
-    inner_rettype,
     @def_inner

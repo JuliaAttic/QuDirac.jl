@@ -45,7 +45,7 @@ mapcoeffs(f::Union(Function,DataType), op::OuterProduct) = mapcoeffs(f, convert(
 ########################
 maplabels(f::Union(Function,DataType), s::DiracState) = similar(s, mapkeys(f, dict(s)))
 maplabels(f::Union(Function,DataType), op::OpSum) = similar(op, mapkeys(f, dict(op)))
-maplabels(f::Union(Function,DataType), opc::DualOpSum) = OpSum(ptype(opc), mapkeys(label->f(label'), dict(op)))
+maplabels{P}(f::Union(Function,DataType), opc::DualOpSum{P}) = OpSum(P, mapkeys(label->f(label'), dict(op)))
 maplabels(f::Union(Function,DataType), op::OuterProduct) = maplabels(f, convert(OpSum, op))
 
 #######
@@ -53,7 +53,7 @@ maplabels(f::Union(Function,DataType), op::OuterProduct) = maplabels(f, convert(
 #######
 Base.map(f::Union(Function,DataType), obj::AbstractDirac) = similar(obj, mapkv(kv->f(kv[1], kv[2]), dict(obj)))
 Base.map(f::Union(Function,DataType), br::Bra) = similar(br, mapkv(kv->br_tup(f(kv[1], kv[2]')), dict(d)))
-Base.map(f::Union(Function,DataType), opc::DualOpSum) = OpSum(ptype(opc), mapkv(kv->f(kv[1]', kv[2]'), dict(d)))
+Base.map{P}(f::Union(Function,DataType), opc::DualOpSum{P}) = OpSum(P, mapkv(kv->f(kv[1]', kv[2]'), dict(d)))
 Base.map(f::Union(Function,DataType), op::OuterProduct) = map(f, convert(OpSum, op))
 
 br_tup(tup) = (tup[1], tup[2]')

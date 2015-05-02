@@ -4,16 +4,15 @@
 typealias StateDict{N,T} Dict{StateLabel{N},T}
 
 type Ket{P,N,T} <: DiracState{P,N}
-    ptype::P
     dict::StateDict{N,T}
-    Ket(ptype, dict) = new(ptype, dict)
-    Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state.")
+    Ket(dict) = new(dict)
+    Ket(dict::StateDict{0}) = error("Cannot construct a 0-factor state.")
 end
 
-Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
+Ket{P,N,T}(::Type{P}, dict::StateDict{N,T}) = Ket{P,N,T}(dict)
 
-ket(ptype::AbstractInner, label::StateLabel) = Ket(ptype, @compat(Dict(label => 1)))
-ket(ptype::AbstractInner, items...) = ket(ptype, StateLabel(items))
+ket{P<:AbstractInner}(::Type{P}, label::StateLabel) = Ket(P, @compat(Dict(label => 1)))
+ket{P<:AbstractInner}(::Type{P}, items...) = ket(P, StateLabel(items))
 
 type Bra{P,N,T} <: DiracState{P,N}
     kt::Ket{P,N,T}
@@ -29,24 +28,21 @@ bra(items...) = Bra(ket(items...))
 dict(k::Ket) = k.dict
 dict(b::Bra) = dict(b.kt)
 
-ptype(k::Ket) = k.ptype
-ptype(b::Bra) = ptype(b.kt)
-
 #######################
 # Dict-Like Functions #
 #######################
 Base.eltype{P,N,T}(::Ket{P,N,T}) = T
 Base.eltype{P,N,T}(::Bra{P,N,T}) = T
 
-Base.copy(kt::Ket) = Ket(ptype(kt), copy(dict(kt)))
+Base.copy{P,N,T}(kt::Ket{P,N,T}) = Ket{P,N,T}(copy(dict(kt)))
 Base.copy(br::Bra) = Bra(copy(br.kt))
 
-Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
-Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
+Base.similar{P}(kt::Ket{P}, d=similar(dict(kt))) = Ket(P, d)
+Base.similar{P}(br::Bra{P}, d=similar(dict(br))) = Bra(P, d)
 
-Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
+Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = dict(filternz(a)) == dict(filternz(b))
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
-Base.hash(s::DiracState) = hash(dict(filternz(s)), hash(ptype(s)))
+Base.hash{P}(s::DiracState{P}) = hash(dict(filternz(s)), hash(P))
 Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
 
 Base.length(s::DiracState) = length(dict(s))
@@ -103,18 +99,12 @@ Base.ctranspose(b::Bra) = b.kt
 #########
 # inner #
 #########
-inner_coefftype{P}(a::AbstractDirac{P}, b::AbstractDirac{P}) = promote_type(eltype(a), eltype(b), inner_rettype(ptype(a)))
-predict_zero(P::AbstractInner) = predict_zero(inner_rettype(P))
-predict_zero{T}(::Type{T}) = zero(T)
-predict_zero(::Type{Any}) = 0
-
 inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
 
 function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
     result = predict_zero(inner_coefftype(br, kt))
-    prodtype = ptype(kt)
     for (b,c) in dict(br), (k,v) in dict(kt)
-        result += inner_mul(c',v,prodtype,b,k)
+        result += c' * v * P(b, k)
     end
     return result  
 end
@@ -149,14 +139,13 @@ act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
 act_on{P}(br::Bra{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 
 function act_on{P,N,A,B}(br::Bra{P,1,A}, kt::Ket{P,N,B}, i)
-    prodtype = ptype(br)
     result = StateDict{N-1, inner_coefftype(br,kt)}()
-    return Ket(prodtype, act_on_dict!(result, br, kt, i, prodtype))
+    return Ket(P, act_on_dict!(result, br, kt, i, P))
 end
 
-function act_on_dict!(result, br::Bra, kt::Ket, i, prodtype)
+function act_on_dict!{P}(result, br::Bra, kt::Ket, i, ::Type{P})
     for (b,c) in dict(br), (k,v) in dict(kt)
-        add_to_dict!(result, except(k,i), inner_mul(c', v, prodtype, b[1], k[i]))
+        add_to_dict!(result, except(k,i), c'*v*P(b[1], k[i]))
     end
     return result
 end
@@ -193,7 +182,7 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 ##########
 # tensor #
 ##########
-tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(ptype(b), tensordict(dict(a), dict(b)))
+tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(P, tensordict(dict(a), dict(b)))
 tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
@@ -217,14 +206,14 @@ permute(s::DiracState, perm::Vector) = maplabels(label->permute(label,perm), s)
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 
-function vecrep(kt::Ket, labels)
-    T = promote_type(inner_rettype(ptype(kt)), eltype(kt))
+function vecrep{P}(kt::Ket{P}, labels)
+    T = promote_type(return_type(P), eltype(kt))
     return T[bra(i) * kt for i in labels]
 end
 
-function vecrep(kt::Ket, labels...)
+function vecrep{P}(kt::Ket{P}, labels...)
     iter = product(labels...)
-    T = promote_type(inner_rettype(ptype(kt)), eltype(kt))
+    T = promote_type(return_type(P), eltype(kt))
     return T[bra(i...) * kt for i in iter]
 end
 
