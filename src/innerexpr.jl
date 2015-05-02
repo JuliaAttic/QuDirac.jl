@@ -21,9 +21,49 @@ Base.hash(i::InnerProduct, h::Uint64) = hash(hash(i), h)
 
 Base.conj(i::InnerProduct) = InnerProduct(klabel(i), blabel(i))
 
-##############
-# inner_rule #
-##############
+#############
+# def_inner #
+#############
+# predict_zero{T}(::Type{T}) = zero(T)
+# predict_zero(::Type{Any}) = 0
+predict_one{T}(::Type{T}) = one(T)
+predict_one(::Type{Any}) = 1
+
+return_type() = error("return_type takes args")
+
+# Julia can only inference the 
+# result type properly if the
+# args to $name are specifically 
+# type-annotated, e.g.
+#
+# $name(a,b) = ...
+#
+# will likely result in type
+# instability, while
+#
+# $name(a::Int, b::Float64) = ...
+#
+# can be well-inferenced.
+macro def_inner(name, rettype)
+    one_val = QuDirac.predict_one(eval(rettype))
+    return esc(quote 
+        immutable $name <: AbstractInner
+            function $name{N}(b::StateLabel{N}, k::StateLabel{N})
+                result = $one_val
+                for i=1:length(b)
+                    result *= $name(b[i], k[i])
+                end
+                return result
+            end
+        end
+        QuDirac.return_type(::$name) = $rettype
+        info(string($name, " was defined as an inner product type."))
+    end)
+end
+
+# @def_inner KroneckerDelta Float64
+# KroneckerDelta{N}(a::StateLabel{N},b::StateLabel{N}) = a == b ? 1 : 0 
+# KroneckerDelta(a,b) = a == b ? 1 : 0 
 
 # we can cheat here to avoid tempory StateLabel construction
 # to evaluate KroneckerDelta inner products 
@@ -267,4 +307,5 @@ Base.show(io::IO, iex::InnerExpr) = print(io, repr(iex))
 export InnerExpr,
     inner_eval,
     inner_rule,
-    inner_rettype
+    inner_rettype,
+    @def_inner

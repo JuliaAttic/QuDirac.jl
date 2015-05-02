@@ -104,6 +104,7 @@ Base.ctranspose(b::Bra) = b.kt
 # inner #
 #########
 inner_coefftype{P}(a::AbstractDirac{P}, b::AbstractDirac{P}) = promote_type(eltype(a), eltype(b), inner_rettype(ptype(a)))
+predict_zero(P::AbstractInner) = predict_zero(inner_rettype(P))
 predict_zero{T}(::Type{T}) = zero(T)
 predict_zero(::Type{Any}) = 0
 
