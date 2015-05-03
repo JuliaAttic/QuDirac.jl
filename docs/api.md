@@ -204,7 +204,7 @@ This is generally faster than actually constructing and
 applying a lowering operator.
 
 ---
-**matrep(op::DiracOp, labels...)**
+**represent(op::DiracOp, labels...)**
 
 Compute the matrix representation of `op` by calculating `∑ᵢⱼ ⟨ i | op | j ⟩ for i,j ∈ product(labels...)` where `product` denotes the catesian product of iterables.
 
@@ -218,12 +218,12 @@ OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 0 ⟩⟨ 1 |
   -0.7071067811865475 | 1 ⟩⟨ 1 |
 
-julia> matrepr(H, 0:1)
+julia> represent(H, 0:1)
 2x2 Array{Float64,2}:
  0.707107   0.707107
  0.707107  -0.707107
 
-julia> matrep(tensor(H, H), 0:1, 0:1)
+julia> represent(tensor(H, H), 0:1, 0:1)
 4x4 Array{Float64,2}:
  0.5   0.5   0.5   0.5
  0.5  -0.5   0.5  -0.5
@@ -232,7 +232,7 @@ julia> matrep(tensor(H, H), 0:1, 0:1)
 ```
 
 ---
-**vecrep(state::DiracState, labels...)**
+**represent(state::DiracState, labels...)**
 
 Compute the vector representation of a Ket by calculating `∑ᵢ ⟨ i | state ⟩ for i ∈ product(labels...)` where `product` denotes the catesian product of iterables. If a Bra is passed in, compute the same thing, just conjugate transposed.
 
@@ -245,13 +245,13 @@ Ket{KroneckerDelta,1,Complex{Float64}} with 3 state(s):
   0.41239977612180906 + 0.41239977612180906im | 'c' ⟩
   0.4040684675132877 + 0.4040684675132877im | 'a' ⟩
 
-julia> vecrep(state, 'a':'c')
+julia> represent(state, 'a':'c')
 3-element Array{Complex{Float64},1}:
  0.404068+0.404068im
  0.408234+0.408234im
    0.4124+0.4124im
 
-julia> vecrep(state', 'a':'c')
+julia> represent(state', 'a':'c')
 1x3 Array{Complex{Float64},2}:
  0.404068-0.404068im  0.408234-0.408234im  0.4124-0.4124im
 ```

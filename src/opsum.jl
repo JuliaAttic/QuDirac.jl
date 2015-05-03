@@ -386,22 +386,22 @@ anticommute(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 
 inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 
-function matrep{P}(op::DiracOp{P}, labels)
+function represent{P}(op::DiracOp{P}, labels)
     T = promote_type(return_type(P), eltype(op))
     return T[bra(i) * op * ket(j) for i in labels, j in labels]
 end
 
-function matrep{P}(op::DiracOp{P}, labels...)
+function represent{P}(op::DiracOp{P}, labels...)
     iter = product(labels...)
     T = promote_type(return_type(P), eltype(op))
     return T[bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
 
-function matrep(op::Union(DualFunc, Function), labels)
+function represent(op::Union(DualFunc, Function), labels)
     return [bra(i) * op * ket(j) for i in labels, j in labels]
 end
 
-function matrep(op::Union(DualFunc, Function), labels...)
+function represent(op::Union(DualFunc, Function), labels...)
     iter = Iterators.product(labels...)
     return [bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
@@ -420,7 +420,7 @@ Base.repr(op::AbsOpSum) = dirac_repr(op)
 export OpSum,
     ptrace,
     ptranspose,
-    matrep,
+    represent,
     xsubspace,
     nfactors,
     maplabels!,

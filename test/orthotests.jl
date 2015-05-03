@@ -14,9 +14,9 @@
 @test_approx_eq purity(bell) 1
 
 @rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n * | 1 > )" 0:1
-@assert matrep(H, 0:1) == 1/√2 * [1 1 ; 1 -1]
+@assert represent(H, 0:1) == 1/√2 * [1 1 ; 1 -1]
 m = 0.5 * [1 1;1 -1]
-@test_approx_eq matrep(tensor(H, H), 0:1, 0:1) [m m ; m -m]
+@test_approx_eq represent(tensor(H, H), 0:1, 0:1) [m m ; m -m]
 
 @assert ptrace(ptrace(bitdens, 2), 1) == ptrace(ptrace(bitdens, 1), 2)
 

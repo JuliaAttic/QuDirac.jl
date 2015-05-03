@@ -206,18 +206,18 @@ permute(s::DiracState, perm::Vector) = maplabels(label->permute(label,perm), s)
 filternz!(s::DiracState) = (filter!(nzcoeff, dict(s)); return s)
 filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 
-function vecrep{P}(kt::Ket{P}, labels)
+function represent{P}(kt::Ket{P}, labels)
     T = promote_type(return_type(P), eltype(kt))
     return T[bra(i) * kt for i in labels]
 end
 
-function vecrep{P}(kt::Ket{P}, labels...)
+function represent{P}(kt::Ket{P}, labels...)
     iter = product(labels...)
     T = promote_type(return_type(P), eltype(kt))
     return T[bra(i...) * kt for i in iter]
 end
 
-vecrep(br::Bra, labels...) = vecrep(br', labels...)'
+represent(br::Bra, labels...) = represent(br', labels...)'
 
 # should always be pure, of course,
 # but makes a good sanity check function
@@ -264,7 +264,7 @@ export Ket,
     Bra,
     ket,
     bra,
-    vecrep,
+    represent,
     nfactors,
     xsubspace,
     permute,
