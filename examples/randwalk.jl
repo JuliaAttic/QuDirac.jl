@@ -5,10 +5,10 @@ using QuDirac
 
 # First, we define the Hadamard operator `H`, defined as
 #
-# H | 0 ⟩ = 1/√2 * ( | 0 ⟩ + | 1 ⟩ )
-# H | 1 ⟩ = 1/√2 * ( | 0 ⟩ - | 1 ⟩ )
+# H | 0 ⟩ = 1/√2 * (| 0 ⟩ + | 1 ⟩)
+# H | 1 ⟩ = 1/√2 * (| 0 ⟩ - | 1 ⟩)
 #
-@rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n * | 1 > )" 0:1
+@rep_op " H | n > = 1/√2 * (| 0 > + (-1)^n * | 1 >)" 0:1
 
 # If an operation on a state only alters basis labels, not coefficients,
 # it can be simpler and more efficient to use `maplabels` than to construct 

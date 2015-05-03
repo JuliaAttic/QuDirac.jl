@@ -54,23 +54,13 @@ end
 ##################
 # Custom inner product type
 # the QHO problem
-immutable QHOInner <: AbstractInner end
+@def_inner QHOInner BigFloat
 
-qho_inner(x::Float64, k::BigInt) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
-qho_inner(x::Float64, k::Int) = qho_inner(x, BigInt(k))
-qho_inner(n::Int, m::Int) = n==m ? 1.0 : 0.0
+QHOInner(x::Float64, k::BigInt) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
+QHOInner(x::Float64, k::Int) = QHOInner(x, BigInt(k))
+QHOInner(n::Int, m::Int) = n==m ? 1.0 : 0.0
 
-function QuDirac.inner_rule(::QHOInner, b, k)
-    result = 1.0
-    for (b0, k0) in zip(b, k)
-        result *= qho_inner(b0, k0)
-    end
-    return result
-end
-
-QuDirac.inner_rettype(::QHOInner) = BigFloat
-
-default_inner(QHOInner())
+default_inner(QHOInner)
 
 # With the above, we've defined this behavior for basis states:
 #
@@ -88,18 +78,15 @@ default_inner(QHOInner())
 
 # Given an iterable of x and y points, generate a
 # distribution for the state by taking the inner product
-# Julia would correctly type-inferenced this as a BigFloat
-# array, but we're going to convert it to Float64 to send it
-# to Plotly
-gen_z(kt::Ket, xpoints, ypoints) = Float64[d" < x, y | * kt " for x in xpoints, y in ypoints]
+gen_z(kt::Ket, x, y) = [d" < i, j | * kt " for i in x, j in y]
 
 # Generate the distribution above, and package it for a Plotly surface plot
-function gen_plot_data{P}(kt::Ket{P,2}, xpoints, ypoints)
+function gen_plot_data{P}(kt::Ket{P,2}, x, y)
     return [
       [
-        "z" => gen_z(kt, xpoints, ypoints), 
-        "x" => xpoints, 
-        "y" => ypoints, 
+        "z" => gen_z(kt, x, y),
+        "x" => x, 
+        "y" => y, 
         "type" => "surface"
       ]
     ]
@@ -108,8 +95,8 @@ end
 # some default stuff
 len = 50
 max = pi
-xpoints = linspace(-max, max, len)
-ypoints = copy(xpoints)
+const xpoints = linspace(-max, max, len)
+const ypoints = copy(xpoints)
 
 info("Loading the Plotly package, this could take a little while if it has to sign in...")
 
@@ -125,13 +112,13 @@ using Plotly
 # view the result. Here are some examples: 
 #
 # Basis state:
-# julia> plot_wave2D(d\" | 1, 1 > \", xpoints, ypoints)
+# julia> plot_wave2D(d" | 1, 1 > ")
 #
 # Random superposition of the first 4 basis states:
 # julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
-#        plot_wave2D(randkt, xpoints, ypoints)
+#        plot_wave2D(randkt)
 #
-function plot_wave2D{P}(kt::Ket{P,2}, xpoints, ypoints)
+function plot_wave2D{P}(kt::Ket{P,2})
     response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints))
     return response["url"]
 end
