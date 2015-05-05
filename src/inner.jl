@@ -259,28 +259,33 @@ return_type() = error("return_type takes args")
 # $name(a::Int, b::Float64) = ...
 #
 # can be well-inferenced.
-macro def_inner(name, rettype)
-    one_val = QuDirac.predict_one(eval(rettype))
+macro def_inner(name, rettype, flag...)
+    info_bool = isempty(flag) ? true : false
     return esc(quote 
         immutable $name <: AbstractInner
             function $name{N}(b::StateLabel{N}, k::StateLabel{N})
-                result = $one_val
-                for i=1:length(b)
+                result = $name(b[1], k[1])
+                for i=2:N
                     result *= $name(b[i], k[i])
                 end
                 return result
             end
         end
         QuDirac.return_type(::Type{$name}) = $rettype
-        string($name, " was defined as an inner product type.")
+
+        if $info_bool
+            info(string($name, " is now defined as an inner product type."))
+            info(string("Inner products using the ", $name ," type should return values of type ", $rettype, "."))
+        end
+
     end)
 end
 
-@def_inner KroneckerDelta Int64
+@def_inner KroneckerDelta Int64 1
 KroneckerDelta{N}(b::StateLabel{N},k::StateLabel{N}) = b == k ? 1 : 0
 KroneckerDelta(b,k) = b == k ? 1 : 0
 
-@def_inner UndefinedInner InnerExpr
+@def_inner UndefinedInner InnerExpr 1
 UndefinedInner{N}(b::StateLabel{N},k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
 UndefinedInner(b,k) = UndefinedInner(StateLabel(b), StateLabel(k))
 
