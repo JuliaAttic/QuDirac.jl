@@ -155,7 +155,7 @@ regarding these features.
 ---
 
 One can use the `act_on` function to apply an operator to a specific factor of a state,
-i.e. computing `Oᵢ | k ⟩`.
+i.e. to compute `Ôᵢ | k₁,…,kᵢ,…,kⱼ ⟩`:
 
 ```julia
 julia> a = sum(i-> d"(√i)| i-1 >< i |", 1:5)
@@ -177,7 +177,7 @@ Ket{KroneckerDelta,3,Float64} with 2 state(s):
   1.4142135623730951 | 1,1,3 ⟩
 ```
 
-This works on Bras as well, i.e. computing `⟨ b | Oᵢ` :
+This works on Bras as well, i.e. computing `⟨ b₁,…,bᵢ,…,bⱼ | Ôᵢ`:
 
 ```
 julia> act_on(a, d" < 1,2,3 |  ", 2)

@@ -231,7 +231,6 @@ julia> represent(tensor(H, H), 0:1, 0:1)
  0.5  -0.5  -0.5   0.5
 ```
 
----
 **represent(state::DiracState, labels...)**
 
 Compute the vector representation of a Ket by calculating `∑ᵢ ⟨ i | state ⟩ for i ∈ product(labels...)` where `product` denotes the catesian product of iterables. If a Bra is passed in, compute the same thing, just conjugate transposed.
@@ -260,29 +259,31 @@ julia> represent(state', 'a':'c')
 # Inner Product Evaluation
 ---
 
-**inner_eval(f::Union(Function, AbstractInner), obj::AbstractDirac),**
+**@def_inner(type_name, T)**
 
-**inner_eval(f::Union(Function, AbstractInner), i::InnerExpr),**
+Define a new inner product type with name `type_name`. Assume that inner products taken using this type 
+will return values of type `V` where `V<:T` (this return type assumption is used for operations that 
+require pre-allocation). 
 
-Evaluate unresolved `InnerExpr`s using the provided function, whose signature should be `f(bralabel::StateLabel, ketlabel::StateLabel)`. If a product type is provided instead of a function, use that type's `inner_rule` method for evaluation.
+See the [Custom Inner Product Types](inner_products/#custom-inner-product-types) section for details.
+
+---
+**inner_eval(f::Function, obj::AbstractDirac),**
+
+**inner_eval(f::Function, i::InnerExpr),**
+
+**inner_eval{P<:AbstractInner}(::Type{P}, obj::AbstractDirac),**
+
+**inner_eval{P<:AbstractInner}(::Type{P}, i::InnerExpr)**
+
+Evaluate unresolved `InnerExpr`s using the provided function, whose signature should be `f(bralabel::StateLabel, ketlabel::StateLabel)`. If a product type is provided instead of a function, use that type for evaluation.
 
 See the [Delayed Inner Product Evaluation](inner_products/#delayed-inner-product-evaluation) section for details.
 
 ---
-**default_inner(ptype::AbstractInner)**
+**default_inner{P<:AbstractInner}(::Type{P})**
 
-Set QuDirac's default inner product type to `ptype`. See [here](inner_products/#assigning-inner-product-types-to-qudirac-objects) for details.
-
----
-**inner_rule(ptype::AbstractInner, b::StateLabel, k::StateLabel)**
-
-Evaluates the inner product `⟨ b | k ⟩` with product type `ptype`. This function should be overloaded for new inner product types.
-See the [Working with Inner Products](inner_products.md) section for detailed examples.
-
----
-**inner_rettype(ptype::AbstractInner)**
-
-Returns a guess for the return type of the function `inner_rule(ptype, ::StateLabel, ::StateLabel)`. This is used in some operations to provide better coefficient type inferencing than would otherwise be possible. See [here](inner_products/#custom-inner-product-types) for more.
+Set QuDirac's default inner product type to `P`. See [here](inner_products/#assigning-inner-product-types-to-qudirac-objects) for details.
 
 ---
 # Dict-like Functions

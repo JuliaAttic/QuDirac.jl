@@ -41,8 +41,8 @@ OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
 
 ```julia
 # tells QuDirac to use the rule for undefined inner products
-julia> default_inner(UndefinedInner())
-INFO: QuDirac's default inner product type is currently UndefinedInner()
+julia> default_inner(UndefinedInner)
+INFO: QuDirac's default inner product type is currently UndefinedInner.
 
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)
@@ -57,17 +57,24 @@ julia> inner_eval((b, k) -> sum(k) - sum(b), s)
 #### Custom inner product rules
 
 ```julia
-julia> immutable MyInner <: AbstractInner end
+julia> @def_inner MyInner Float64
+INFO: MyInner is now defined as an inner product type.
+INFO: Inner products using the MyInner type should return values of type Float64.
 
-julia> QuDirac.inner_rule(::MyInner, ktlabel, brlabel) = sqrt(ktlabel[1]+brlabel[1])
-inner_rule (generic function with 3 methods)
+julia> MyInner(a::Float64, b::Float64) = sqrt(a+b)
+MyInner (constructor with 2 methods)
 
-julia> default_inner(MyInner())
-INFO: QuDirac's default inner product type is currently MyInner()
+julia>  MyInner(a, b) = MyInner(float(a), float(b))
+MyInner (constructor with 3 methods)
 
-# eval ⟨ π | e ⟩ with MyInner rule -> sqrt(π + e)
-julia> d" < π | e > "
+julia> default_inner(MyInner)
+INFO: QuDirac's default inner product type is currently MyInner.
+
+julia> d" < π | e > " # sqrt(π + e)
 2.420717761749361
+
+julia> d" < 4.4,5 | 2,3.42 > " # sqrt(4.4 + 2) * sqrt(5 + 3.42)
+7.340844638050856
 ```
 
 #### Functional operator construction
