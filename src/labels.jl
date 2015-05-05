@@ -8,6 +8,7 @@ immutable StateLabel{N}
     StateLabel(label::NTuple{N}, h::Uint64) = new(label, h)
 end
 
+StateLabel(label::NTuple{0}) = error("Cannot have a 0-factor StateLabel")
 StateLabel(s::StateLabel) = s
 StateLabel{N}(label::NTuple{N}) = StateLabel{N}(label)
 StateLabel(i...) = StateLabel(i)
