@@ -72,7 +72,7 @@ module QuDirac
         QuDirac.Ket(dict::Dict) = Ket(P, dict)
         QuDirac.ket(label::StateLabel) = ket(P, label)
         QuDirac.ket(items...) = ket(P, StateLabel(items))
-        info("QuDirac's default inner product type is currently $P")
+        info("QuDirac's default inner product type is currently $P.")
     end
 
     default_inner(KroneckerDelta);
