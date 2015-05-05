@@ -88,25 +88,6 @@ Base.show(io::IO, iex::InnerExpr) = print(io, repr(iex.ex)[2:end])
 ##################
 # Exponentiation #
 ##################
-function iexpr_exp(a, b)
-    if same_num(b, 1)
-        return InnerExpr(a)
-    elseif same_num(a, 0)
-        return InnerExpr(0)
-    elseif same_num(b, 0)
-        return InnerExpr(1)
-    else
-        return InnerExpr(:($(s)^$(n)))
-    end
-end
-
-Base.(:^)(a::InnerExpr, b::Integer) = iexpr_exp(a, b)
-Base.(:^)(a::InnerExpr, b::Rational) = iexpr_exp(a, b)
-Base.(:^)(a::InnerExpr, b::InnerExpr) = iexpr_exp(a, b)
-Base.(:^)(a::InnerExpr, b::Number) = iexpr_exp(a, b)
-Base.(:^)(a::MathConst{:e}, b::InnerExpr) = iexpr_exp(a, b)
-Base.(:^)(a::Number, b::InnerExpr) = iexpr_exp(a, b)
-
 Base.exp(iex::InnerExpr) = InnerExpr(:(exp($(iex))))
 Base.exp2(iex::InnerExpr) = InnerExpr(:(exp2($(iex))))
 
@@ -118,6 +99,25 @@ Base.log(a::InnerExpr, b::InnerExpr) = InnerExpr(:(log($(a),$(b))))
 Base.log(a::InnerExpr, b::Number) = InnerExpr(:(log($(a),$(b))))
 Base.log(a::Number, b::InnerExpr) = InnerExpr(:(log($(a),$(b))))
 Base.log2(iex::InnerExpr) = length(iex)==2 && iex[1]==:exp2 ? iex[2] : InnerExpr(:(log2($(iex))))
+
+function iexpr_exp(a, b)
+    if same_num(b, 1)
+        return InnerExpr(a)
+    elseif same_num(a, 0)
+        return InnerExpr(0)
+    elseif same_num(b, 0)
+        return InnerExpr(1)
+    else
+        return InnerExpr(:($(a)^$(b)))
+    end
+end
+
+Base.(:^)(a::InnerExpr, b::Integer) = iexpr_exp(a, b)
+Base.(:^)(a::InnerExpr, b::Rational) = iexpr_exp(a, b)
+Base.(:^)(a::InnerExpr, b::InnerExpr) = iexpr_exp(a, b)
+Base.(:^)(a::InnerExpr, b::Number) = iexpr_exp(a, b)
+Base.(:^)(a::MathConst{:e}, b::InnerExpr) = exp(b)
+Base.(:^)(a::Number, b::InnerExpr) = iexpr_exp(a, b)
 
 ##################
 # Multiplication #
