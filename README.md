@@ -64,7 +64,7 @@ INFO: Inner products using the MyInner type should return values of type Float64
 julia> MyInner(a::Float64, b::Float64) = sqrt(a+b)
 MyInner (constructor with 2 methods)
 
-julia>  MyInner(a, b) = MyInner(float(a), float(b))
+julia> MyInner(a, b) = MyInner(float(a), float(b))
 MyInner (constructor with 3 methods)
 
 julia> default_inner(MyInner)
