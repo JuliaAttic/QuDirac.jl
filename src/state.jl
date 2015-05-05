@@ -99,8 +99,6 @@ Base.ctranspose(b::Bra) = b.kt
 #########
 # inner #
 #########
-inner(br::Bra, kt::Ket) = error("inner(b::Bra,k::Ket) is only defined when nfactors(b) == nfactors(k)")
-
 function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
     result = predict_zero(inner_coefftype(br, kt))
     for (b,c) in dict(br), (k,v) in dict(kt)
