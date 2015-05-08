@@ -54,8 +54,8 @@ Base.collect{P,N}(op::OuterProduct{P,N}) = collect_pairs!(Array((OpLabel{N}, elt
 
 function collect_pairs!(result, op::OuterProduct)
     i = 1
-    for (k,kc) in dict(op.kt)
-        for (b,bc) in dict(op.br)
+    for (k,kc) in iter(op.kt)
+        for (b,bc) in iter(op.br)
             result[i] = (OpLabel(k, b), op.scalar * kc * bc')
             i += 1
         end
@@ -110,7 +110,7 @@ Base.(:+)(a::OuterProduct, b::OuterProduct) = convert(OpSum, a) + convert(OpSum,
 #################
 function Base.norm(op::OuterProduct)
     result = predict_zero(eltype(op))
-    for v in values(dict(op.kt)), c in values(dict(op.br))
+    for v in coeffs(op.kt), c in coeffs(op.br)
         result += abs2(op.scalar * v * c')
     end
     return sqrt(result)
@@ -121,7 +121,7 @@ end
 #########
 function Base.trace(op::OuterProduct)
     result = predict_zero(eltype(op))
-    for (k,v) in dict(op.kt), (b,c) in dict(op.br)
+    for (k,v) in iter(op.kt), (b,c) in iter(op.br)
         if b == k
             result += v * c'
         end
@@ -133,7 +133,7 @@ end
 # Partial Trace #
 #################
 function ptrace_dict!(result, op::OuterProduct, over)
-    for k in keys(dict(op.kt)), b in keys(dict(op.br))
+    for k in labels(op.kt), b in labels(op.br)
         if k[over] == b[over]
             add_to_dict!(result, traceout(k, b, over), op[k,b])
         end
@@ -142,7 +142,7 @@ function ptrace_dict!(result, op::OuterProduct, over)
 end
 
 function ptrans_dict!(result, op::OuterProduct, over)
-    for k in keys(dict(op.kt)), b in keys(dict(op.br))
+    for k in labels(op.kt), b in labels(op.br)
         add_to_dict!(result, ptranspose(k, b, over), op[k,b])
     end
     return result
@@ -169,7 +169,7 @@ function Base.show(io::IO, op::OuterProduct)
     pad = "  "
     maxlen = 10
     i = 1
-    for k in keys(dict(op.kt)), b in keys(dict(op.br))
+    for k in labels(op.kt), b in labels(op.br)
         if i > maxlen
             break
         else

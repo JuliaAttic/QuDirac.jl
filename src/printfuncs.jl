@@ -1,18 +1,18 @@
 ######################
 # Printing Functions #
 ######################
-function dirac_show(io::IO, dirac)
+function dirac_show(io::IO, dirac::AbstracDirac)
     print(io, summary(dirac)*":")
     pad = "  "
     maxlen = 10
     i = 1
-    for label in keys(dict(dirac))
+    for j in labels(dirac)
         if i > maxlen
             break
         else
             i += 1
             println(io)
-            print(io, labelrepr(dirac, label, pad))
+            print(io, labelrepr(dirac, j, pad))
         end
     end
     if length(dirac) > maxlen
@@ -25,11 +25,11 @@ function dirac_showcompact(io::IO, dirac)
     pad = " "
     maxlen = 4
     i = 1
-    for label in keys(dict(dirac))
+    for j in labels(dirac))
         if i > maxlen
             break
         else
-            print(io, labelrepr(dirac, label, pad))
+            print(io, labelrepr(dirac, j, pad))
             i += 1
             if i <= length(dirac)
                 print(io, "$pad+")
