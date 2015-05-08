@@ -122,12 +122,12 @@ Base.ctranspose(opc::DualOpSum) = opc.op
 #########
 function inner{P,N,A,B}(br::Bra{P,N,A}, op::OpSum{P,N,B})
     result = StateDict{N, inner_coefftype(br, op)}()
-    return Bra(P, inner_load!(result, br, op, P))
+    return MultiKet(P, inner_load!(result, br, op, P))'
 end
 
 function inner{P,N,A,B}(op::OpSum{P,N,A}, kt::Ket{P,N,B})
     result = StateDict{N, inner_coefftype(op, kt)}()
-    return Ket(P, inner_load!(result, op, kt, P))
+    return MultiKet(P, inner_load!(result, op, kt, P))
 end
 
 function inner{P,N,A,B}(a::OpSum{P,N,A}, b::OpSum{P,N,B})
@@ -236,12 +236,12 @@ act_on{P}(opc::DualOpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(opc, kt) : throw(
 
 function act_on{P,N,A,B}(op::OpSum{P,1,A}, kt::Ket{P,N,B}, i)
     result = StateDict{N, inner_coefftype(op, kt)}()
-    return Ket(P, act_on_dict!(result, op, kt, i, P))
+    return MultiKet(P, act_on_dict!(result, op, kt, i, P))
 end
 
 function act_on{P,N,A,B}(op::DualOpSum{P,1,A}, kt::Ket{P,N,B}, i)
     result = StateDict{N, inner_coefftype(op, kt)}()
-    return Ket(P, act_on_dict!(result, op, kt, i, P))
+    return MultiKet(P, act_on_dict!(result, op, kt, i, P))
 end
 
 function act_on_dict!{P}(result, op::OpSum, kt::Ket, i, ::Type{P})
@@ -265,7 +265,7 @@ end
 ##########
 # tensor #
 ##########
-tensor{P}(a::OpSum{P}, b::OpSum{P}) = OpSum(P, tensordict(dict(a), dict(b)))
+tensor{P}(a::OpSum{P}, b::OpSum{P}) = OpSum(P, tensor_merge(dict(a), dict(b)))
 tensor(a::DualOpSum, b::DualOpSum) = tensor(a.opc, b.opc)'
 tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
 

@@ -68,8 +68,6 @@ module QuDirac
     # seeing as how only a few functions actually "use" 
     # the default ptype.
     function default_inner{P<:AbstractInner}(::Type{P})
-        QuDirac.OpSum(dict::Dict) = OpSum(P, dict)
-        QuDirac.Ket(dict::Dict) = Ket(P, dict)
         QuDirac.ket(label::StateLabel) = ket(P, label)
         QuDirac.ket(items...) = ket(P, StateLabel(items))
         info("QuDirac's default inner product type is currently $P.")
