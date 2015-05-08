@@ -410,13 +410,13 @@ filternz(s::DiracState) = similar(s, filter(nzcoeff, dict(s)))
 
 function represent{P}(kt::Ket{P}, basis)
     T = promote_type(return_type(P), eltype(kt))
-    return T[bra(i) * kt for i in basis]
+    return T[bra(P, i) * kt for i in basis]
 end
 
 function represent{P}(kt::Ket{P}, basis...)
     prodbasis = product(basis...)
     T = promote_type(return_type(P), eltype(kt))
-    return T[bra(i...) * kt for i in prodbasis]
+    return T[bra(P, i...) * kt for i in prodbasis]
 end
 
 represent(br::Bra, basis...) = represent(br', basis...)'

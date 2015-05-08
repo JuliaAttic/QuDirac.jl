@@ -396,22 +396,22 @@ inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 
 function represent{P}(op::DiracOp{P}, basis)
     T = promote_type(return_type(P), eltype(op))
-    return T[bra(i) * op * ket(j) for i in basis, j in basis]
+    return T[bra(P, i) * op * ket(P, j) for i in basis, j in basis]
 end
 
 function represent{P}(op::DiracOp{P}, basis...)
     prodbasis = product(basis...)
     T = promote_type(return_type(P), eltype(op))
-    return T[bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
+    return T[bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
 end
 
 function represent(op::Union(DualFunc, Function), basis)
-    return [bra(i) * op * ket(j) for i in basis, j in basis]
+    return [bra(P, i) * op * ket(P, j) for i in basis, j in basis]
 end
 
 function represent(op::Union(DualFunc, Function), basis...)
     prodbasis = Iterators.product(basis...)
-    return [bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
+    return [bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
 end
 
 ######################

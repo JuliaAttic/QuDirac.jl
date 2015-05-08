@@ -70,6 +70,7 @@ module QuDirac
     function default_inner{P<:AbstractInner}(::Type{P})
         QuDirac.ket(label::StateLabel) = ket(P, label)
         QuDirac.ket(items...) = ket(P, StateLabel(items))
+        QuDirac.bra(items...) = Bra(ket(items...))
         info("QuDirac's default inner product type is currently $P.")
     end
 

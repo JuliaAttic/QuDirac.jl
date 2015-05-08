@@ -162,7 +162,7 @@ permute(op::OuterProduct, perm::Vector) = permute(convert(OpSum, op), perm)
 ######################
 labelrepr(op::OuterProduct, k, b, pad) = "$pad$(op[k,b]) $(ktstr(k))$(brstr(b))"
 
-Base.summary(op::OuterProduct) = "OuterProduct with $(length(op)) operator(s); $(typeof(op.kt)) * $(typeof(op.br))"
+Base.summary{P,N}(op::OuterProduct{P,N}) = "OuterProduct{$P,$N,$(eltype(op))} with $(length(op)) operator(s)"
 
 function Base.show(io::IO, op::OuterProduct)
     print(io, summary(op)*":")
