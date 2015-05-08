@@ -1,7 +1,7 @@
 ######################
 # Printing Functions #
 ######################
-function dirac_show(io::IO, dirac::AbstracDirac)
+function dirac_show(io::IO, dirac::AbstractDirac)
     print(io, summary(dirac)*":")
     pad = "  "
     maxlen = 10
@@ -21,11 +21,11 @@ function dirac_show(io::IO, dirac::AbstracDirac)
     end
 end
 
-function dirac_showcompact(io::IO, dirac)
+function dirac_showcompact(io::IO, dirac::AbstractDirac)
     pad = " "
     maxlen = 4
     i = 1
-    for j in labels(dirac))
+    for j in labels(dirac)
         if i > maxlen
             break
         else
@@ -41,7 +41,7 @@ function dirac_showcompact(io::IO, dirac)
     end
 end
 
-function dirac_repr(dirac)
+function dirac_repr(dirac::AbstractDirac)
     tempio = IOBuffer()
     showcompact(tempio, dirac)
     return takebuf_string(tempio)

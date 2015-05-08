@@ -1,3 +1,6 @@
+@assert sum(i -> d" i * | 1,i > ", 1:3) == ket(1) * sum(i -> d" i * | i > ", 1:3)
+@assert sum(i -> d" i * | i,1 > ", 1:3) == sum(i -> d" i * | i > ", 1:3) * ket(1)
+
 @assert (3-im) * simpk' ==  d"(3-im) * (1-3im)< 1 |"
 @assert (3-im) * simpk' == (d"(3+im)*(1+3im)| 1 >")'
 @assert (-im * projop')[1,1] == 0-10im
