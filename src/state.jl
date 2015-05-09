@@ -355,7 +355,7 @@ ladderdict{P,N}(state::DiracState{P,N}) = StateDict{N, promote_type(Float64, elt
 lower{P}(state::DiracState{P,1}) = lower(state, 1)
 lower(k::KetSum, i) = similar(k, lowerdict!(ladderdict(k), dict(k), i))
 
-function lower(k::SingleKet, i)
+function lower{P}(k::SingleKet{P}, i)
     c = sqrt(label(k)[i])*coeff(k) 
     sl = setindex(label(k), label(k)[i] - 1, i)
     return SingleKet(P, c, sl)
@@ -366,7 +366,7 @@ lower(b::Bra, i) = lower(b', i)'
 raise{P}(state::DiracState{P,1}) = raise(state, 1)
 raise(k::KetSum, i) = similar(k, raisedict!(ladderdict(k), dict(k), i))
 
-function raise(k::SingleKet, i)
+function raise{P}(k::SingleKet{P}, i)
     c = sqrt(label(k)[i]+1)*coeff(k) 
     sl = setindex(label(k), label(k)[i] + 1, i)
     return SingleKet(P, c, sl)

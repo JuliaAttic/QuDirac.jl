@@ -1,3 +1,6 @@
+@assert raise(d" -im * < 2,1 | ", 2) == d" (sqrt(2) * -im) * < 2,2 |"
+@assert lower(d" -im * < 3,5 | ", 2) == d" (sqrt(5) * -im) * < 3,4 |"
+
 @rep_op "a | n > = sqrt(n)| n-1 >" 0:4
 @assert d" act_on(a, | 1,2,3 > + 2| 3,3,1 >, 2) == sqrt(2)| 1,1,3 > + 2*sqrt(3)| 3,2,1 > "
 @assert d" act_on(a', | 1,2,3 > + 2| 3,2,1 >, 2) == sqrt(3)| 1,3,3 > + 2*sqrt(3)| 3,3,1 > "
