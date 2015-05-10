@@ -34,6 +34,7 @@ DualOpSum{P,N,T}(op::OpSum{P,N,T}) = DualOpSum{P,N,T}(op)
 DualOpSum(items...) = DualOpSum(OpSum(items...))
 
 Base.convert(::Type{OpSum}, opc::DualOpSum) = eager_ctran(opc.op)
+Base.convert{P,N,T}(::Type{OpSum{P,N,T}}, opc::DualOpSum{P,N,T}) = convert(OpSum, opc)
 Base.promote_rule{O<:OpSum, D<:DualOpSum}(::Type{O}, ::Type{D}) = OpSum
 
 ######################
@@ -406,12 +407,12 @@ function represent{P}(op::DiracOp{P}, basis...)
 end
 
 function represent(op::Union(DualFunc, Function), basis)
-    return [bra(P, i) * op * ket(P, j) for i in basis, j in basis]
+    return [bra(i) * op * ket(j) for i in basis, j in basis]
 end
 
 function represent(op::Union(DualFunc, Function), basis...)
-    prodbasis = Iterators.product(basis...)
-    return [bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
+    prodbasis = product(basis...)
+    return [bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
 end
 
 ######################

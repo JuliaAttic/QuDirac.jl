@@ -312,15 +312,9 @@ Base.(:+){P,N}(a::KetSum{P,N}, b::SingleKet{P,N}) = similar(a, add_merge(dict(a)
 Base.(:+){P,N}(a::SingleKet{P,N}, b::KetSum{P,N}) = +(b, a)
 Base.(:+){P,N}(a::KetSum{P,N}, b::KetSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
 
-function Base.(:-){P,N,T,V}(a::SingleKet{P,N,T}, b::SingleKet{P,N,V})
-    result = StateDict{N, promote_type(T,V)}()
-    add_to_dict!(result, label(a), coeff(-a))
-    add_to_dict!(result, label(b), coeff(-b))
-    return KetSum(P, result)
-end
-
+Base.(:-){P,N,T,V}(a::SingleKet{P,N,T}, b::SingleKet{P,N,V}) = a + (-b)
 Base.(:-){P,N}(a::KetSum{P,N}, b::SingleKet{P,N}) = similar(a, sub_merge(dict(a), b))
-Base.(:-){P,N}(a::SingleKet{P,N}, b::KetSum{P,N}) = -(b, a)
+Base.(:-){P,N}(a::SingleKet{P,N}, b::KetSum{P,N}) = a + (-b)
 Base.(:-){P,N}(a::KetSum{P,N}, b::KetSum{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
 
 Base.(:+)(a::Bra, b::Bra) = ctranspose(a' + b')
