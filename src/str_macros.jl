@@ -91,52 +91,8 @@ function leftside_bra(str)
 end
 
 ###########
-# @def_op #
-###########
-
-macro def_op(str)
-    result_expr = def_op_expr(OpDefStr(str))
-    return esc(result_expr)
-end 
-
-function def_op_expr(ods::OpDefStr)
-    odex = OpDefExpr(ods)
-
-    if isa(odex.label_args, Expr)
-        func_on_label_def = quote 
-            local func_on_args($(odex.label_args.args...)) = $(odex.rhs)
-            local func_on_label(label::StateLabel) = func_on_args(label...)
-        end
-    else # isa(label_expr, Symbol)
-        func_on_label_def = quote 
-            local func_on_args($(odex.label_args)) = $(odex.rhs)
-            local func_on_label(label::StateLabel) = func_on_args(first(label))
-        end
-    end
-
-    coeff = coeff_sym(odex)
-
-    result = quote
-        $func_on_label_def
-
-        local func_on_pair;
-        function func_on_pair(pair::Tuple)
-          label, c = pair
-          return $(coeff) * func_on_label(label)
-        end  
-
-        $(odex.op_sym)(state::$(odex.lhs_type)) = sum(func_on_pair, QuDirac.dict(state))
-    end
-
-    return result
-end
-
-coeff_sym(odex::OpDefExpr) = odex.lhs_type == :Ket ? :c : :(c')
-
-###########
 # @rep_op #
 ###########
-
 macro rep_op(str, bases...)
     result_expr = rep_op_expr(OpDefStr(str), build_prod_basis(bases...))
     return esc(result_expr)
@@ -185,5 +141,4 @@ end
 
 export @d_str,
        @d_mstr,
-       @def_op,
        @rep_op

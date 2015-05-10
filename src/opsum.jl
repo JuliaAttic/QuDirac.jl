@@ -219,21 +219,6 @@ Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
 Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
 Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
 
-###################################
-# Functional Operator Application #
-###################################
-immutable DualFunc
-    f::Function
-end
-
-Base.(:*)(op::Function, kt::Ket) = op(kt)
-Base.(:*)(br::Bra, op::Function) = op(br)
-Base.(:*)(op::DualFunc, kt::Ket) = (kt' * op.f)'
-Base.(:*)(br::Bra, op::DualFunc) = (op.f * br')'
-
-Base.ctranspose(f::Function) = DualFunc(f)
-Base.ctranspose(fc::DualFunc) = fc.f
-
 ##############
 # act/act_on #
 ##############
@@ -404,15 +389,6 @@ function represent{P}(op::DiracOp{P}, basis...)
     prodbasis = product(basis...)
     T = promote_type(return_type(P), eltype(op))
     return T[bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
-end
-
-function represent(op::Union(DualFunc, Function), basis)
-    return [bra(i) * op * ket(j) for i in basis, j in basis]
-end
-
-function represent(op::Union(DualFunc, Function), basis...)
-    prodbasis = product(basis...)
-    return [bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
 end
 
 ######################
