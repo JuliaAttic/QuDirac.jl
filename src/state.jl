@@ -417,8 +417,8 @@ represent(br::Bra, basis...) = represent(br', basis...)'
 
 # should always be pure, of course,
 # but makes a good sanity check function
-purity(kt::Ket) = purity(kt*kt')
-purity(br::Bra) = purity(br')
+purity(kt::Ket, i) = purity(ptrace(kt*kt', i))
+purity(br::Bra, i) = purity(br', i)
 
 ######################
 # Printing Functions #

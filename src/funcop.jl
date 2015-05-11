@@ -1,25 +1,71 @@
 abstract FuncOp <: DiracOp
+abstract FuncOpDef <: FuncOp
+
+Base.(:*){T<:FuncOpDef}(::Union(Type{T},T), kt::Ket) = T(kt)
+Base.(:*){T<:FuncOpDef}(br::Bra, ::Union(Type{T},T)) = T(br)
 
 ############################
 # Functional Operator Math #
 ############################
-abstract DualFunc{T<:FuncOp}
-
-Base.(:*){T<:FuncOp}(::Type{T}, kt::Ket) = T(kt)
-Base.(:*){T<:FuncOp}(br::Bra, ::Type{T}) = T(br)
-Base.(:*){T<:FuncOp}(::Type{DualFunc{T}}, kt::Ket) = T(kt')'
-Base.(:*){T<:FuncOp}(br::Bra, ::Type{DualFunc{T}}) = T(br')'
-
-Base.ctranspose{T<:FuncOp}(::Type{T}) = DualFunc{T}
-Base.ctranspose{T<:FuncOp}(::Type{DualFunc{T}}) = T
-
-function represent{T<:FuncOp}(op::Union(Type{DualFunc{T}}, Type{T}), basis)
-    return [bra(i) * op * ket(j) for i in basis, j in basis]
+immutable DualFunc{T<:FuncOp} <: FuncOp
+    op::T
 end
 
-function represent{T<:FuncOp}(op::Union(Type{DualFunc{T}}, Type{T}), basis...)
+Base.ctranspose{T<:FuncOpDef}(::Type{T}) = DualFunc(T())
+Base.ctranspose(op::FuncOp) = DualFunc(op)
+Base.ctranspose(f::DualFunc) = f.op
+
+Base.(:*)(a::DualFunc, b::DualFunc) = (b'*a')'
+Base.(:*)(f::DualFunc, kt::Ket) = (kt' * f')'
+Base.(:*)(br::Bra, f::DualFunc) = (f' * br')'
+
+immutable FuncOpExp{T<:FuncOpDef} <: FuncOp
+    op::Type{T}
+    n::Integer
+end
+
+apply_op{T<:FuncOpDef}(::Type{T}, state, n) = n == 0 ? state : apply_op(T, T(state), n-1)
+Base.(:*){T<:FuncOpDef}(f::FuncOpExp{T}, kt::Ket) = apply_op(T, kt, f.n)
+Base.(:*){T<:FuncOpDef}(br::Bra, f::FuncOpExp{T}) = apply_op(T, br, f.n)
+
+Base.(:*){T<:FuncOpDef}(::Type{T}, ::Type{T}) = FuncOpExp(T, 2)
+Base.(:*){T<:FuncOpDef}(::Type{T}, ::T) = T * T
+Base.(:*){T<:FuncOpDef}(::T, ::Type{T}) = T * T
+Base.(:*){T<:FuncOpDef}(::T, ::T) = T * T
+
+Base.(:*){T<:FuncOpDef}(a::FuncOpExp{T}, b::FuncOpExp{T}) = FuncOpExp(T, a.n + b.n)
+Base.(:*){T<:FuncOpDef}(::Type{T}, f::FuncOpExp{T}) = FuncOpExp(T, f.n+1)
+Base.(:*){T<:FuncOpDef}(::T, f::FuncOpExp{T}) = T * f
+
+Base.(:*){T<:FuncOpDef}(f::FuncOpExp{T}, ::Type{T}) = FuncOpExp(T, f.n+1)
+Base.(:*){T<:FuncOpDef}(f::FuncOpExp{T}, ::T) = f * T
+
+immutable FuncOpChain{T<:FuncOp} <: FuncOp
+    ops::Vector{T}
+end
+
+apply_op(ops, kt::Ket) = length(ops) == 1 ? first(ops) * kt : apply_op(ops[1:end-1], last(ops) * kt)
+apply_op(ops, br::Bra) = length(ops) == 1 ? br * last(ops) : apply_op(ops[2:end], br * first(ops))
+
+Base.(:*)(a::FuncOpChain, b::FuncOpChain) = FuncOpChain(vcat(a.ops, b.ops))
+Base.(:*)(a::FuncOpChain, b::FuncOp) = FuncOpChain(vcat(a.ops, b))
+Base.(:*)(a::FuncOp, b::FuncOpChain) = FuncOpChain(vcat(a, b.ops))
+Base.(:*)(a::FuncOp, b::FuncOp) = FuncOpChain(vcat(a, b))
+
+Base.(:*){A<:FuncOpDef, B<:FuncOpDef}(::Type{A}, ::Type{B}) = A() * B()
+Base.(:*){A<:FuncOpDef}(::Type{A}, f::FuncOp) = A() * f
+Base.(:*){B<:FuncOpDef}(f::FuncOp, ::Type{B}) = f * B()
+
+Base.(:*)(f::FuncOpChain, kt::Ket) = apply_op(f.ops, kt)
+Base.(:*)(br::Bra, f::FuncOpChain) = apply_op(f.ops, br)
+
+function represent{T<:FuncOpDef}(::Union(FuncOp, Type{T}), basis)
+    return [bra(i) * T * ket(j) for i in basis, j in basis]
+end
+
+function represent{T<:FuncOpDef}(::Union(FuncOp, Type{T}), basis...)
     prodbasis = product(basis...)
-    return [bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
+    return [bra(i...) * T * ket(j...) for i in prodbasis, j in prodbasis]
 end
 
 ###########
@@ -36,6 +82,8 @@ function def_op_expr(ods::OpDefStr)
     lhs_type = odex.lhs_type
     single_lhs_type = symbol("Single"*string(lhs_type))
 
+    len_args = length(odex.label_args.args)
+
     T = odex.op_sym
     T_sym = Expr(:quote, T)
 
@@ -46,12 +94,12 @@ function def_op_expr(ods::OpDefStr)
     if isa(odex.label_args, Expr)
         on_label_def = quote 
             $on_args($(odex.label_args.args...)) = $(odex.rhs)
-            $on_label(label::StateLabel) = $on_args(label...)
+            $on_label(label::StateLabel{$len_args}) = $on_args(label...)
         end
     else # isa(label_expr, Symbol)
         on_label_def = quote 
             $on_args($(odex.label_args)) = $(odex.rhs)
-            $on_label(label::StateLabel) = $on_args(first(label))
+            $on_label(label::StateLabel{$len_args}) = $on_args(first(label))
         end
     end
 
@@ -59,8 +107,7 @@ function def_op_expr(ods::OpDefStr)
 
     result = quote
         if ! isdefined($T_sym)
-            immutable $T <: QuDirac.FuncOp end
-            
+            immutable $T <: QuDirac.FuncOpDef end
         end
 
         $on_label_def

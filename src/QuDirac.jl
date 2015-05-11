@@ -63,11 +63,11 @@ module QuDirac
     # get_default_inner() or something like that.
     #
     # Also, global optimization is poor, so we don't want
-    # to use that either. Thus, we go for a function that
-    # straight-up redefines the default constructors for 
-    # the relevant objects. This is hacky, but works for now, 
-    # seeing as how only a few functions actually "use" 
-    # the default ptype.
+    # to use that either for most things. Thus, we go for
+    # a function that straight-up redefines the default
+    # constructors for the relevant objects. This is hacky,
+    # but works for now, seeing as how only a few functions
+    # actually "use" the default ptype.
     function default_inner{P<:AbstractInner}(::Type{P})
         QuDirac.ket(label::StateLabel) = ket(P, label)
         QuDirac.ket(items...) = ket(P, StateLabel(items))
