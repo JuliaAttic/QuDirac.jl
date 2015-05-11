@@ -1,6 +1,11 @@
 abstract FuncOp <: DiracOp
 abstract FuncOpDef <: FuncOp
 
+Base.one{T<:FuncOp}(::Type{T}) = 1
+Base.one(::FuncOp) = 1
+Base.zero{T<:FuncOp}(::Type{T}) = 0
+Base.zero(::FuncOp) = 0
+
 Base.(:*){T<:FuncOpDef}(::Union(Type{T},T), kt::Ket) = T(kt)
 Base.(:*){T<:FuncOpDef}(br::Bra, ::Union(Type{T},T)) = T(br)
 

@@ -36,6 +36,11 @@ module QuDirac
 
     prodtype{P}(::AbstractDirac{P}) = P
 
+    Base.one{D<:AbstractDirac}(::Type{D}) = 1
+    Base.one(::AbstractDirac) = 1
+    Base.zero{D<:AbstractDirac}(::Type{D}) = 0
+    Base.zero(::AbstractDirac) = 0
+
     predict_zero{T}(::Type{T}) = zero(T)
     predict_zero(::Type{Any}) = 0
     predict_one{T}(::Type{T}) = one(T)
