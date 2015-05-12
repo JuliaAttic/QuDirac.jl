@@ -375,6 +375,8 @@ switch(op::AbsOpSum, i, j) = maplabels(ol->switch(ol,i,j), op)
 permute(op::AbsOpSum, perm::Vector) = maplabels(ol->permute(ol,perm), op)
 
 purity(op::DiracOp) = trace(op^2)
+purity(op::DiracOp, i) = purity(ptrace(op,i))
+
 commute(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
 anticommute(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 

@@ -415,9 +415,8 @@ end
 
 represent(br::Bra, basis...) = represent(br', basis...)'
 
-# should always be pure, of course,
-# but makes a good sanity check function
-purity(kt::Ket, i) = purity(ptrace(kt*kt', i))
+purity(s::DiracState) = 1
+purity(kt::Ket, i) = purity(kt*kt', i)
 purity(br::Bra, i) = purity(br', i)
 
 ######################
