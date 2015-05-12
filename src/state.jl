@@ -146,23 +146,15 @@ function collect_pairs!(result, br::BraSum)
     return result
 end
 
-abstract IterFlag{b}
-
 Base.start(state::DiracState) = start(iter(state))
-Base.start(::SingleState) = IterFlag{true}
-
 Base.next(kt::Ket, i) = next(iter(kt), i)
-Base.next(s::SingleState, ::Type{IterFlag{true}}) = ((label(s), coeff(s)), IterFlag{false})
 
-function Base.next(br::BraSum, i)
+function Base.next(br::Bra, i)
     (k,v), n = next(iter(br), i)
     return ((k,v'), n)
 end
 
-Base.done(kt::KetSum, i) = done(iter(kt), i)
-Base.done(kt::SingleKet, ::Type{IterFlag{false}}) = true
-Base.done(kt::SingleKet, ::Type{IterFlag{true}}) = false
-Base.done(br::Bra, i) = done(br.kt, i)
+Base.done(state::DiracState, i) = done(iter(state), i)
 
 Base.first(state::DiracState) = next(state, start(state))
 
@@ -429,6 +421,8 @@ Base.showcompact(io::IO, s::DiracState) = dirac_showcompact(io, s)
 Base.repr(s::DiracState) = dirac_repr(s)
 
 export Ket,
+    SingleKet,
+    KetSum,
     Bra,
     ket,
     bra,
