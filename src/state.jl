@@ -19,6 +19,7 @@ type KetSum{P,N,T} <: Ket{P,N,T}
 end
 
 KetSum{P,N,T}(::Type{P}, dict::StateDict{N,T}) = KetSum{P,N,T}(dict)
+KetSum(k::SingleKet) = KetSum(P, dict(k))
 
 ket{P<:AbstractInner}(::Type{P}, label::StateLabel) = SingleKet(P,1,label)
 ket{P<:AbstractInner}(::Type{P}, items...) = ket(P, StateLabel(items))
@@ -39,7 +40,9 @@ typealias StateSum Union(KetSum, BraSum)
 ########################
 # Conversion/Promotion #
 ########################
-Base.convert{P}(::Type{KetSum}, k::SingleKet{P}) = KetSum(P, dict(k)) 
+Base.convert{P,N,T}(::Type{KetSum{P,N,T}}, k::SingleKet{P,N,T}) = KetSum(k)
+Base.convert{P,N,T,K<:Ket}(::Type{Bra{P,N,T,K}}, k::K) = k'
+Base.convert{P,N,T,K<:Ket}(::Type{K}, b::Bra{P,N,T,K}) = b'
 
 ######################
 # Accessor functions #
@@ -82,15 +85,7 @@ Base.getindex(b::Bra, sl::StateLabel) = b.kt[sl]'
 Base.getindex(s::DiracState, tup::Tuple) = s[StateLabel(tup)]
 Base.getindex(s::DiracState, i...) = s[StateLabel(i)]
 
-function Base.setindex!(k::SingleKet, c, sl::StateLabel)
-    if sl == label(k)
-        coeff(k) = c
-        return c
-    else
-        return setindex!(convert(KetSum, k), c, sl)
-    end
-end
-
+Base.setindex!(k::SingleKet, c, sl::StateLabel) = error("setindex!(::SingleKet, x, y) not defined. Try setindex!(KetSum(::SingleKet), x, y) instead.")
 Base.setindex!(k::KetSum, c, sl::StateLabel) = setindex!(dict(k), c, sl)
 Base.setindex!(b::Bra, c, sl::StateLabel) = setindex!(dict(b), c', sl)
 Base.setindex!(s::DiracState, c, tup::Tuple) = setindex!(s, c, StateLabel(tup))
@@ -115,7 +110,7 @@ Base.get(s::DiracState, sl, default=predict_zero(eltype(s))) = get(s, StateLabel
 
 function Base.delete!(k::SingleKet, sl::StateLabel)
     if sl == label(k)
-        coeff(k) = predict_zero(eltype(k))
+        k.coeff = predict_zero(eltype(k))
     end
     return k
 end
