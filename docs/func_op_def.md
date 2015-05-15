@@ -20,11 +20,11 @@ julia> @def_op " a | n > = √n * | n-1 > "
 a (generic function with 1 methods)
 
 julia> d" a * | 42 > "
-Ket{KroneckerDelta,1,Float64} with 1 state(s):
+Ket{KronDelta,1,Float64} with 1 state(s):
   6.48074069840786 | 41 ⟩
 
 julia> d" a * (| 1 > + | 2 > - | 3 >) "
-Ket{KroneckerDelta,1,Float64} with 3 state(s):
+Ket{KronDelta,1,Float64} with 3 state(s):
   -1.7320508075688772 | 2 ⟩
   1.0 | 0 ⟩
   1.4142135623730951 | 1 ⟩
@@ -35,7 +35,7 @@ the operator on Kets, since ` < 1 | * Ô' == ( Ô * | 1 > )' `:
 
 ```
 julia> d" < 2 | * a' "
-Bra{KroneckerDelta,1,Float64} with 1 state(s):
+Bra{KronDelta,1,Float64} with 1 state(s):
   1.4142135623730951 ⟨ 1 |
 ```
 
@@ -47,11 +47,11 @@ julia> @def_op " < n | a = √(n+1) * < n+1 | "
 a (generic function with 2 methods)
 
 julia> d" < 5 | * a "
-Bra{KroneckerDelta,1,Float64} with 1 state(s):
+Bra{KronDelta,1,Float64} with 1 state(s):
   2.449489742783178 ⟨ 6 |
 
 julia> d" a' * (| 5 > + | 2 >)"
-Ket{KroneckerDelta,1,Float64} with 2 state(s):
+Ket{KronDelta,1,Float64} with 2 state(s):
   1.7320508075688772 | 3 ⟩
   2.449489742783178 | 6 ⟩
 
@@ -66,7 +66,7 @@ julia> @def_op " a₂ | x,y,z >  = √y * | x,y-1,z > "
 a₂ (generic function with 2 methods)
 
 julia> d" a₂ * (| 0,10,8 > - | 12,31,838 >) "
-Ket{KroneckerDelta,3,Float64} with 2 state(s):
+Ket{KronDelta,3,Float64} with 2 state(s):
   3.1622776601683795 | 0,9,8 ⟩
   -5.5677643628300215 | 12,30,838 ⟩
 ```
@@ -79,12 +79,12 @@ julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
 h (generic function with 1 methods)
 
 julia> d" h * | 0 > "
-Ket{KroneckerDelta,1,Float64} with 2 state(s):
+Ket{KronDelta,1,Float64} with 2 state(s):
   0.7071067811865475 | 0 ⟩
   0.7071067811865475 | 1 ⟩
 
 julia> d" h * | 1 > "
-Ket{KroneckerDelta,1,Float64} with 2 state(s):
+Ket{KronDelta,1,Float64} with 2 state(s):
   0.7071067811865475 | 0 ⟩
   -0.7071067811865475 | 1 ⟩
 ```
@@ -129,7 +129,7 @@ we can use the `@rep_op` macro. Here's a familiar example:
 julia> @rep_op " a | n > = √n * | n-1 > " 1:10;
 
 julia> a
-OpSum{KroneckerDelta,1,Float64} with 10 operator(s):
+OpSum{KronDelta,1,Float64} with 10 operator(s):
   2.449489742783178 | 5 ⟩⟨ 6 |
   3.1622776601683795 | 9 ⟩⟨ 10 |
   2.23606797749979 | 4 ⟩⟨ 5 |
@@ -153,7 +153,7 @@ Their cartesian product will then be used as the basis for the representation:
 ```julia
 # define P₁₃₂ by it's action on a Bra
 julia> @rep_op " < i,j,k | P₁₃₂  = < i,k,j | "  1:10  'a':'f'  -(1:10)
-OpSum{KroneckerDelta,3,Int64} with 600 operator(s):
+OpSum{KronDelta,3,Int64} with 600 operator(s):
   1 | 10,'e',-2 ⟩⟨ 10,-2,'e' |
   1 | 4,'c',-5 ⟩⟨ 4,-5,'c' |
   1 | 3,'c',-10 ⟩⟨ 3,-10,'c' |
@@ -166,7 +166,7 @@ OpSum{KroneckerDelta,3,Int64} with 600 operator(s):
   1 | 4,'d',-8 ⟩⟨ 4,-8,'d' |
 
 julia> d" P₁₃₂ * | 10,-2,'e' > "
-Ket{KroneckerDelta,3,Int64} with 1 state(s):
+Ket{KronDelta,3,Int64} with 1 state(s):
   1 | 10,'e',-2 ⟩
 ```
 
@@ -184,7 +184,7 @@ calling `h` on the right-hand side:
 
 ```julia
 julia> @rep_op " H | n > = h * | n > " 0:1
-OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
+OpSum{KronDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |

@@ -281,9 +281,9 @@ macro def_inner(name, rettype, flag...)
     end)
 end
 
-@def_inner KroneckerDelta Int64 1
-KroneckerDelta{N}(b::StateLabel{N},k::StateLabel{N}) = b == k ? 1 : 0
-KroneckerDelta(b,k) = b == k ? 1 : 0
+@def_inner KronDelta Int64 1
+KronDelta{N}(b::StateLabel{N},k::StateLabel{N}) = b == k ? 1 : 0
+KronDelta(b,k) = b == k ? 1 : 0
 
 @def_inner UndefinedInner InnerExpr 1
 UndefinedInner{N}(b::StateLabel{N},k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
@@ -293,6 +293,6 @@ inner_coefftype{P}(a::AbstractDirac{P}, b::AbstractDirac{P}) = promote_type(elty
 
 export InnerExpr,
     UndefinedInner,
-    KroneckerDelta,
+    KronDelta,
     inner_eval,
     @def_inner

@@ -6,7 +6,7 @@ behavior for the object. QuDirac comes with two such inner product types:
 
 ```julia
 abstract AbstractInner
-immutable KroneckerDelta <: AbstractInner end
+immutable KronDelta <: AbstractInner end
 immutable UndefinedInner <: AbstractInner end
 ```
 
@@ -15,7 +15,7 @@ given the states' labels. For example, the constructors for the two types above 
 
 ```julia
 UndefinedInner{N}(b::StateLabel{N}, k::StateLabel{N}) = InnerExpr(InnerLabel(b, k)) # lazy evaluation of inner product
-KroneckerDelta{N}(b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
+KronDelta{N}(b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
 ```
 
 ---
@@ -42,7 +42,7 @@ Ket{UndefinedInner,2,Int64} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
-As you've probably noticed from previous examples, the out-of-the-box default inner product type is `KroneckerDelta`.
+As you've probably noticed from previous examples, the out-of-the-box default inner product type is `KronDelta`.
 
 ---
 # Custom Inner Product Types
@@ -131,8 +131,8 @@ true
 One can pass in an inner product type instead of a function to evaluate the `InnerExpr`:
 
 ```julia
-# evaluate s using KroneckerDelta
-julia> inner_eval(KroneckerDelta, s)
+# evaluate s using KronDelta
+julia> inner_eval(KronDelta, s)
 1.0 + 0.0im
 ```
 
@@ -149,7 +149,7 @@ Ket{UndefinedInner,2,Int64} with 2 state(s):
   24341 | 'd','f' ⟩
   23618 | 'a','c' ⟩
 
-julia> inner_eval(KroneckerDelta, s)
+julia> inner_eval(KronDelta, s)
 Ket{UndefinedInner,2,Int64} with 2 state(s):
   0 | 'd','f' ⟩
   0 | 'a','c' ⟩

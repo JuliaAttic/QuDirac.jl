@@ -1,7 +1,7 @@
 k = normalize!(sum(i -> rand(Complex{Float64}) * ket(i), 1:5))
 b = normalize!(sum(i -> rand(Complex{Float64}) * bra(i), 1:5))
 
-@test_approx_eq inner_eval(KroneckerDelta, b*(k*b)*k) inner_eval(KroneckerDelta, (b*k)*(b*k))
+@test_approx_eq inner_eval(KronDelta, b*(k*b)*k) inner_eval(KronDelta, (b*k)*(b*k))
 
 testf(b,k) = k[1] - b[1]
 @test_approx_eq inner_eval(testf, b*(k*b)*k) inner_eval(testf, (b*k)*(b*k))

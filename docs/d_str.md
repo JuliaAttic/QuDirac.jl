@@ -5,7 +5,7 @@ QuDirac supports a "natural" input format by implementing `d"..."` literals. See
 
 ```julia
 julia> d" | 0 > "
-Ket{KroneckerDelta,1,Int64} with 1 state(s):
+Ket{KronDelta,1,Int64} with 1 state(s):
   1 | 0 ⟩
 ```
 
@@ -55,7 +55,7 @@ julia> d"""
        """
 
 julia> result
-Ket{KroneckerDelta,1,Float64} with 2 state(s):
+Ket{KronDelta,1,Float64} with 2 state(s):
   0.24253562503633297 | 0 ⟩
   0.9701425001453319 | 1 ⟩
 ```

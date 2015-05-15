@@ -10,7 +10,7 @@ This is generally faster than using inner products for coefficient selection:
 
 ```julia
 julia> k = normalize(sum(i->d" i * | i > ", 1:3))
-Ket{KroneckerDelta,1,Float64} with 3 state(s):
+Ket{KronDelta,1,Float64} with 3 state(s):
   0.8017837257372732 | 3 ⟩
   0.5345224838248488 | 2 ⟩
   0.2672612419124244 | 1 ⟩
@@ -30,7 +30,7 @@ The coefficients of product states are accessed in the same fashion:
 
 ```julia
 julia> k4 = k^4
-Ket{KroneckerDelta,4,Float64} with 81 state(s):
+Ket{KronDelta,4,Float64} with 81 state(s):
   0.03061224489795919 | 2,1,3,1 ⟩
   0.03061224489795919 | 1,3,2,1 ⟩
   0.09183673469387757 | 3,2,3,1 ⟩
@@ -47,13 +47,13 @@ One can also use `setindex!` on states:
 
 ```julia
 julia> k = d" 0.0| 0 > "
-Ket{KroneckerDelta,1,Float64} with 1 state(s):
+Ket{KronDelta,1,Float64} with 1 state(s):
   0.0 | 0 ⟩
 
 julia> k[0] = 1; k[1] = 1/2; k[2] = 1/4; 
 
 julia> k
-Ket{KroneckerDelta,1,Float64} with 3 state(s):
+Ket{KronDelta,1,Float64} with 3 state(s):
   0.25 | 2 ⟩
   1.0 | 0 ⟩
   0.5 | 1 ⟩
@@ -64,7 +64,7 @@ for the sake of addition/subtraction, but is a mutation of the orginal state:
 
 ```julia
 julia> d" k + | 0 > " # this requires constructing a new instance of | 0 ⟩
-Ket{KroneckerDelta,1,Float64} with 3 state(s):
+Ket{KronDelta,1,Float64} with 3 state(s):
   0.2182178902359924 | 2 ⟩
   1.8728715609439694 | 0 ⟩
   0.4364357804719848 | 1 ⟩
@@ -83,7 +83,7 @@ except two labels are required; one for the basis Ket, and another for the basis
 
 ```julia
 julia> k = sum(i->d" i * | i > ", 1:10); op = k*k'
-OuterProduct with 100 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
+OuterProduct with 100 operator(s); Ket{KronDelta,1,Int64} * Bra{KronDelta,1,Int64}:
   81 | 9 ⟩⟨ 9 |
   36 | 9 ⟩⟨ 4 |
   72 | 9 ⟩⟨ 8 |
@@ -96,7 +96,7 @@ julia> op[6,8]
 48
 
 julia> op = tensor(op,op,op)
-OuterProduct with 1000000 operator(s); Ket{KroneckerDelta,3,Int64} * Bra{KroneckerDelta,3,Int64}:
+OuterProduct with 1000000 operator(s); Ket{KronDelta,3,Int64} * Bra{KronDelta,3,Int64}:
   1600 | 4,5,2 ⟩⟨ 4,5,2 |
   1920 | 4,5,2 ⟩⟨ 2,8,3 |
   8640 | 4,5,2 ⟩⟨ 6,6,6 |
@@ -116,10 +116,10 @@ Assigning coefficients, however, only works with `OpSum`s (due to the
 
 ```julia
 julia> op[(8,1,10),(2,1,2)] = 1
-ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KroneckerDelta,3,Int64,Ket{KroneckerDelta,3,Int64},Bra{KroneckerDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
+ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KronDelta,3,Int64,Ket{KronDelta,3,Int64},Bra{KronDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
 
 julia> ops = convert(OpSum, op)
-OpSum{KroneckerDelta,3,Int64} with 1000000 operator(s):
+OpSum{KronDelta,3,Int64} with 1000000 operator(s):
   168 | 7,4,1 ⟩⟨ 1,6,1 |
   90 | 1,1,9 ⟩⟨ 5,1,2 |
   2520 | 5,6,2 ⟩⟨ 2,3,7 |
@@ -143,7 +143,7 @@ If a label is not explictly present in a QuDirac object, then calling `getindex`
 
 ```julia
 julia> k = sum(i->d" i * | i > ", 1:3)^3
-Ket{KroneckerDelta,3,Int64}} with 27 state(s):
+Ket{KronDelta,3,Int64}} with 27 state(s):
   12 | 2,2,3 ⟩
   27 | 3,3,3 ⟩
   4 | 1,2,2 ⟩

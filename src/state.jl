@@ -197,10 +197,10 @@ function inner{P,N}(br::BraSum{P,N}, kt::KetSum{P,N})
     return result  
 end
 
-inner{N}(br::BraSum{KroneckerDelta,N}, kt::SingleKet{KroneckerDelta,N}) = get(br, label(kt)) * coeff(kt)
-inner{N}(br::SingleBra{KroneckerDelta,N}, kt::KetSum{KroneckerDelta,N}) = get(kt, label(br)) * coeff(br)
+inner{N}(br::BraSum{KronDelta,N}, kt::SingleKet{KronDelta,N}) = get(br, label(kt)) * coeff(kt)
+inner{N}(br::SingleBra{KronDelta,N}, kt::KetSum{KronDelta,N}) = get(kt, label(br)) * coeff(br)
 
-function inner{N}(br::BraSum{KroneckerDelta,N}, kt::KetSum{KroneckerDelta,N})
+function inner{N}(br::BraSum{KronDelta,N}, kt::KetSum{KronDelta,N})
     if length(br) < length(kt)
         return ortho_inner(kt, br)
     else
@@ -208,7 +208,7 @@ function inner{N}(br::BraSum{KroneckerDelta,N}, kt::KetSum{KroneckerDelta,N})
     end
 end
 
-function ortho_inner(a::DiracState{KroneckerDelta}, b::DiracState{KroneckerDelta})
+function ortho_inner(a::DiracState{KronDelta}, b::DiracState{KronDelta})
     result = predict_zero(inner_coefftype(a, b))
     for sl in labels(b)
         if haskey(a, sl)

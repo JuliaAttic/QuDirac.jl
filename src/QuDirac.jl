@@ -80,11 +80,11 @@ module QuDirac
         info("QuDirac's default inner product type is currently $P.")
     end
 
-    default_inner(KroneckerDelta);
+    default_inner(KronDelta);
 
     export AbstractInner,
         UndefinedInner,
-        KroneckerDelta,
+        KronDelta,
         default_inner,
         AbstractDirac,
         DiracState,

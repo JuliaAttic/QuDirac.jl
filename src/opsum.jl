@@ -309,7 +309,7 @@ normalize!(op::DiracOp) = scale!(1/norm(op), op)
 #########
 # Trace #
 #########
-function Base.trace(op::OpSum)
+function Base.trace(op::OpSum{KronDelta})
     result = predict_zero(eltype(op))
     for (o,v) in iter(op)
         if klabel(o)==blabel(o)
@@ -319,7 +319,7 @@ function Base.trace(op::OpSum)
     return result
 end
 
-Base.trace(opc::DualOpSum) = trace(opc.op)'
+Base.trace(opc::DualOpSum{KronDelta}) = trace(opc.op)'
 
 #################
 # Partial trace #

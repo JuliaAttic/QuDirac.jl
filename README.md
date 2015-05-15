@@ -22,17 +22,17 @@ These are toy examples for demoing features. See [below for more involved exampl
 
 ```julia
 julia> bell = d" 1/√2 * (| 0,0 > + | 1,1 >) "
-Ket{KroneckerDelta,2,Float64} with 2 state(s):
+Ket{KronDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 0,0 ⟩
   0.7071067811865475 | 1,1 ⟩
 
 julia> bell'
-Bra{KroneckerDelta,2,Float64} with 2 state(s):
+Bra{KronDelta,2,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 0,0 |
   0.7071067811865475 ⟨ 1,1 |
 
 julia> ptrace(bell * bell', 1)
-OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
+OpSum{KronDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 0 ⟩⟨ 0 |
   0.4999999999999999 | 1 ⟩⟨ 1 |
 ```
@@ -89,11 +89,11 @@ julia> @def_op " < x, y, z | a₂ = √(y + 1) * < x, y + 1, z | "
 a₂ (generic function with 2 methods)
 
 julia> d" a₂ * | 3,5,5 > "
-Ket{KroneckerDelta,3,Float64} with 1 state(s):
+Ket{KronDelta,3,Float64} with 1 state(s):
   2.23606797749979 | 3,4,5 ⟩
 
 julia> d" a₂' * | 3,4,5 > "
-Ket{KroneckerDelta,3,Float64} with 1 state(s):
+Ket{KronDelta,3,Float64} with 1 state(s):
   2.23606797749979 | 3,5,5 ⟩
 
 julia> d" < 3,4,5 | * a₂ * | 3,5,5 > "
@@ -103,7 +103,7 @@ julia> d" < 3,4,5 | * a₂ * | 3,5,5 > "
 julia> @rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > ) " 0:1;
 
 julia> H
-OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
+OpSum{KronDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |

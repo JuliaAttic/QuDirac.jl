@@ -5,12 +5,12 @@ The simplest way to construct a QuDirac operator is to take the outer product of
 
 ```julia
 julia> k = d" 1/√2 * (| 0,0 > - | 1,1 >) "
-Ket{KroneckerDelta,2,Float64} with 2 state(s):
+Ket{KronDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 0,0 ⟩
   -0.7071067811865475 | 1,1 ⟩
 
 julia> k*k'
-OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
+OuterProduct with 4 operator(s); Ket{KronDelta,2,Float64} * Bra{KronDelta,2,Float64}:
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
@@ -33,15 +33,15 @@ Like states, operators can be multiplied by a scalar:
 
 ```julia
 julia> op = d" | 'a' >< 'b' | "
-OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
+OuterProduct with 1 operator(s); Ket{KronDelta,1,Int64} * Bra{KronDelta,1,Int64}:
   1 | 'a' ⟩⟨ 'b' |
 
 julia> im * op
-OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
+OuterProduct with 1 operator(s); Ket{KronDelta,1,Int64} * Bra{KronDelta,1,Int64}:
   0 + 1im | 'a' ⟩⟨ 'b' |
 
 julia> op/2
-OuterProduct with 1 operator(s); Ket{KroneckerDelta,1,Int64} * Bra{KroneckerDelta,1,Int64}:
+OuterProduct with 1 operator(s); Ket{KronDelta,1,Int64} * Bra{KronDelta,1,Int64}:
   0.5 | 'a' ⟩⟨ 'b' |
 ```
 
@@ -53,11 +53,11 @@ Operators can be added and subtracted just like states:
 
 ```julia
 julia> op + op
-OpSum{KroneckerDelta,1,Int64} with 1 operator(s):
+OpSum{KronDelta,1,Int64} with 1 operator(s):
   2 | 'a' ⟩⟨ 'b' |
 
 julia> d" 1/√2 * (op - | 0 >< 1 |) "
-OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
+OpSum{KronDelta,1,Float64} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 ```
@@ -72,7 +72,7 @@ Similarly to states, one can normalize operators using the `normalize` and `norm
 
 ```julia
 julia> op = normalize(sum(i -> d"| i >< i^2 |", 1:5))
-OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
+OpSum{KronDelta,1,Float64} with 5 operator(s):
   0.4472135954999579 | 5 ⟩⟨ 25 |
   0.4472135954999579 | 3 ⟩⟨ 9 |
   0.4472135954999579 | 4 ⟩⟨ 16 |
@@ -93,12 +93,12 @@ Take the conjugate transpose of an operator, simply call `ctranspose` on it:
 
 ```julia
 julia> A = normalize(d"(1+3im)| 1 >< 2 | + (5-2im)| 3 >< 4 |")
-OpSum{KroneckerDelta,1,Complex{Float64}} with 2 operator(s):
+OpSum{KronDelta,1,Complex{Float64}} with 2 operator(s):
   0.8006407690254357 - 0.32025630761017426im | 3 ⟩⟨ 4 |
   0.16012815380508713 + 0.48038446141526137im | 1 ⟩⟨ 2 |
 
 julia> A'
-DualOpSum{KroneckerDelta,1,Complex{Float64}} with 2 operator(s):
+DualOpSum{KronDelta,1,Complex{Float64}} with 2 operator(s):
   0.8006407690254357 + 0.32025630761017426im | 4 ⟩⟨ 3 |
   0.16012815380508713 - 0.48038446141526137im | 2 ⟩⟨ 1 |
 ```
@@ -116,14 +116,14 @@ Use the `*` function to take the inner product of states/operators:
 
 ```julia
 julia> k = d" 1/√2 * (| 0,0 > - | 1,1 >) "; P = k*k'
-OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
+OuterProduct with 4 operator(s); Ket{KronDelta,2,Float64} * Bra{KronDelta,2,Float64}:
   0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   -0.4999999999999999 | 0,0 ⟩⟨ 1,1 |
   -0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
   0.4999999999999999 | 1,1 ⟩⟨ 1,1 |
 
 julia> d" P * | 1,1 > "
-Ket{KroneckerDelta,2,Float64} with 2 state(s):
+Ket{KronDelta,2,Float64} with 2 state(s):
   -0.4999999999999999 | 0,0 ⟩
   0.4999999999999999 | 1,1 ⟩
 
@@ -131,7 +131,7 @@ julia> d" < 0,0 | * P * | 1,1 > "
 -0.4999999999999999
 
 julia> d" P * (| 1,1 >< 0,0 |) "
-OuterProduct with 2 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Int64}:
+OuterProduct with 2 operator(s); Ket{KronDelta,2,Float64} * Bra{KronDelta,2,Int64}:
   -0.4999999999999999 | 0,0 ⟩⟨ 0,0 |
   0.4999999999999999 | 1,1 ⟩⟨ 0,0 |
 ```
@@ -159,7 +159,7 @@ i.e. to compute `Ôᵢ | k₁,…,kᵢ,…,kⱼ ⟩`:
 
 ```julia
 julia> a = sum(i-> d"(√i)| i-1 >< i |", 1:5)
-OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
+OpSum{KronDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
   1.0 | 0 ⟩⟨ 1 |
@@ -167,12 +167,12 @@ OpSum{KroneckerDelta,1,Float64} with 5 operator(s):
   1.7320508075688772 | 2 ⟩⟨ 3 |
 
 julia> k = d" | 1,2,3 > + 2| 3,5,1> "
-Ket{KroneckerDelta,3,Int64} with 2 state(s):
+Ket{KronDelta,3,Int64} with 2 state(s):
   1 | 1,2,3 ⟩
   2 | 3,5,1 ⟩
 
 julia> act_on(a, k, 2)
-Ket{KroneckerDelta,3,Float64} with 2 state(s):
+Ket{KronDelta,3,Float64} with 2 state(s):
   4.47213595499958 | 3,4,1 ⟩
   1.4142135623730951 | 1,1,3 ⟩
 ```
@@ -181,7 +181,7 @@ This works on Bras as well, i.e. computing `⟨ b₁,…,bᵢ,…,bⱼ | Ôᵢ`:
 
 ```
 julia> act_on(a, d" < 1,2,3 |  ", 2)
-Bra{KroneckerDelta,3,Float64} with 1 state(s):
+Bra{KronDelta,3,Float64} with 1 state(s):
   1.7320508075688772 ⟨ 1,3,3 |
 ```
 
@@ -194,12 +194,12 @@ already used for inner products. Thus, one must use the `tensor` function:
 
 ```julia
 julia> op = d" 1/√2 * (| 'a' >< 'b' | + | 'c' >< 'd' |)"
-OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
+OpSum{KronDelta,1,Float64} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   0.7071067811865475 | 'c' ⟩⟨ 'd' |
 
 julia> tensor(op,op,op)
-OpSum{KroneckerDelta,3,Float64} with 8 operator(s):
+OpSum{KronDelta,3,Float64} with 8 operator(s):
   0.3535533905932737 | 'c','c','a' ⟩⟨ 'd','d','b' |
   0.3535533905932737 | 'c','a','a' ⟩⟨ 'd','b','b' |
   0.3535533905932737 | 'a','c','a' ⟩⟨ 'b','d','b' |
@@ -218,7 +218,7 @@ To take the trace of an operator, simply use the `trace` function:
 
 ```julia
 julia> k = normalize(sum(ket, 0:5))
-Ket{KroneckerDelta,1,Float64} with 6 state(s):
+Ket{KronDelta,1,Float64} with 6 state(s):
   0.4082482904638631 | 0 ⟩
   0.4082482904638631 | 2 ⟩
   0.4082482904638631 | 3 ⟩
@@ -236,19 +236,19 @@ The partial trace of an operator can be taken using the `ptrace` function:
 
 ```julia
 julia> bell = d" 1/√2 * (| 'b','a' > + | 'a','b' >) "
-Ket{KroneckerDelta,2,Float64} with 2 state(s):
+Ket{KronDelta,2,Float64} with 2 state(s):
   0.7071067811865475 | 'a','b' ⟩
   0.7071067811865475 | 'b','a' ⟩
 
 julia> dense = bell * bell'
-OuterProduct with 4 operator(s); Ket{KroneckerDelta,2,Float64} * Bra{KroneckerDelta,2,Float64}:
+OuterProduct with 4 operator(s); Ket{KronDelta,2,Float64} * Bra{KronDelta,2,Float64}:
   0.4999999999999999 | 'b','a' ⟩⟨ 'b','a' |
   0.4999999999999999 | 'b','a' ⟩⟨ 'a','b' |
   0.4999999999999999 | 'a','b' ⟩⟨ 'b','a' |
   0.4999999999999999 | 'a','b' ⟩⟨ 'a','b' |
 
 julia> ptrace(dense,1) # trace over the 1st subsystem
-OpSum{KroneckerDelta,1,Float64} with 2 operator(s):
+OpSum{KronDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 'b' ⟩⟨ 'b' |
   0.4999999999999999 | 'a' ⟩⟨ 'a' |
 
@@ -264,12 +264,12 @@ Take the partial transpose of an operator via the `ptranspose` function:
 
 ```
 julia> op = normalize(d" | 'a','b','c' >< 'd','e','f' | + 2| 'i','j','k' >< 'l','m','n' | ")
-OpSum{KroneckerDelta,3,Float64} with 2 operator(s):
+OpSum{KronDelta,3,Float64} with 2 operator(s):
   0.8944271909999159 | 'i','j','k' ⟩⟨ 'l','m','n' |
   0.4472135954999579 | 'a','b','c' ⟩⟨ 'd','e','f' |
 
 julia> ptranspose(op, 2) # transpose the 2nd subsystem
-OpSum{KroneckerDelta,3,Float64} with 2 operator(s):
+OpSum{KronDelta,3,Float64} with 2 operator(s):
   0.4472135954999579 | 'a','e','c' ⟩⟨ 'd','b','f' |
   0.8944271909999159 | 'i','m','k' ⟩⟨ 'l','j','n' |
 ```

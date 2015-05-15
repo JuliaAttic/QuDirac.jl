@@ -9,7 +9,7 @@ To begin, let's make a single state using the `ket` function:
 
 ```julia
 julia> ket(0)
-Ket{KroneckerDelta,1,Int64} with 1 state(s):
+Ket{KronDelta,1,Int64} with 1 state(s):
   1 | 0 ⟩
 ```
 
@@ -17,15 +17,15 @@ As you can see, the `ket` function takes labels (in this case, a single zero) as
 
 ```julia
 julia> ket(":)")
-Ket{KroneckerDelta,1,Int64} with 1 state(s):
+Ket{KronDelta,1,Int64} with 1 state(s):
   1 | ":)" ⟩
 
 julia> ket(:a)
-Ket{KroneckerDelta,1,Int64} with 1 state(s):
+Ket{KronDelta,1,Int64} with 1 state(s):
   1 | :a ⟩
 
 julia> ket([1,2,3])
-Ket{KroneckerDelta,1,Int64} with 1 state(s):
+Ket{KronDelta,1,Int64} with 1 state(s):
   1 | [1,2,3] ⟩
 ```
 
@@ -37,7 +37,7 @@ Bras can be constructed the same way using the `bra` function:
 
 ```julia
 julia> bra(0)
-Bra{KroneckerDelta,1,Int64} with 1 state(s):
+Bra{KronDelta,1,Int64} with 1 state(s):
   1 ⟨ 0 |
 ```
 
@@ -53,7 +53,7 @@ The number of labels passed to the `ket`/`bra` functions determines how many fac
 
 ```julia
 julia> k = ket(0,0,0)
-Ket{KroneckerDelta,3,Int64} with 1 state(s):
+Ket{KronDelta,3,Int64} with 1 state(s):
   1 | 0,0,0 ⟩
 
 julia> nfactors(k)
@@ -64,7 +64,7 @@ Just as with single-factor states, one is free to use labels of any type:
 
 ```julia
 julia> k = ket(0, ":)", :a, [1,2,3])
-Ket{KroneckerDelta,4,Int64} with 1 state(s):
+Ket{KronDelta,4,Int64} with 1 state(s):
   1 | 0,":)",:a,[1,2,3] ⟩
 
 julia> nfactors(k)

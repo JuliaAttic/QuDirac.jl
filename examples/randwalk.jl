@@ -34,7 +34,7 @@ function walk_nsteps(steps)
     steps += 1
 
     # Allocate space for the results
-    results = Array(Ket{KroneckerDelta, 2, Float64}, steps);
+    results = Array(Ket{KronDelta, 2, Float64}, steps);
 
     # Initial state
     results[1] = d" 1.0 * | 0,0 > "

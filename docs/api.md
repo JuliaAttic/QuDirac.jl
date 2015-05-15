@@ -85,7 +85,7 @@ To retrieve an `OpLabel`'s Bra label, call `blabel(::OpLabel)`.
 **nfactors(obj::AbstractDirac)**
 
 Returns the number of factors of `obj`. This information is also parameterized in the
-type of `obj`, e.g. an instance of type `Ket{KroneckerDelta,3}` has 3 factors.
+type of `obj`, e.g. an instance of type `Ket{KronDelta,3}` has 3 factors.
 
 ---
 **purity(op::DiracOp)**
@@ -157,13 +157,13 @@ Example:
 
 ```
 julia> k = sum(i ->d" i * | i,i+1,i+2 > ", 1:3)
-Ket{KroneckerDelta,3,Int64} with 3 state(s):
+Ket{KronDelta,3,Int64} with 3 state(s):
   1 | 1,2,3 ⟩
   2 | 2,3,4 ⟩
   3 | 3,4,5 ⟩
 
 julia> switch(k, 2, 3)
-Ket{KroneckerDelta,3,Int64} with 3 state(s):
+Ket{KronDelta,3,Int64} with 3 state(s):
   2 | 2,4,3 ⟩
   1 | 1,3,2 ⟩
   3 | 3,5,4 ⟩
@@ -178,13 +178,13 @@ Example:
 
 ```
 julia> k = sum(i -> d" i * | i,i+1,i+2 > ", 1:3)
-Ket{KroneckerDelta,3,Int64} with 3 state(s):
+Ket{KronDelta,3,Int64} with 3 state(s):
   1 | 1,2,3 ⟩
   2 | 2,3,4 ⟩
   3 | 3,4,5 ⟩
 
 julia> permute(k, [2, 3, 1])
-Ket{KroneckerDelta,3,Int64} with 3 state(s):
+Ket{KronDelta,3,Int64} with 3 state(s):
   3 | 4,5,3 ⟩
   1 | 2,3,1 ⟩
   2 | 3,4,2 ⟩
@@ -212,7 +212,7 @@ For example:
 
 ```julia
 julia> @rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > ) " 0:1
-OpSum{KroneckerDelta,1,Float64} with 4 operator(s):
+OpSum{KronDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |
@@ -239,7 +239,7 @@ For example:
 
 ```julia
 julia> state = normalize(sum(i -> d" (int(i) + int(i) * im) * | i > ", 'a':'c'))
-Ket{KroneckerDelta,1,Complex{Float64}} with 3 state(s):
+Ket{KronDelta,1,Complex{Float64}} with 3 state(s):
   0.40823412181754837 + 0.40823412181754837im | 'b' ⟩
   0.41239977612180906 + 0.41239977612180906im | 'c' ⟩
   0.4040684675132877 + 0.4040684675132877im | 'a' ⟩
@@ -354,7 +354,7 @@ Example:
 julia> k0 = sum(ket, 0:10); 
 
 julia> k1 = map((label, v) -> iseven(label[1]) ? (label, v) : (label, 0), k0)
-Ket{KroneckerDelta,1,Int64} with 11 state(s):
+Ket{KronDelta,1,Int64} with 11 state(s):
   1 | 2 ⟩
   0 | 5 ⟩
   0 | 1 ⟩
@@ -376,7 +376,7 @@ Example:
 
 ```julia
 julia> k = sum(ket, 0:1)*sum(ket, -1:1)
-Ket{KroneckerDelta,2,Int64} with 6 state(s):
+Ket{KronDelta,2,Int64} with 6 state(s):
   1 | 0,0 ⟩
   1 | 0,-1 ⟩
   1 | 1,0 ⟩
@@ -391,7 +391,7 @@ julia> shift_label(s) = StateLabel(s[1], s[2] - (-1)^s[1])
 shift_label (generic function with 1 method)
 
 julia> maplabels(shift_label, k)
-Ket{KroneckerDelta,2,Int64} with 6 state(s):
+Ket{KronDelta,2,Int64} with 6 state(s):
   1 | 0,-2 ⟩
   1 | 0,0 ⟩
   1 | 0,-1 ⟩
@@ -408,7 +408,7 @@ Example:
 
 ```julia
 julia> k = sum(i->d" i * | i > ", 1:6)
-Ket{KroneckerDelta,1,Int64} with 6 state(s):
+Ket{KronDelta,1,Int64} with 6 state(s):
   4 | 4 ⟩
   3 | 3 ⟩
   6 | 6 ⟩
@@ -417,7 +417,7 @@ Ket{KroneckerDelta,1,Int64} with 6 state(s):
   1 | 1 ⟩
 
 julia> mapcoeffs(i->i^2,k)
-Ket{KroneckerDelta,1,Int64} with 6 state(s):
+Ket{KronDelta,1,Int64} with 6 state(s):
   16 | 4 ⟩
   9 | 3 ⟩
   36 | 6 ⟩
@@ -441,7 +441,7 @@ julia> k = normalize(sum(ket, 0:4)^3);
 
  # extract labels where the second factor is 2
 julia> filter((label, c)->label[2]==2, k)
-Ket{KroneckerDelta,3} with 25 state(s):
+Ket{KronDelta,3} with 25 state(s):
   0.08944271909999159 | 4,2,0 ⟩
   0.08944271909999159 | 1,2,2 ⟩
   0.08944271909999159 | 3,2,3 ⟩
@@ -461,7 +461,7 @@ Example:
 julia> k = normalize(sum(ket, 0:4)^3);
 
 julia> xsubspace(k, 10)
-Ket{KroneckerDelta,3} with 6 state(s):
+Ket{KronDelta,3} with 6 state(s):
   0.08944271909999159 | 4,4,2 ⟩
   0.08944271909999159 | 4,3,3 ⟩
   0.08944271909999159 | 3,4,3 ⟩
@@ -479,7 +479,7 @@ Example:
 
 ```julia
 julia> filternz(d" 0*| 'a' > + 2*| 'b' > + 0*| 'c' > + 1.2*| 'd' >")
-Ket{KroneckerDelta,1,Float64} with 2 state(s):
+Ket{KronDelta,1,Float64} with 2 state(s):
   2.0 | 'b' ⟩
   1.2 | 'd' ⟩
 ```
