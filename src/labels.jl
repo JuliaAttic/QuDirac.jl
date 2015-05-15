@@ -45,6 +45,7 @@ labelstr(s::StateLabel) = join(map(repr, s.label), ',')
 Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"
 Base.show(io::IO, s::StateLabel) = print(io, repr(s))
 
+tensor_type{N,M,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{M,B}}) = StateLabel{N+M,promote_type(A,B)}
 Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = StateLabel{N,promote_type(A,B)}
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N}) = StateLabel{N,T}(convert(Vector{T}, s.label))
 
@@ -91,6 +92,7 @@ switch(o::OpLabel, i, j) = OpLabel(switch(o.k, i, j), switch(o.b, i, j))
 Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
 Base.show(io::IO, o::OpLabel) = print(io, repr(o))
 
+tensor_type{N,M,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{M,K2,B2}}) = OpLabel{N+M,promote_type(K1,K2), promote_type(B1,B2)}
 Base.promote_type{N,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{N,K2,B2}}) = OpLabel{N,promote_type(K1,K2), promote_type(B1,B2)}
 Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, s::OpLabel{N}) = OpLabel{N,K,B}(convert(StateLabel{N,K}, o.k), convert(StateLabel{N,B}, o.b))
 
