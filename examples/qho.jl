@@ -34,10 +34,8 @@ QHOInner(n::Int, m::Int) = n==m ? 1.0 : 0.0
 default_inner(QHOInner)
 
 # With the above, we've defined this behavior for basis states:
-#
-# < i::Int | * | j::Int > = ∫ ψᵢ'ψⱼ dx =  δᵢⱼ
-#
-# < x::Float64 | * | i::Int > = ψᵢ(x)
+# < i::Int | j::Int > = ∫ ψᵢ'ψⱼ dx =  δᵢⱼ
+# < x::Float64 | i::Int > = ψᵢ(x)
 
 ####################
 # Ladder Operators #
