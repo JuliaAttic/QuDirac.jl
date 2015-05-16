@@ -1,5 +1,8 @@
 abstract SumAssoc{K,V} <: Associative{K,V}
 
+Base.eltype{K,V}(::SumAssoc{K,V}) = V
+labeltype{K,V}(::SumAssoc{K,V}) = K
+
 ###########
 # SumTerm #
 ###########
@@ -13,27 +16,29 @@ end
 key(term::SumTerm) = term.key
 val(term::SumTerm) = term.val
 
+Base.eltype{K,V}(::Type{SumTerm{K,V}}) = V
+labeltype{K,V}(::Type{SumTerm{K,V}}) = K
+
 Base.copy(term::SumTerm) = SumTerm(copy(key(term)), copy(val(term)))
 
 Base.promote_rule{K1,V1,K2,V2}(::Type{SumTerm{K1,V1}}, ::Type{SumTerm{K2,V2}}) = SumTerm{promote_type(K1,K2), promote_type(V1,V2)}
 Base.convert{K,V}(::Type{SumTerm{K,V}}, term::SumTerm) = SumTerm(convert(K,key(term)), convert(V,val(term)))
-
-Base.(:(==))(a::SumTerm, b::SumTerm) = key(a) == key(b) && val(a) == val(b)
 
 Base.keys(term::SumTerm) = tuple(key(term))
 Base.values(term::SumTerm) = tuple(values(term))
 
 Base.length(term::SumTerm) = 1
 
-Base.getindex(term::SumTerm, x) = x == key(term) ? val(term) : throw(KeyError(x))
+Base.getindex(term::SumTerm, x) = haskey(term, x) ? val(term) : throw(KeyError(x))
+Base.setindex!(term::SumTerm, x, y) = haskey(term, y) ? term.val = x : throw(KeyError(y))
 
 Base.start(term::SumTerm) = false
 Base.next(term::SumTerm, i) = (tuple(key(term), val(term)), true)
 Base.done(term::SumTerm, i) = i
+Base.collect(term::SumTerm) = [first(term)]
 
 Base.haskey(term::SumTerm, k) = k == key(term)
-Base.get(term::SumTerm, k, default=0) = haskey(term, k) ? val(term) : default
-
+Base.get(term::SumTerm, k, default=predict_zero(eltype(term))) = haskey(term, k) ? val(term) : default
 
 ###########
 # SumTerm #
@@ -48,9 +53,16 @@ SumDict{K,V}(data::Dict{K,V}) = SumDict{K,V}(data)
 SumDict(term::SumTerm) = @compat SumDict(Dict(key(term) => val(term)))
 SumDict(args...) = SumDict(Dict(args...))
 
+Base.eltype{K,V}(::Type{SumDict{K,V}}) = V
+labeltype{K,V}(::Type{SumDict{K,V}}) = K
+
 Base.sizehint(dict::SumDict, len) = @compat (sizehint!(dict.data, len); return dict)
 Base.copy(dict::SumDict) = SumDict(copy(dict.data))
 
+Base.merge!(result::SumDict, dict::SumDict) = (merge!(result.data, dict.data); return result)
+
+Base.hash(s::SumAssoc) = hash(filternz(s).data)
+Base.hash(s::SumAssoc, h::Uint64) = hash(hash(s), h)
 Base.(:(==))(a::SumAssoc, b::SumAssoc) = filternz(a).data == filternz(b).data
 
 Base.promote_rule{K1,V1,K2,V2}(::Type{SumDict{K1,V1}}, ::Type{SumDict{K2,V2}}) = SumDict{promote_type(K1,K2), promote_type(V1,V2)}
@@ -64,14 +76,15 @@ Base.values(dict::SumDict) = values(dict.data)
 Base.length(dict::SumDict) = length(dict.data)
 
 Base.getindex(dict::SumDict, x) = dict.data[x]
-Base.setindex!(dict::SumDict, x, y) = setindex!(dict.data, x, y)
+Base.setindex!(dict::SumDict, x, y) = haskey(dict, y) ? setindex!(dict.data, x, y) : throw(KeyError(y))
 
 Base.start(dict::SumDict) = start(dict.data)
 Base.next(dict::SumDict, i) = next(dict.data, i)
 Base.done(dict::SumDict, i) = done(dict.data, i)
+Base.collect(dict::SumDict) = collect(dict.data)
 
 Base.haskey(dict::SumDict, k) = haskey(dict.data, k)
-Base.get(dict::SumDict, k, default=0) = get(dict.data, k, default)
+Base.get(dict::SumDict, k, default=predict_zero(eltype(dict))) = get(dict.data, k, default)
 
 #############
 # Filtering #
@@ -93,16 +106,16 @@ Base.map(f::Union(Function,DataType), dict::SumDict) = SumDict(map(f, collect(di
 
 function mapvals!(f, dict::SumDict)
     for (k,v) in dict
-        dict[k] = f(v)
+        dict.data[k] = f(v)
     end
     return dict
 end
 mapvals!(f, term::SumTerm) = (term.val = f(val(term)); return term)
 
 mapvals(f, term::SumTerm) = SumTerm(key(term), f(val(term)))
-mapvals(f, d::SumDict) = Dict(zip(collect(keys(d)), map(f, collect(values(d)))))
+mapvals(f, d::SumDict) = SumDict(zip(collect(keys(d)), map(f, collect(values(d)))))
 mapkeys(f, term::SumTerm) = SumTerm(f(key(term)), val(term))
-mapkeys(f, d::SumDict) = Dict(zip(map(f, collect(keys(d))), collect(values(d))))
+mapkeys(f, d::SumDict) = SumDict(zip(map(f, collect(keys(d))), collect(values(d))))
 
 ###########
 # Scaling #
@@ -111,7 +124,7 @@ scale_result{K,V,T}(d::SumDict{K,V}, ::T) = @compat sizehint!(SumDict{K, promote
 
 function Base.scale!(dict::SumDict, c::Number)
     for k in keys(dict)
-        dict[k] *= c
+        dict.data[k] *= c
     end
     return dict
 end
@@ -123,11 +136,47 @@ Base.scale(dict::SumDict, c::Number) = Base.scale!(merge!(scale_result(dict,c), 
 Base.scale(term::SumTerm, c::Number) = SumTerm(key(term), val(term) * c)
 Base.scale(c::Number, sa::SumAssoc) = scale(sa, c)
 
-Base.(:*)(a::SumAssoc, b::SumAssoc) = tensor(a, b)
+Base.(:*)(a::SumAssoc, b::SumAssoc) = mul_sums(a, b)
 Base.(:*)(c::Number, s::SumAssoc) = scale(c, s)
 Base.(:*)(s::SumAssoc, c::Number) = scale(s, c)
 Base.(:/)(s::SumAssoc, c::Number) = scale(s, 1/c)
 Base.(:-)(s::SumAssoc) = scale(s, -1)
+
+#######
+# Mul #
+#######
+function mul_merge!(result::SumDict, a::SumDict, b::SumDict)
+    for (k,v) in a
+        for (l,c) in b
+            result.data[k*l] = v*c
+        end
+    end
+    return result
+end
+
+function mul_merge!(result::SumDict, dict::SumDict, term::SumTerm)
+    k0,v0 = key(term), val(term)
+    for (k,v) in dict
+        result.data[k*k0] = v*v0
+    end
+    return result
+end
+
+function mul_merge!(result::SumDict, term::SumTerm, dict::SumDict)
+    k0,v0 = key(term), val(term)
+    for (k,v) in dict
+        result.data[k0*k] = v*v0
+    end
+    return result
+end
+
+mul_result{A,B,T,V}(a::SumDict{A,T}, b::SumDict{B,V}) = @compat sizehint!(SumDict{tensor_type(A,B), promote_type(T,V)}(), length(a) * length(b))
+mul_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = @compat sizehint!(SumDict{tensor_type(K,L), promote_type(V,C)}(), length(d))
+
+mul_sums(a::SumDict, b::SumDict) = mul_merge!(mul_result(a, b), a, b)
+mul_sums(dict::SumDict, term::SumTerm) = mul_merge!(mul_result(dict, term), dict, term)
+mul_sums(term::SumTerm, dict::SumDict) = mul_merge!(mul_result(dict, term), term, dict)
+mul_sums(a::SumTerm, b::SumTerm) = SumTerm(key(a) * key(b), val(a) * val(b))
 
 ##########
 # Tensor #
@@ -135,7 +184,7 @@ Base.(:-)(s::SumAssoc) = scale(s, -1)
 function tensor_merge!(result::SumDict, a::SumDict, b::SumDict)
     for (k,v) in a
         for (l,c) in b
-            result[tensor(k,l)] = v*c
+            result.data[tensor(k,l)] = v*c
         end
     end
     return result
@@ -144,7 +193,7 @@ end
 function tensor_merge!(result::SumDict, dict::SumDict, term::SumTerm)
     k0,v0 = key(term), val(term)
     for (k,v) in dict
-        result[tensor(k,k0)] = v*v0
+        result.data[tensor(k,k0)] = v*v0
     end
     return result
 end
@@ -152,7 +201,7 @@ end
 function tensor_merge!(result::SumDict, term::SumTerm, dict::SumDict)
     k0,v0 = key(term), val(term)
     for (k,v) in dict
-        result[tensor(k0,k)] = v*v0
+        result.data[tensor(k0,k)] = v*v0
     end
     return result
 end
@@ -170,7 +219,7 @@ tensor(a::SumTerm, b::SumTerm) = SumTerm(tensor(key(a), key(b)), val(a) * val(b)
 ############
 function add_to_dict!(dict::SumDict, k, v)
     if v != 0
-        dict[k] = get(dict, k, 0) + v
+        dict.data[k] = get(dict, k) + v
     end
     return dict
 end

@@ -241,58 +241,38 @@ end
 
 Base.show(io::IO, iex::InnerExpr) = print(io, repr(iex))
 
-#############
-# def_inner #
-#############
-return_type() = error("return_type takes args")
+###############
+# Inner rules #
+###############
+immutable KronDelta <: AbstractInner end
+KronDelta(b, k) = b == k ? 1 : 0
 
-# Julia can only inference the 
-# result type properly if the
-# args to $name are specifically 
-# type-annotated, e.g.
-#
-# $name(a,b) = ...
-#
-# will likely result in type
-# instability, while
-#
-# $name(a::Int, b::Float64) = ...
-#
-# can be well-inferenced.
-macro def_inner(name, rettype, flag...)
-    info_bool = isempty(flag) ? true : false
-    return esc(quote 
-        immutable $name <: AbstractInner
-            function $name{N}(b::StateLabel{N}, k::StateLabel{N})
-                result = $name(b[1], k[1])
-                for i=2:N
-                    result *= $name(b[i], k[i])
-                end
-                return result
-            end
-        end
-        QuDirac.return_type(::Type{$name}) = $rettype
+immutable UndefInner <: AbstractInner end
+UndefInner(b, k) = InnerExpr(InnerLabel(b, k))
 
-        if $info_bool
-            info(string($name, " is now defined as an inner product type."))
-            info(string("Inner products using the ", $name ," type should return values of type ", $rettype, "."))
-        end
-
-    end)
+function inner{P<:AbstractInner,N}(::Type{P}, b::StateLabel{N}, k::StateLabel{N})
+    result = P(b[1], k[1])
+    for i=2:N
+        result *= P(b[i], k[i])
+    end
+    return result
 end
 
-@def_inner KronDelta Int64 1
-KronDelta{N}(b::StateLabel{N},k::StateLabel{N}) = b == k ? 1 : 0
-KronDelta(b,k) = b == k ? 1 : 0
+inner{N}(::Type{KronDelta}, b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
+inner{N}(::Type{UndefInner}, b::StateLabel{N}, k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
 
-@def_inner UndefinedInner InnerExpr 1
-UndefinedInner{N}(b::StateLabel{N},k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
-UndefinedInner(b,k) = UndefinedInner(StateLabel(b), StateLabel(k))
+function inner_rettype{P}(a::AbstractDirac{P}, b::AbstractDirac{P})
+    T = Base.return_types(P, (labeltype(a), labeltype(b)))
+    return promote_type(eltype(a), eltype(b), T)
+end
 
-inner_coefftype{P}(a::AbstractDirac{P}, b::AbstractDirac{P}) = promote_type(eltype(a), eltype(b), return_type(P))
+inner_rettype(a::AbstractDirac{KronDelta}, b::AbstractDirac{KronDelta}) = promote_type(eltype(a), eltype(b), Int)
+inner_rettype(a::AbstractDirac{UndefInner}, b::AbstractDirac{UndefInner}) = promote_type(eltype(a), eltype(b), InnerExpr)
+inner_rettype(d::AbstractDirac) = inner_rettype(d,d)
+
 
 export InnerExpr,
-    UndefinedInner,
+    UndefInner,
     KronDelta,
     inner_eval,
     @def_inner

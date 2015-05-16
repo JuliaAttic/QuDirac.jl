@@ -53,11 +53,11 @@ module QuDirac
     ######################
     include("labels.jl")
     include("sumassoc.jl")
-    # include("inner.jl")
-    # include("state.jl")
+    include("inner.jl")
+    include("state.jl")
     # include("opsum.jl")
     # include("outerproduct.jl")
-    # include("printfuncs.jl")
+    include("printfuncs.jl")
     # include("mapfuncs.jl")
     # include("str_macros.jl")
     # include("funcop.jl")
@@ -75,14 +75,14 @@ module QuDirac
     # constructors for the relevant objects. This is hacky,
     # but works for now, seeing as how only a few functions
     # actually "use" the default ptype.
-    # function default_inner{P<:AbstractInner}(::Type{P})
-    #     QuDirac.ket(label::StateLabel) = ket(P, label)
-    #     QuDirac.ket(items...) = ket(P, StateLabel(items))
-    #     QuDirac.bra(items...) = Bra(ket(items...))
-    #     info("QuDirac's default inner product type is currently $P.")
-    # end
+    function default_inner{P<:AbstractInner}(::Type{P})
+        QuDirac.ket(label::StateLabel) = ket(P, label)
+        QuDirac.ket(items...) = ket(P, StateLabel(items))
+        QuDirac.bra(items...) = Bra(ket(items...))
+        info("QuDirac's default inner product type is currently $P.")
+    end
 
-    # default_inner(KronDelta);
+    default_inner(KronDelta);
 
     export AbstractInner,
         default_inner,

@@ -40,6 +40,7 @@ Base.length{N}(::StateLabel{N}) = N
 is_sum_x(s::StateLabel, x) = sum(s) == x
 
 tensor{N,M,A,B}(a::StateLabel{N,A}, b::StateLabel{M,B}) = StateLabel{N+M,promote_type(A,B)}(vcat(a.label, b.label))
+Base.(:*)(a::StateLabel, b::StateLabel) = tensor(a,b)
 
 labelstr(s::StateLabel) = join(map(repr, s.label), ',')
 Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"

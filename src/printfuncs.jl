@@ -6,7 +6,7 @@ function dirac_show(io::IO, dirac::AbstractDirac)
     pad = "  "
     maxlen = 10
     i = 1
-    for j in labels(dirac)
+    for j in keys(data(dirac))
         if i > maxlen
             break
         else
@@ -25,7 +25,7 @@ function dirac_showcompact(io::IO, dirac::AbstractDirac)
     pad = " "
     maxlen = 4
     i = 1
-    for j in labels(dirac)
+    for j in keys(data(dirac))
         if i > maxlen
             break
         else
