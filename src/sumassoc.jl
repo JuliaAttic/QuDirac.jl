@@ -120,7 +120,7 @@ mapkeys(f, d::SumDict) = SumDict(zip(map(f, collect(keys(d))), collect(values(d)
 ###########
 # Scaling #
 ###########
-scale_result{K,V,T}(d::SumDict{K,V}, ::T) = @compat sizehint!(SumDict{K, promote_type(T,V)}(), length(d))
+scale_result{K,V,T}(d::SumDict{K,V}, ::T) = SumDict{K, promote_type(T,V)}(d)
 
 function Base.scale!(dict::SumDict, c::Number)
     for k in keys(dict)
@@ -132,51 +132,15 @@ end
 Base.scale!(term::SumTerm, c::Number) = (term.val *= c; return term)
 Base.scale!(c::Number, sa::SumAssoc) = scale!(sa, c)
 
-Base.scale(dict::SumDict, c::Number) = Base.scale!(merge!(scale_result(dict,c), dict), c)
+Base.scale(dict::SumDict, c::Number) = scale!(scale_result(dict,c), c)
 Base.scale(term::SumTerm, c::Number) = SumTerm(key(term), val(term) * c)
-Base.scale(c::Number, sa::SumAssoc) = scale(sa, c)
+Base.scale(c::Number, s::SumAssoc) = scale(s, c)
 
-Base.(:*)(a::SumAssoc, b::SumAssoc) = mul_sums(a, b)
+Base.(:*)(a::SumAssoc, b::SumAssoc) = tensor(a, b)
 Base.(:*)(c::Number, s::SumAssoc) = scale(c, s)
 Base.(:*)(s::SumAssoc, c::Number) = scale(s, c)
 Base.(:/)(s::SumAssoc, c::Number) = scale(s, 1/c)
 Base.(:-)(s::SumAssoc) = scale(s, -1)
-
-#######
-# Mul #
-#######
-function mul_merge!(result::SumDict, a::SumDict, b::SumDict)
-    for (k,v) in a
-        for (l,c) in b
-            result.data[k*l] = v*c
-        end
-    end
-    return result
-end
-
-function mul_merge!(result::SumDict, dict::SumDict, term::SumTerm)
-    k0,v0 = key(term), val(term)
-    for (k,v) in dict
-        result.data[k*k0] = v*v0
-    end
-    return result
-end
-
-function mul_merge!(result::SumDict, term::SumTerm, dict::SumDict)
-    k0,v0 = key(term), val(term)
-    for (k,v) in dict
-        result.data[k0*k] = v*v0
-    end
-    return result
-end
-
-mul_result{A,B,T,V}(a::SumDict{A,T}, b::SumDict{B,V}) = @compat sizehint!(SumDict{tensor_type(A,B), promote_type(T,V)}(), length(a) * length(b))
-mul_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = @compat sizehint!(SumDict{tensor_type(K,L), promote_type(V,C)}(), length(d))
-
-mul_sums(a::SumDict, b::SumDict) = mul_merge!(mul_result(a, b), a, b)
-mul_sums(dict::SumDict, term::SumTerm) = mul_merge!(mul_result(dict, term), dict, term)
-mul_sums(term::SumTerm, dict::SumDict) = mul_merge!(mul_result(dict, term), term, dict)
-mul_sums(a::SumTerm, b::SumTerm) = SumTerm(key(a) * key(b), val(a) * val(b))
 
 ##########
 # Tensor #

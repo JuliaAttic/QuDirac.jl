@@ -22,7 +22,7 @@ labeltype{P,N,S}(::Type{Ket{P,N,S}}) = labeltype(S)
 Base.hash(k::Ket) = hash(ptype(k), hash(data(k)))
 Base.hash(k::Ket, h::Uint64) = hash(hash(k), h)
 Base.copy(k::Ket) = Ket(copy(ptype(k)), copy(data(k)))
-Base.(:(==))(a::Ket, b::Ket) = ptype(a) == ptype(b) && data(a) == data(b)
+Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = data(a) == data(b)
 Base.length(k::Ket) = length(data(k))
 
 Base.getindex(k::Ket, x::StateLabel) = k.data[x]
@@ -58,7 +58,7 @@ labeltype{P,N,S}(::Type{Bra{P,N,S}}) = labeltype(S)
 Base.hash(b::Bra) = hash(b.kt, bra_hash)
 Base.hash(b::Bra, h::Uint64) = hash(hash(b), h)
 Base.copy(b::Bra) = Bra(copy(b.kt))
-Base.(:(==))(a::Bra, b::Bra) = a.kt == b.kt
+Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.length(b::Bra) = length(b.kt)
 
 Base.getindex(b::Bra, x::StateLabel) = b.kt[x]'
@@ -92,10 +92,10 @@ end
 ################
 # Type Aliases #
 ################
-typealias KetSum{P,N,L,T} Ket{P,N,SumDict{StateLabel{N,L},T}}
-typealias SingleKet{P,N,L,T} Ket{P,N,SumTerm{StateLabel{N,L},T}}
-typealias BraSum{P,N,L,T} Bra{P,N,SumDict{StateLabel{N,L},T}}
-typealias SingleBra{P,N,L,T} Bra{P,N,SumTerm{StateLabel{N,L},T}}
+typealias KetSum{P,N,S<:SumDict} Ket{P,N,S}
+typealias SingleKet{P,N,S<:SumTerm} Ket{P,N,S}
+typealias BraSum{P,N,S<:SumDict} Bra{P,N,S}
+typealias SingleBra{P,N,S<:SumTerm} Bra{P,N,S}
 
 coeff(k::SingleKet) = val(data(k))
 coeff(b::SingleBra) = val(data(b))'
@@ -156,7 +156,7 @@ end
 
 function ortho_inner(a::DiracState{KronDelta}, b::DiracState{KronDelta})
     result = predict_zero(inner_rettype(a, b))
-    for l in labels(b)
+    for l in keys(data(b))
         if haskey(a, l)
             result += a[l]*b[l]
         end
@@ -173,7 +173,7 @@ Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
 ##########
 act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
 # redundant definitions to resolve ambiguity warnings
-act_on{P}(br::Bra{P,1}, kt::KetSum{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
+act_on{P,L,T}(br::Bra{P,1}, kt::Ket{P,1,SumDict{StateLabel{1,L},T}}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P}(br::SingleBra{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P}(br::BraSum{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 
@@ -181,7 +181,7 @@ function act_on{P,N}(br::SingleBra{P,1}, kt::SingleKet{P,N}, i)
     return (br * ket(P, label(kt)[i])) * ket(P, except(label(kt), i))
 end
 
-function act_on{P,N,L,T}(br::Bra{P,1}, kt::KetSum{P,N,L,T}, i)
+function act_on{P,N,L,T}(br::Bra{P,1}, kt::Ket{P,N,SumDict{StateLabel{N,L},T}}, i)
     result = SumDict{StateLabel{N-1, L}, inner_rettype(br,kt)}()
     return Ket(P, act_on_dict!(result, br, kt, i))
 end
