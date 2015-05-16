@@ -36,7 +36,7 @@ When using `d"..."` literals, the `|`, `>` and `<` characters *cannot be used fo
 julia> d" A = tensor(| 0 >< 1 |, | 1 >< 0 |) ";
 
 julia> A
-OuterProduct with 1 operator(s); Ket{UndefinedInner,2,Int64} * Bra{UndefinedInner,2,Int64}:
+OuterProduct with 1 operator(s); Ket{UndefInner,2,Int64} * Bra{UndefInner,2,Int64}:
   1 | 0,1 ⟩⟨ 1,0 |
 ```
 

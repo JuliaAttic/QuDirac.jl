@@ -41,8 +41,8 @@ OpSum{KronDelta,1,Float64} with 2 operator(s):
 
 ```julia
 # tells QuDirac to use the rule for undefined inner products
-julia> default_inner(UndefinedInner)
-INFO: QuDirac's default inner product type is currently UndefinedInner.
+julia> default_inner(UndefInner)
+INFO: QuDirac's default inner product type is currently UndefInner.
 
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)

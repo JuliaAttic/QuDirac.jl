@@ -7,14 +7,14 @@ behavior for the object. QuDirac comes with two such inner product types:
 ```julia
 abstract AbstractInner
 immutable KronDelta <: AbstractInner end
-immutable UndefinedInner <: AbstractInner end
+immutable UndefInner <: AbstractInner end
 ```
 
 For each inner product type, a constructor is defined that evaluates the inner product of two basis states 
 given the states' labels. For example, the constructors for the two types above are similar to the following:
 
 ```julia
-UndefinedInner{N}(b::StateLabel{N}, k::StateLabel{N}) = InnerExpr(InnerLabel(b, k)) # lazy evaluation of inner product
+UndefInner{N}(b::StateLabel{N}, k::StateLabel{N}) = InnerExpr(InnerLabel(b, k)) # lazy evaluation of inner product
 KronDelta{N}(b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
 ```
 
@@ -26,19 +26,19 @@ To create an instance of a Ket or Bra with a specific inner product type, you ca
 pass the desired type to the `ket` or `bra` function:
 
 ```julia
-julia> ket(UndefinedInner, 1, 2)
-Ket{UndefinedInner,2,Int64} with 1 state(s):
+julia> ket(UndefInner, 1, 2)
+Ket{UndefInner,2,Int64} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
 If you don't explicitly select a type, a default inner product type is used. The user can set the default inner product type for the current session with the `default_inner` function:
 
 ```julia
-julia> default_inner(UndefinedInner)
-INFO: QuDirac default inner product type is currently UndefinedInner.
+julia> default_inner(UndefInner)
+INFO: QuDirac default inner product type is currently UndefInner.
 
 julia> ket(1,2)
-Ket{UndefinedInner,2,Int64} with 1 state(s):
+Ket{UndefInner,2,Int64} with 1 state(s):
   1 | 1,2 ⟩
 ```
 
@@ -91,14 +91,14 @@ true
 # Delayed Inner Product Evaluation
 ---
 
-Taking inner products with the `UndefinedInner` type will yield `InnerExpr`s, QuDirac's representations of unevaluated inner products. Instances of `InnerExpr` can be treated like numbers in most respects:
+Taking inner products with the `UndefInner` type will yield `InnerExpr`s, QuDirac's representations of unevaluated inner products. Instances of `InnerExpr` can be treated like numbers in most respects:
 
 ```julia
-julia> default_inner(UndefinedInner)
-INFO: QuDirac default inner product type is currently UndefinedInner.
+julia> default_inner(UndefInner)
+INFO: QuDirac default inner product type is currently UndefInner.
 
 julia> d" act_on(< 'x' |, | 'a','b','c' >, 2) "
-Ket{UndefinedInner,2,Number} with 1 state(s):
+Ket{UndefInner,2,Number} with 1 state(s):
   ⟨ 'x' | 'b' ⟩ | 'a','c' ⟩
 
 julia> s = d" √(< 1 | 3 >)^2 + 1 "
@@ -108,7 +108,7 @@ julia> typeof(s)
 InnerExpr (constructor with 4 methods)
 
 julia> d" s * | 1,2,3 > "
-Ket{UndefinedInner,3,Number} with 1 state(s):
+Ket{UndefInner,3,Number} with 1 state(s):
   (sqrt(((⟨ 1 | 3 ⟩^2) + 1))) | 1,2,3 ⟩
 ```
 
@@ -140,17 +140,17 @@ Finally, `inner_eval` can be called on states and operators to perform the evalu
 
 ```julia
 julia> s = d" act_on( < 'x' | + < 'y' |, | 'a','b','c' > + | 'd','e','f' >, 2) "
-Ket{UndefinedInner,2,Number} with 2 state(s):
+Ket{UndefInner,2,Number} with 2 state(s):
   (⟨ 'x' | 'e' ⟩ + ⟨ 'y' | 'e' ⟩) | 'd','f' ⟩
   (⟨ 'x' | 'b' ⟩ + ⟨ 'y' | 'b' ⟩) | 'a','c' ⟩
 
 julia> inner_eval((b,k) -> int(b[1]) * int(k[1]), s)
-Ket{UndefinedInner,2,Int64} with 2 state(s):
+Ket{UndefInner,2,Int64} with 2 state(s):
   24341 | 'd','f' ⟩
   23618 | 'a','c' ⟩
 
 julia> inner_eval(KronDelta, s)
-Ket{UndefinedInner,2,Int64} with 2 state(s):
+Ket{UndefInner,2,Int64} with 2 state(s):
   0 | 'd','f' ⟩
   0 | 'a','c' ⟩
 ```
