@@ -82,11 +82,8 @@ ptranspose{N}(k::StateLabel{N}, b::StateLabel{N}, i) = OpLabel(setindex(k, b[i],
 ptranspose(o::OpLabel, i) = ptranspose(o.k, o.b, i)
 ptranspose_dual(o::OpLabel, i) = ptranspose(o.b, o.k, i)
 
-traceout(k::StateLabel, b::StateLabel, i) = OpLabel(except(k, i), except(b, i))
-traceout(o::OpLabel, i) = traceout(o.k, o.b, i)
-traceout_dual(o::OpLabel, i) = traceout(o.b, o.k, i)
-
 permute(o::OpLabel, perm::Vector) = OpLabel(permute(o.k, perm), permute(o.b, perm))
+except(o::OpLabel, i) = OpLabel(except(o.k, i), except(o.b, i))
 switch(o::OpLabel, i, j) = OpLabel(switch(o.k, i, j), switch(o.b, i, j))
 
 Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
@@ -100,8 +97,6 @@ Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, s::OpLabel{N}) = OpLabel{N,K,B}(conv
 # Helper Functions #
 ####################
 ctpair(k,v) = (k', v')
-nzcoeff(k,v) = v!=0
-second(t) = t[2]
 
 function switch!(arr, i, j)
     tmp = arr[i]

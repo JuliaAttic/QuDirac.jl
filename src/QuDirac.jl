@@ -34,7 +34,9 @@ module QuDirac
     tensor() = error("Cannot call tensor function without arguments")
     tensor(s...) = reduce(tensor, s)
 
-    prodtype{P}(::AbstractDirac{P}) = P
+    ptype{P}(::AbstractDirac{P}) = P
+
+    copy(i::AbstractInner) = i # no-op by default
 
     Base.one{D<:AbstractDirac}(::Type{D}) = 1
     Base.one(::AbstractDirac) = 1
@@ -50,15 +52,15 @@ module QuDirac
     # Include Statements #
     ######################
     include("labels.jl")
-    include("inner.jl")
-    include("state.jl")
-    include("opsum.jl")
-    include("outerproduct.jl")
-    include("printfuncs.jl")
-    include("dictfuncs.jl")
-    include("mapfuncs.jl")
-    include("str_macros.jl")
-    include("funcop.jl")
+    include("sumassoc.jl")
+    # include("inner.jl")
+    # include("state.jl")
+    # include("opsum.jl")
+    # include("outerproduct.jl")
+    # include("printfuncs.jl")
+    # include("mapfuncs.jl")
+    # include("str_macros.jl")
+    # include("funcop.jl")
     
     #################
     # default_inner #
@@ -73,18 +75,16 @@ module QuDirac
     # constructors for the relevant objects. This is hacky,
     # but works for now, seeing as how only a few functions
     # actually "use" the default ptype.
-    function default_inner{P<:AbstractInner}(::Type{P})
-        QuDirac.ket(label::StateLabel) = ket(P, label)
-        QuDirac.ket(items...) = ket(P, StateLabel(items))
-        QuDirac.bra(items...) = Bra(ket(items...))
-        info("QuDirac's default inner product type is currently $P.")
-    end
+    # function default_inner{P<:AbstractInner}(::Type{P})
+    #     QuDirac.ket(label::StateLabel) = ket(P, label)
+    #     QuDirac.ket(items...) = ket(P, StateLabel(items))
+    #     QuDirac.bra(items...) = Bra(ket(items...))
+    #     info("QuDirac's default inner product type is currently $P.")
+    # end
 
-    default_inner(KronDelta);
+    # default_inner(KronDelta);
 
     export AbstractInner,
-        UndefinedInner,
-        KronDelta,
         default_inner,
         AbstractDirac,
         DiracState,
