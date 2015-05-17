@@ -53,7 +53,7 @@ bra(args...) = Bra(ket(args...))
 
 data(b::Bra) = data(b.kt)
 
-Base.convert{P,N,S}(::Type{Bra{P,N,S}}, k::Bra{P}) = Bra(convert(Ket{P,N,S}, b.kt)) 
+Base.convert{P,N,S}(::Type{Bra{P,N,S}}, b::Bra{P}) = Bra(convert(Ket{P,N,S}, b.kt)) 
 Base.promote_rule{P,N,A,B}(::Type{Bra{P,N,A}}, ::Type{Bra{P,N,B}}) = Bra{P,N,promote_type(A,B)}
 
 Base.eltype{P,N,S}(::Type{Bra{P,N,S}}) = eltype(S)
@@ -94,8 +94,10 @@ end
 ##############
 # DiracState #
 ##############
-Base.getindex(s::DiracState, i...) = s[StateLabel(i)]
-Base.setindex!(s::DiracState, x, i...) = setindex!(s, x, StateLabel(i))
+Base.getindex(s::DiracState, i) = s[StateLabel(i)]
+Base.getindex(s::DiracState, i, j...) = s[StateLabel(i, j...)]
+Base.setindex!(s::DiracState, x, i) = setindex!(s, x, StateLabel(i))
+Base.setindex!(s::DiracState, x, i, j...) = setindex!(s, x, StateLabel(i, j...))
 
 ################
 # Type Aliases #

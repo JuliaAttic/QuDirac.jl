@@ -36,7 +36,7 @@ module QuDirac
 
     ptype{P}(::AbstractDirac{P}) = P
 
-    copy(i::AbstractInner) = i # no-op by default
+    Base.copy(i::AbstractInner) = i # no-op by default
 
     Base.one{D<:AbstractDirac}(::Type{D}) = 1
     Base.one(::AbstractDirac) = 1
@@ -56,7 +56,7 @@ module QuDirac
     include("inner.jl")
     include("state.jl")
     include("opsum.jl")
-    # include("outerproduct.jl")
+    include("outerproduct.jl")
     include("printfuncs.jl")
     # include("mapfuncs.jl")
     # include("str_macros.jl")

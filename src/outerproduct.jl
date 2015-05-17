@@ -11,22 +11,17 @@ end
 OuterProduct{P,N,S}(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) = OuterProduct{P,N,S,typeof(kt),typeof(br)}(scalar, kt, br)
 
 Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
-
-function Base.convert{P,N}(::Type{OpSum}, op::OuterProduct{P,N})
-    result = OpSum(P, cons_outer!(OpDict{N, eltype(op)}(), op.kt, op.br))
-    return scale!(op.scalar, result)
-end
-
-Base.promote_rule{G<:OpSum, O<:OuterProduct}(::Type{G}, ::Type{O}) = OpSum
-
-#######################
-# Dict-Like Functions #
-#######################
 Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), eltype(op.br))
+ketlabeltype(op::OuterProduct) = labeltype(op.kt)
+bralabeltype(op::OuterProduct) = labeltype(op.br)
 
-# these equality/hash functions are pretty inefficient...
-Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(OpSum, a) == convert(OpSum, b) 
-Base.hash(op::OuterProduct) = hash(convert(OpSum, op))
+OpSum(op::OuterProduct) = scale!(op.scalar, OpSum(op.kt, op.br))
+
+Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,K,B,T}}, op::OuterProduct) = convert(OpSum{P,N,K,B,T}, OpSum(op))
+Base.promote_rule{OS<:OpSum, OP<:OuterProduct}(::Type{OS}, ::Type{OP}) = OS
+
+Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = OpSum(a) == OpSum(b) 
+Base.hash(op::OuterProduct) = hash(OpSum(op))
 Base.hash(op::OuterProduct, h::Uint64) = hash(hash(op), h)
 
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
@@ -34,28 +29,21 @@ Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 Base.getindex(op::OuterProduct, k, b) = op.scalar * op.kt[k] * op.br[b]
 Base.getindex(op::OuterProduct, o::OpLabel) = op[klabel(o), blabel(o)]
 
-# would be great if the below worked with normal indexing
-# notation (e.g. op[k,:]) but the Colon is apparently
-# special and doesn't dispatch directly to getindex...
-# Base.getindex(op::OuterProduct, k, ::Colon) = (op.scalar * op.kt[k]) * op.br
-# Base.getindex(op::OuterProduct, ::Colon, b) = (op.scalar * op.br[b]) * op.kt
-# Base.getindex(op::OuterProduct, ::Colon, ::Colon) = convert(OpSum, op)
-
-getbra(op::OuterProduct, k) = (op.scalar * get(op.kt,k)) * op.br
-getket(op::OuterProduct, b) = (op.scalar * get(op.br,b)) * op.kt
-
 Base.haskey(op::OuterProduct, k, b) = hasket(op, k) && hasbra(op, b)
 Base.haskey(op::OuterProduct, o::OpLabel) = haskey(op, klabel(o), blabel(o))
 
 Base.get(op::OuterProduct, k, b, default=predict_zero(eltype(op))) = haskey(op, k, b) ? op[k,b] : default
 Base.get(op::OuterProduct, o::OpLabel, default=predict_zero(eltype(op))) = get(op, klabel(o), blabel(o), default)
 
-Base.collect{P,N}(op::OuterProduct{P,N}) = collect_pairs!(Array((OpLabel{N}, eltype(op)), length(op)), op)
+function Base.collect{P,N}(op::OuterProduct{P,N})
+    T = @compat Tuple{OpLabel{N,ketlabeltype(op),bralabeltype(op)}, eltype(op)}
+    return collect_pairs!(Array(T, length(op)), op)
+end
 
 function collect_pairs!(result, op::OuterProduct)
     i = 1
-    for (k,kc) in iter(op.kt)
-        for (b,bc) in iter(op.br)
+    for (k,kc) in data(op.kt)
+        for (b,bc) in data(op.br)
             result[i] = (OpLabel(k, b), op.scalar * kc * bc')
             i += 1
         end
@@ -105,14 +93,14 @@ Base.scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt
 # + and - #
 ###########
 Base.(:-)(op::OuterProduct) = scale(-1, op)
-Base.(:+)(a::OuterProduct, b::OuterProduct) = convert(OpSum, a) + convert(OpSum, b)
+Base.(:+)(a::OuterProduct, b::OuterProduct) = OpSum(a) + OpSum(b)
 
 #################
 # Normalization #
 #################
 function Base.norm(op::OuterProduct)
     result = predict_zero(eltype(op))
-    for v in coeffs(op.kt), c in coeffs(op.br)
+    for v in values(data(op.kt)), c in values(data(op.br))
         result += abs2(op.scalar * v * c')
     end
     return sqrt(result)
@@ -123,7 +111,7 @@ end
 #########
 function Base.trace(op::OuterProduct)
     result = predict_zero(eltype(op))
-    for (k,v) in iter(op.kt), (b,c) in iter(op.br)
+    for (k,v) in data(op.kt), (b,c) in data(op.br)
         if b == k
             result += v * c'
         end
@@ -135,17 +123,17 @@ end
 # Partial Trace #
 #################
 function ptrace_dict!(result, op::OuterProduct, over)
-    for k in labels(op.kt), b in labels(op.br)
+    for k in keys(data(op.kt)), b in keys(data(op.br))
         if k[over] == b[over]
-            add_to_dict!(result, traceout(k, b, over), op[k,b])
+            add_to_dict!(result, except(OpLabel(k, b), over), op[k,b])
         end
     end
     return result
 end
 
 function ptrans_dict!(result, op::OuterProduct, over)
-    for k in labels(op.kt), b in labels(op.br)
-        add_to_dict!(result, ptranspose(k, b, over), op[k,b])
+    for k in keys(data(op.kt)), b in keys(data(op.br))
+        add_to_dict!(result, ptranspose(OpLabel(k, b), over), op[k,b])
     end
     return result
 end
@@ -154,10 +142,10 @@ end
 # Misc. Math Functions #
 ########################
 nfactors{P,N}(::OuterProduct{P,N}) = N
-xsubspace(op::OuterProduct,x) = xsubspace(convert(OpSum, op), x)
-filternz(op::OuterProduct) = filternz(convert(OpSum, op))
-switch(op::OuterProduct, i, j) = switch(convert(OpSum, op), i, j)
-permute(op::OuterProduct, perm::Vector) = permute(convert(OpSum, op), perm)
+xsubspace(op::OuterProduct,x) = xsubspace(OpSum(op), x)
+filternz(op::OuterProduct) = filternz(OpSum(op))
+switch(op::OuterProduct, i, j) = switch(OpSum(op), i, j)
+permute(op::OuterProduct, perm::Vector) = permute(OpSum(op), perm)
 
 ######################
 # Printing Functions #
@@ -171,7 +159,7 @@ function Base.show(io::IO, op::OuterProduct)
     pad = "  "
     maxlen = 10
     i = 1
-    for k in labels(op.kt), b in labels(op.br)
+    for k in keys(data(op.kt)), b in keys(data(op.br))
         if i > maxlen
             break
         else
@@ -186,11 +174,7 @@ function Base.show(io::IO, op::OuterProduct)
     end
 end
 
-export getbra,
-    getket,
-    hasket,
-    hasbra,
-    ptrace,
+export ptrace,
     purity,
     filternz,
     xsubspace,

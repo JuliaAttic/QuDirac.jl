@@ -346,6 +346,9 @@ Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
 ###########
 # + and - #
 ###########
+Base.(:+)(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
+Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
+
 Base.(:-)(op::OpSum) = scale(-1, op)
 Base.(:-)(opc::DualOpSum) = ctranspose(-(opc'))
 
@@ -354,9 +357,6 @@ Base.(:-){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = OpSum(P, data(a) - data(b))
 
 Base.(:+){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = ctranspose(a' + b')
 Base.(:-){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = ctranspose(a' - b')
-
-Base.(:+)(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
-Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 
 #################
 # Normalization #

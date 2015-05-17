@@ -87,8 +87,7 @@ tensor(o1::OpLabel, o2::OpLabel) = OpLabel(tensor(o1.k, o2.k), tensor(o1.b, o2.b
 
 is_sum_x(o::OpLabel, x) = sum(klabel(o))==sum(blabel(o))==x
 
-ptranspose{N}(k::StateLabel{N}, b::StateLabel{N}, i) = OpLabel(setindex(k, b[i], i), setindex(b, k[i], i))
-ptranspose(o::OpLabel, i) = ptranspose(o.k, o.b, i)
+ptranspose(o::OpLabel, i) = OpLabel(setindex(o.k, o.b[i], i), setindex(o.b, o.k[i], i))
 
 permute(o::OpLabel, perm::Vector) = OpLabel(permute(o.k, perm), permute(o.b, perm))
 except(o::OpLabel, i) = OpLabel(except(o.k, i), except(o.b, i))
