@@ -16,19 +16,20 @@ ket{P<:AbstractInner}(::Type{P}, args...) = ket(P, StateLabel(args))
 
 data(k::Ket) = k.data
 
+Base.convert{P,N,S}(::Type{Ket{P,N,S}}, k::Ket{P}) = Ket(P, convert(S, data(k))) 
+Base.promote_rule{P,N,A,B}(::Type{Ket{P,N,A}}, ::Type{Ket{P,N,B}}) = Ket{P,N,promote_type(A,B)}
+
 Base.eltype{P,N,S}(::Type{Ket{P,N,S}}) = eltype(S)
 labeltype{P,N,S}(::Type{Ket{P,N,S}}) = labeltype(S)
 
-Base.hash(k::Ket) = hash(ptype(k), hash(data(k)))
+Base.hash{P}(k::Ket{P}) = hash(data(k), hash(P))
 Base.hash(k::Ket, h::Uint64) = hash(hash(k), h)
-Base.copy(k::Ket) = Ket(copy(ptype(k)), copy(data(k)))
+Base.copy{P}(k::Ket{P}) = Ket(P, copy(data(k)))
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = data(a) == data(b)
 Base.length(k::Ket) = length(data(k))
 
 Base.getindex(k::Ket, x::StateLabel) = k.data[x]
-Base.getindex(k::Ket, i...) = k[StateLabel(i)]
 Base.setindex!(k::Ket, x, y::StateLabel) = setindex!(data(k), x, y)
-Base.setindex!(k::Ket, x, i...) = setindex(k, x, StateLabel(i))
 
 Base.haskey(k::Ket, x::StateLabel) = haskey(data(k), x)
 Base.get(k::Ket, x::StateLabel, default=predict_zero(eltype(k))) = get(data(k), x, default)
@@ -52,6 +53,9 @@ bra(args...) = Bra(ket(args...))
 
 data(b::Bra) = data(b.kt)
 
+Base.convert{P,N,S}(::Type{Bra{P,N,S}}, k::Bra{P}) = Bra(convert(Ket{P,N,S}, b.kt)) 
+Base.promote_rule{P,N,A,B}(::Type{Bra{P,N,A}}, ::Type{Bra{P,N,B}}) = Bra{P,N,promote_type(A,B)}
+
 Base.eltype{P,N,S}(::Type{Bra{P,N,S}}) = eltype(S)
 labeltype{P,N,S}(::Type{Bra{P,N,S}}) = labeltype(S)
 
@@ -62,9 +66,7 @@ Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.length(b::Bra) = length(b.kt)
 
 Base.getindex(b::Bra, x::StateLabel) = b.kt[x]'
-Base.getindex(b::Bra, i...) = b[StateLabel(i)]
 Base.setindex!(b::Bra, x, y::StateLabel) = setindex!(b.kt, x', y)
-Base.setindex!(b::Bra, x, i...) = setindex(b.kt, x', StateLabel(i))
 
 Base.haskey(b::Bra, x::StateLabel) = haskey(b.kt, x)
 Base.get(b::Bra, x::StateLabel, default=predict_zero(eltype(b))) = get(b.kt, x, default)
@@ -88,6 +90,12 @@ function collect_pairs!(result, b::Bra)
     end
     return result
 end
+
+##############
+# DiracState #
+##############
+Base.getindex(s::DiracState, i...) = s[StateLabel(i)]
+Base.setindex!(s::DiracState, x, i...) = setindex!(s, x, StateLabel(i))
 
 ################
 # Type Aliases #
@@ -166,7 +174,7 @@ end
 
 Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
 
-# inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
+inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 
 ##########
 # act_on #
@@ -306,15 +314,10 @@ raise(b::Bra, i) = raise(b', i)'
 # Misc. Math Functions #
 ########################
 nfactors{P,N}(::DiracState{P,N}) = N
-xsubspace{P}(kt::Ket{P}, x) = Ket(P, filter((k,v)->is_sum_x(k,x), data(kt)))
 
-switch(s::KetSum, i, j) = maplabels(l->switch(l, i, j), s)
-switch(s::SingleKet, i, j) = Ket(P, SumTerm(switch(label(s), i, j), coeff(s)))
-switch(b::Bra, i, j) = switch(b', i, j)'
-
-permute(s::KetSum, perm::Vector) = maplabels(sl->permute(sl,perm), s)
-permute{P}(s::SingleKet{P}, perm::Vector) = Ket(P, SumTerm(permute(label(s), perm), coeff(s)))
-permute(b::Bra, perm::Vector) = permute(b', perm)'
+xsubspace(s::DiracState, x) = filter((k,v)->is_sum_x(k,x), s)
+switch(s::DiracState, i, j) = maplabels(l->switch(l, i, j), s)
+permute(s::DiracState, perm::Vector) = maplabels(l->permute(l, perm), k)
 
 filternz{P}(k::Ket{P}) = Ket(P, filternz(data(k)))
 filternz(b::Bra) = filternz(b')'

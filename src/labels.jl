@@ -13,6 +13,8 @@ StateLabel{N}(label::NTuple{N}) = StateLabel{N,Any}(collect(label))
 StateLabel(i...) = StateLabel(i)
 
 nfactors{N,T}(::Type{StateLabel{N,T}}) = N
+Base.eltype{N,T}(::Type{StateLabel{N,T}}) = T
+Base.eltype(s::StateLabel) = eltype(typeof(s))
 Base.getindex(s::StateLabel, i) = s.label[i]
 Base.getindex(s::StateLabel, arr::AbstractArray) = s.label[arr]
 
@@ -39,15 +41,21 @@ Base.length{N}(::StateLabel{N}) = N
 
 is_sum_x(s::StateLabel, x) = sum(s) == x
 
-tensor{N,M,A,B}(a::StateLabel{N,A}, b::StateLabel{M,B}) = StateLabel{N+M,promote_type(A,B)}(vcat(a.label, b.label))
+tensor(a::StateLabel, b::StateLabel) = StateLabel(a.label..., b.label...)
+tensor{N,M,T}(a::StateLabel{N,T}, b::StateLabel{M,T}) = StateLabel{N+M,T}(vcat(a.label, b.label))
+
 Base.(:*)(a::StateLabel, b::StateLabel) = tensor(a,b)
 
 labelstr(s::StateLabel) = join(map(repr, s.label), ',')
 Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"
 Base.show(io::IO, s::StateLabel) = print(io, repr(s))
 
-tensor_type{N,M,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{M,B}}) = StateLabel{N+M,promote_type(A,B)}
-Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = StateLabel{N,promote_type(A,B)}
+tensor_type{N,M,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{M,B}}) = StateLabel{N+M,Any}
+tensor_type{N,M,T}(::Type{StateLabel{N,T}}, ::Type{StateLabel{M,T}}) = StateLabel{N+M,T}
+
+Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = StateLabel{N,Any}
+Base.promote_type{N,T}(::Type{StateLabel{N,T}}, ::Type{StateLabel{N,T}}) = StateLabel{N,T}
+
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N}) = StateLabel{N,T}(convert(Vector{T}, s.label))
 
 ###########
@@ -58,7 +66,7 @@ immutable OpLabel{N,K,B}
     b::StateLabel{N,B}
 end
 
-OpLabel(op::OpLabel) = op
+OpLabel(o::OpLabel) = o
 OpLabel(::StateLabel, ::StateLabel) = error("OpLabel can only be constructed if both StateLabels have the same number of factors")
 OpLabel{N,K,B}(k::StateLabel{N,K}, b::StateLabel{N,B}) = OpLabel{N,K,B}(k, b)
 OpLabel(k, b) = OpLabel(StateLabel(k), StateLabel(b))
@@ -70,7 +78,7 @@ Base.copy(o::OpLabel) = OpLabel(o.k, o.b)
 Base.hash(o::OpLabel) = hash(o.k, hash(o.b))
 Base.hash(o::OpLabel, h::Uint64) = hash(hash(o), h)
 
-Base.(:(==)){N}(o1::OpLabel{N}, o2::OpLabel{N}) = o1.k == o2.k && o1.b == o2.b
+Base.(:(==)){N}(a::OpLabel{N}, b::OpLabel{N}) = a.k == b.k && a.b == b.b
 
 Base.length{N}(::OpLabel{N}) = N
 
@@ -81,7 +89,6 @@ is_sum_x(o::OpLabel, x) = sum(klabel(o))==sum(blabel(o))==x
 
 ptranspose{N}(k::StateLabel{N}, b::StateLabel{N}, i) = OpLabel(setindex(k, b[i], i), setindex(b, k[i], i))
 ptranspose(o::OpLabel, i) = ptranspose(o.k, o.b, i)
-ptranspose_dual(o::OpLabel, i) = ptranspose(o.b, o.k, i)
 
 permute(o::OpLabel, perm::Vector) = OpLabel(permute(o.k, perm), permute(o.b, perm))
 except(o::OpLabel, i) = OpLabel(except(o.k, i), except(o.b, i))
@@ -90,15 +97,21 @@ switch(o::OpLabel, i, j) = OpLabel(switch(o.k, i, j), switch(o.b, i, j))
 Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
 Base.show(io::IO, o::OpLabel) = print(io, repr(o))
 
-tensor_type{N,M,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{M,K2,B2}}) = OpLabel{N+M,promote_type(K1,K2), promote_type(B1,B2)}
-Base.promote_type{N,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{N,K2,B2}}) = OpLabel{N,promote_type(K1,K2), promote_type(B1,B2)}
-Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, s::OpLabel{N}) = OpLabel{N,K,B}(convert(StateLabel{N,K}, o.k), convert(StateLabel{N,B}, o.b))
+tensor_type{N,M,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{M,K2,B2}}) = OpLabel{N+M,Any,Any}
+tensor_type{N,M,K1,K2,B}(::Type{OpLabel{N,K1,B}}, ::Type{OpLabel{M,K2,B}}) = OpLabel{N+M,Any,B}
+tensor_type{N,M,K,B1,B2}(::Type{OpLabel{N,K,B1}}, ::Type{OpLabel{M,K,B2}}) = OpLabel{N+M,K,Any}
+tensor_type{N,M,K,B}(::Type{OpLabel{N,K,B}}, ::Type{OpLabel{M,K,B}}) = OpLabel{N+M,K,B}
+
+Base.promote_type{N,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{N,K2,B2}}) = OpLabel{N,Any,Any}
+Base.promote_type{N,K1,K2,B}(::Type{OpLabel{N,K1,B}}, ::Type{OpLabel{N,K2,B}}) = OpLabel{N,Any,B}
+Base.promote_type{N,K,B1,B2}(::Type{OpLabel{N,K,B1}}, ::Type{OpLabel{N,K,B2}}) = OpLabel{N,K,Any}
+Base.promote_type{N,K,B}(::Type{OpLabel{N,K,B}}, ::Type{OpLabel{N,K,B}}) = OpLabel{N,K,B}
+
+Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, o::OpLabel{N}) = OpLabel{N,K,B}(convert(StateLabel{N,K}, o.k), convert(StateLabel{N,B}, o.b))
 
 ####################
 # Helper Functions #
 ####################
-ctpair(k,v) = (k', v')
-
 function switch!(arr, i, j)
     tmp = arr[i]
     arr[i] = arr[j]

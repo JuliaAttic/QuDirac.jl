@@ -90,6 +90,8 @@ tensor(kt::Ket, br::Bra) = OuterProduct(1, kt, br)
 tensor(br::Bra, kt::Ket) = tensor(kt, br)
 tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
 
+Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
+
 ###########
 # Scaling #
 ###########

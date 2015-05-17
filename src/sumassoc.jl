@@ -89,9 +89,9 @@ Base.get(dict::SumDict, k, default=predict_zero(eltype(dict))) = get(dict.data, 
 #############
 # Filtering #
 #############
-filter(f::Union(Function,DataType), term::SumTerm) = filter(f, SumDict(term))
-filter(f::Union(Function,DataType), dict::SumDict) = SumDict(filter(f, dict.data))
-filter!(f::Union(Function,DataType), dict::SumDict) = (filter!(f, dict.data); return dict)
+Base.filter(f::Function, term::SumTerm) = filter(f, SumDict(term))
+Base.filter(f::Function, dict::SumDict) = SumDict(filter(f, dict.data))
+Base.filter!(f::Function, dict::SumDict) = (filter!(f, dict.data); return dict)
 
 nzcoeff(k,v) = v != 0
 

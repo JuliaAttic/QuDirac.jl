@@ -55,7 +55,7 @@ module QuDirac
     include("sumassoc.jl")
     include("inner.jl")
     include("state.jl")
-    # include("opsum.jl")
+    include("opsum.jl")
     # include("outerproduct.jl")
     include("printfuncs.jl")
     # include("mapfuncs.jl")
