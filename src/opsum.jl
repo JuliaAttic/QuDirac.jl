@@ -160,7 +160,7 @@ Base.ctranspose(opc::DualOpSum) = opc.op
 # inner #
 #########
 function inner{P,N}(br::Bra{P,N}, op::OpSum{P,N})
-    result = SumDict{StateLabel{N, bralabeltype(op)}, inner_rettype(br, op)}()
+    result = SumDict{bralabeltype(op), inner_rettype(br, op)}()
     return Bra(P, inner_load!(result, br, op))'
 end
 
@@ -187,7 +187,7 @@ function inner_load!{P}(result::SumDict, br::BraSum{P}, op::OpSum{P})
 end
 
 function inner{P,N,A,B}(op::OpSum{P,N,A}, kt::Ket{P,N,B})
-    result = SumDict{StateLabel{N, ketlabeltype(op)}, inner_rettype(op, kt)}()
+    result = SumDict{ketlabeltype(op), inner_rettype(op, kt)}()
     return Ket(P, inner_load!(result, op, kt))
 end
 
@@ -272,10 +272,11 @@ act_on(op::AbsOpSum, br::Bra, i) = act_on(op', br', i)'
 
 act_on{P}(op::AbsOpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(op, kt) : throw(BoundsError())
 
-function act_on{P,N}(op::AbsOpSum{P,1}, kt::Ket{P,N}, i)
-    result = SumDict{StateLabel{N,labeltype(kt)}, inner_rettype(op, kt)}()
-    return Ket(P, act_on_dict!(result, op, kt, i))
+function act_result{P,N}(op::AbsOpSum{P,1}, kt::Ket{P,N})
+    return SumDict{promote_type(ketlabeltype(op), labeltype(kt)), inner_rettype(op, kt)}()
 end
+
+act_on{P,N}(op::AbsOpSum{P,1}, kt::Ket{P,N}, i) = Ket(P, act_on_dict!(act_result(op,kt), op, kt, i))
 
 function act_on_dict!{P}(result, op::OpSum{P}, kt::SingleKet{P}, i)
     k = label(kt)
@@ -284,7 +285,7 @@ function act_on_dict!{P}(result, op::OpSum{P}, kt::SingleKet{P}, i)
     for (o,c) in data(op)
         add_to_dict!(result, 
                      setindex(k, klabel(o)[1], i),
-                     c*v*inner(P, blabel(o)[1], k_i))
+                     c*v*P(blabel(o)[1], k_i))
     end
     return result
 end
@@ -293,7 +294,7 @@ function act_on_dict!{P}(result, op::OpSum{P}, kt::KetSum{P}, i)
     for (o,c) in data(op), (k,v) in data(kt)
         add_to_dict!(result, 
                      setindex(k, klabel(o)[1], i),
-                     c*v*inner(P, blabel(o)[1], k[i]))
+                     c*v*P(blabel(o)[1], k[i]))
     end
     return result
 end
@@ -305,7 +306,7 @@ function act_on_dict!{P}(result, opc::DualOpSum{P}, kt::SingleKet{P}, i)
     for (o,c) in data(opc)
         add_to_dict!(result,
                      setindex(k, blabel(o)[1], i),
-                     c'*v*inner(P, klabel(o)[1], k_i))
+                     c'*v*P(klabel(o)[1], k_i))
     end
     return result
 end
@@ -314,7 +315,7 @@ function act_on_dict!{P}(result, opc::DualOpSum{P}, kt::KetSum{P}, i)
     for (o,c) in data(opc), (k,v) in data(kt)
         add_to_dict!(result,
                      setindex(k, blabel(o)[1], i),
-                     c'*v*inner(P, klabel(o)[1], k[i]))
+                     c'*v*P(klabel(o)[1], k[i]))
     end
     return result
 end
@@ -386,7 +387,14 @@ Base.trace(opc::DualOpSum) = trace(opc')'
 # Partial trace #
 #################
 ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-ptrace{P,N}(op::DiracOp{P,N}, over) = OpSum(P, ptrace_dict!(SumDict{OpLabel{N-1,ketlabeltype(op),bralabeltype(op)}, eltype(op)}(), op, over))
+
+function ptrace_result{P,N}(op::DiracOp{P,N})
+    K = eltype(ketlabeltype(op))
+    B = eltype(bralabeltype(op))
+    return SumDict{OpLabel{N-1,K,B}, eltype(op)}()
+end
+
+ptrace{P,N}(op::DiracOp{P,N}, over) = OpSum(P, ptrace_dict!(ptrace_result(op), op, over))
 
 function ptrace_dict!(result, op::OpSum, over)
     for (o,v) in data(op)
@@ -409,7 +417,18 @@ end
 #####################
 # Partial Transpose #
 #####################
-ptranspose{P,N}(op::DiracOp{P,N}, over) = OpSum(P, ptrans_dict!(SumDict{OpLabel{N-1,bralabeltype(op),ketlabeltype(op)}, eltype(op)}(), op, over))
+function ptrans_result{P,N}(op::DiracOp{P,N})
+    T = eltype(promote_type(ketlabeltype(op), bralabeltype(op)))
+    return SumDict{OpLabel{N,T,T}, eltype(op)}()
+end
+
+function ptrans_result{P}(op::DiracOp{P,1})
+    K = eltype(bralabeltype(op))
+    B = eltype(ketlabeltype(op))
+    return SumDict{OpLabel{N,K,B}, eltype(op)}()
+end
+
+ptranspose{P,N}(op::DiracOp{P,N}, over) = OpSum(P, ptrans_dict!(ptrans_result(op), op, over))
 
 function ptrans_dict!(result, op::OpSum, over)
     for (o,v) in data(op)

@@ -68,8 +68,7 @@ inner(a::AbsOpSum, b::OuterProduct) = inner(a, b.kt) * b.br * b.scalar
 ##########
 # act_on #
 ##########
-act_on(op::OuterProduct, kt::Ket, i) = op.scalar * op.kt * act_on(op.br, kt, i)
-act_on(op::OuterProduct, br::Bra, i) = op.scalar * act_on(op.kt, br, i) * op.kt
+act_on(op::OuterProduct, state::DiracState, i) = act_on(OpSum(op), state, i)
 
 ##########
 # tensor #

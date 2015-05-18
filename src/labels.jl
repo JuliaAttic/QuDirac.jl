@@ -13,13 +13,15 @@ StateLabel{N}(label::NTuple{N}) = StateLabel{N,Any}(collect(label))
 StateLabel(i...) = StateLabel(i)
 
 nfactors{N,T}(::Type{StateLabel{N,T}}) = N
+Base.eltype{N,T}(::StateLabel{N,T}) = T
 Base.eltype{N,T}(::Type{StateLabel{N,T}}) = T
 Base.eltype(s::StateLabel) = eltype(typeof(s))
 Base.getindex(s::StateLabel, i) = s.label[i]
 Base.getindex(s::StateLabel, arr::AbstractArray) = s.label[arr]
 
 except{N,T}(s::StateLabel{N,T}, i) = StateLabel{N-1,T}(deleteat!(copy(s.label), i))
-setindex{N,T}(s::StateLabel{N,T}, x, y) = StateLabel{N,T}(setindex!(copy(s.label), i))
+setindex{N,T}(s::StateLabel{N,T}, x, y) = StateLabel(s.label[1:y-1]..., x, s.label[y+1:end]...)
+setindex{N,T}(s::StateLabel{N,T}, x::T, y) = StateLabel{N,T}(setindex!(copy(s.label), x, y))
 switch{N,T}(s::StateLabel{N,T}, i, j) =  StateLabel{N,T}(switch!(copy(s.label), i, j))
 permute{N,T}(label::StateLabel{N,T}, perm::Vector) = StateLabel{N,T}(label[perm])
 
