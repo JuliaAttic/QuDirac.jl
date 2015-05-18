@@ -25,11 +25,11 @@ end
 ##################
 # Custom inner product type
 # the QHO problem
-@def_inner QHOInner BigFloat
+immutable QHOInner <: AbstractInner end
 
 QHOInner(x::Float64, k::BigInt) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
 QHOInner(x::Float64, k::Int) = QHOInner(x, BigInt(k))
-QHOInner(n::Int, m::Int) = n==m ? 1.0 : 0.0
+QHOInner(n::Int, m::Int) = KronDelta(n, m)
 
 default_inner(QHOInner)
 
@@ -96,7 +96,7 @@ max = pi
 const xpoints = linspace(-max, max, len)
 const ypoints = copy(xpoints)
 
-info("Loading the Plotly package, this could take a little while if it has to sign in...")
+info("Loading the Plotly package, this could take a little while since it has to sign in...")
 
 using Plotly
 
