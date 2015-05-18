@@ -20,7 +20,7 @@ Base.ctranspose{T<:FuncOpDef}(::Type{T}) = DualFunc(T())
 Base.ctranspose(op::FuncOp) = DualFunc(op)
 Base.ctranspose(f::DualFunc) = f.op
 
-Base.(:*)(a::DualFunc, b::DualFunc) = (b'*a')'
+Base.(:*)(a::DualFunc, b::DualFunc) = (b' * a')'
 Base.(:*)(f::DualFunc, kt::Ket) = (kt' * f')'
 Base.(:*)(br::Bra, f::DualFunc) = (f' * br')'
 
@@ -90,21 +90,22 @@ function def_op_expr(ods::OpDefStr)
     T = odex.op_sym
     T_sym = Expr(:quote, T)
 
-    on_args = symbol("_" * string(T) * "_on_" * string(lhs_type) * "_args")
+    if isa(odex.label_args, Expr)
+        label_args = {odex.label_args.args...}
+    else # isa(odex.label_args, Symbol)
+        label_args = {odex.label_args}
+    end
+
+    args_ex = parse(join(label_args,","))
+    len_args = length(label_args)
+
     on_label = symbol("_" * string(T) * "_on_" * string(lhs_type) * "_label")
     on_pair = symbol("_" * string(T) * "_on_" * string(lhs_type) * "_pair")
 
-    if isa(odex.label_args, Expr)
-        len_args = length(odex.label_args.args)
-        on_label_def = quote 
-            $on_args($(odex.label_args.args...)) = $(odex.rhs)
-            $on_label(label::StateLabel{$len_args}) = $on_args(label...)
-        end
-    else # isa(odex.label_args, Symbol)
-        len_args = 1
-        on_label_def = quote 
-            $on_args($(odex.label_args)) = $(odex.rhs)
-            $on_label(label::StateLabel{$len_args}) = $on_args(first(label))
+    on_label_def = quote 
+        function $on_label(label::StateLabel{$len_args})
+            $args_ex = label
+            $(odex.rhs)
         end
     end
 
