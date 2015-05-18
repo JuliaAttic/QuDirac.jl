@@ -87,8 +87,6 @@ function def_op_expr(ods::OpDefStr)
     lhs_type = odex.lhs_type
     single_lhs_type = symbol("Single"*string(lhs_type))
 
-    len_args = length(odex.label_args.args)
-
     T = odex.op_sym
     T_sym = Expr(:quote, T)
 
@@ -97,11 +95,13 @@ function def_op_expr(ods::OpDefStr)
     on_pair = symbol("_" * string(T) * "_on_" * string(lhs_type) * "_pair")
 
     if isa(odex.label_args, Expr)
+        len_args = length(odex.label_args.args)
         on_label_def = quote 
             $on_args($(odex.label_args.args...)) = $(odex.rhs)
             $on_label(label::StateLabel{$len_args}) = $on_args(label...)
         end
-    else # isa(label_expr, Symbol)
+    else # isa(odex.label_args, Symbol)
+        len_args = 1
         on_label_def = quote 
             $on_args($(odex.label_args)) = $(odex.rhs)
             $on_label(label::StateLabel{$len_args}) = $on_args(first(label))
@@ -123,7 +123,7 @@ function def_op_expr(ods::OpDefStr)
         end  
 
         $T(state::QuDirac.$(single_lhs_type)) = QuDirac.coeff(state) * $on_label(QuDirac.label(state))
-        $T(state::$(lhs_type)) = sum($on_pair, QuDirac.dict(state))
+        $T(state::$(lhs_type)) = sum($on_pair, QuDirac.data(state))
     end
 
     return result

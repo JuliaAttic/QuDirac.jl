@@ -1,7 +1,4 @@
 abstract AbsOpSum{P,N,K,B,T} <: DiracOp{P,N}
-Base.eltype(op::AbsOpSum) = eltype(typeof(op))
-ketlabeltype{P,N,K,B}(op::AbsOpSum{P,N,K,B}) = StateLabel{N,K}
-bralabeltype{P,N,K,B}(op::AbsOpSum{P,N,K,B}) = StateLabel{N,B}
 
 #########
 # OpSum #
@@ -12,12 +9,19 @@ end
 
 OpSum{P,N,K,B,T}(::Type{P}, data::SumDict{OpLabel{N,K,B},T}) = OpSum{P,N,K,B,T}(data)
 
-function OpSum{P,N}(kt::Ket{P,N}, br::Bra{P,N})
-    T = promote_type(eltype(kt), eltype(br))
+function OpSum{P,N}(kt::Ket{P,N}, br::Bra{P,N}, scalar = 1)
+    T = promote_type(eltype(kt), eltype(br), typeof(scalar))
     K = eltype(labeltype(kt))
     B = eltype(labeltype(br))
     result = @compat sizehint!(SumDict{OpLabel{N,K,B},T}(), length(kt) * length(br))
-    return OpSum(P, cons_outer!(result, kt, br))
+    
+    cons_outer!(result, kt, br)
+    
+    if scalar != 1
+        scale!(result, scalar)
+    end
+
+    return OpSum(P, result)
 end
 
 function cons_outer!(result::SumDict, kt::KetSum, br::BraSum)
@@ -86,7 +90,11 @@ type DualOpSum{P,N,K,B,T} <: AbsOpSum{P,N,K,B,T}
     op::OpSum{P,N,B,K,T}
 end
 
-Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,B,K,T}}, opc::DualOpSum{P,N,K,B,T}) = eager_ctranspose(opc.op)
+OpSum(opc::DualOpSum) = eager_ctranspose(opc.op)
+
+Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,B,K,T}}, opc::DualOpSum{P,N,K,B,T}) = OpSum(opc)
+Base.convert{P,N,K,B,T}(::Type{OpSum}, opc::DualOpSum{P,N,K,B,T}) = OpSum(opc)
+
 function Base.convert{P,N,K,B,T}(::Type{DualOpSum{P,N,K,B,T}}, opc::DualOpSum)
     return DualOpSum(convert(OpSum{P,N,B,K,T}, opc.op))
 end
@@ -148,6 +156,13 @@ Base.haskey(op::AbsOpSum, k, b) = haskey(op, StateLabel(k), StateLabel(b))
 Base.get(op::AbsOpSum, k::StateLabel, b::StateLabel, default=predict_zero(eltype(op))) = get(op, OpLabel(k,b), default)
 Base.get(op::AbsOpSum, k, b, default=predict_zero(eltype(op))) = get(op, StateLabel(k), StateLabel(b), default)
 
+Base.eltype(op::AbsOpSum) = eltype(typeof(op))
+
+ketlabeltype{P,N,K,B}(op::AbsOpSum{P,N,K,B}) = StateLabel{N,K}
+bralabeltype{P,N,K,B}(op::AbsOpSum{P,N,K,B}) = StateLabel{N,B}
+
+Base.(:(==)){P,N}(a::DiracOp{P,N}, b::DiracOp{P,N}) = ==(promote(a,b)...)
+
 #############
 # ctranpose #
 #############
@@ -161,14 +176,14 @@ Base.ctranspose(opc::DualOpSum) = opc.op
 #########
 function inner{P,N}(br::Bra{P,N}, op::OpSum{P,N})
     result = SumDict{bralabeltype(op), inner_rettype(br, op)}()
-    return Bra(P, inner_load!(result, br, op))'
+    return ctranspose(Ket(P, inner_load!(result, br, op)))
 end
 
 function inner_load!{P}(result::SumDict, br::SingleBra{P}, op::OpSum{P})
     c = coeff(br)
     b = label(br)
     for (o,v) in data(op)
-        add_to_dict!(result, blabel(o), ctranspose(v*c*inner_rule(P, b, klabel(o))))
+        add_to_dict!(result, blabel(o), ctranspose(v*c*inner(P, b, klabel(o))))
     end
     return result
 end
@@ -180,7 +195,6 @@ function inner_load!{P}(result::SumDict, br::BraSum{P}, op::OpSum{P})
         for (b,c) in data(br)
             coeff += c' * v * inner(P, b, k) 
         end
-        return 
         add_to_dict!(result, blabel(o), ctranspose(coeff))
     end
     return result
@@ -195,7 +209,7 @@ function inner_load!{P}(result::SumDict, op::OpSum{P}, kt::SingleKet{P})
     c = coeff(kt)
     k = label(kt)
     for (o,v) in data(op)
-        add_to_dict!(result, klabel(o), v*c*inner_rule(P, blabel(o), k))
+        add_to_dict!(result, klabel(o), v*c*inner(P, blabel(o), k))
     end
     return result
 end
@@ -207,7 +221,6 @@ function inner_load!{P}(result::SumDict, op::OpSum{P}, kt::KetSum{P})
         for (k,c) in data(kt)
             coeff += c * v * inner(P, b, k) 
         end
-        return 
         add_to_dict!(result, klabel(o), coeff)
     end
     return result
@@ -273,7 +286,8 @@ act_on(op::AbsOpSum, br::Bra, i) = act_on(op', br', i)'
 act_on{P}(op::AbsOpSum{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(op, kt) : throw(BoundsError())
 
 function act_result{P,N}(op::AbsOpSum{P,1}, kt::Ket{P,N})
-    return SumDict{promote_type(ketlabeltype(op), labeltype(kt)), inner_rettype(op, kt)}()
+    T = promote_type(eltype(ketlabeltype(op)), eltype(labeltype(kt)))
+    return SumDict{StateLabel{N,T},inner_rettype(op, kt)}()
 end
 
 act_on{P,N}(op::AbsOpSum{P,1}, kt::Ket{P,N}, i) = Ket(P, act_on_dict!(act_result(op,kt), op, kt, i))
@@ -449,7 +463,7 @@ end
 ########################
 nfactors{P,N}(::AbsOpSum{P,N}) = N
 
-xsubspace(op::AbsOpSum, x) = filter((k,v)->is_sum_x(k,x), s)
+xsubspace(op::AbsOpSum, x) = filter((k,v)->is_sum_x(k,x), op)
 switch(op::AbsOpSum, i, j) = maplabels(l->switch(l,i,j), op)
 permute(op::AbsOpSum, perm::Vector) = maplabels(l->permute(l,perm), op)
 

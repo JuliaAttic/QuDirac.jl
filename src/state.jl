@@ -287,9 +287,9 @@ function raise{P}(k::SingleKet{P}, i)
     return Ket(P, SumTerm(l, c))
 end
 
-function ladder_result{P,N}(k::Ket{P,N})
-    T = promote_type(Float64, labeltype(k), eltype(k))
-    @compat sizehint!(SumDict{StateLabel{N,labeltype(k)}, T}(), length(k))
+function ladder_result(k::Ket)
+    T = promote_type(Float64, eltype(labeltype(k)), eltype(k))
+    @compat sizehint!(SumDict{labeltype(k), T}(), length(k))
 end
 
 lower{P}(k::KetSum{P}, i) = Ket(P, lowerdict!(ladder_result(k), data(k), i))

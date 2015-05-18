@@ -60,7 +60,7 @@ module QuDirac
     include("printfuncs.jl")
     include("mapfuncs.jl")
     include("str_macros.jl")
-    # include("funcop.jl")
+    include("funcop.jl")
     
     #################
     # default_inner #

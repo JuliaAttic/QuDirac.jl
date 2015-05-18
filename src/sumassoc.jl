@@ -95,7 +95,7 @@ Base.filter!(f::Function, dict::SumDict) = (filter!(f, dict.data); return dict)
 
 nzcoeff(k,v) = v != 0
 
-filternz(s::SumAssoc) = filter(nzcoeff, d)
+filternz(s::SumAssoc) = filter(nzcoeff, s)
 filternz!(dict::SumDict) = filter!(nzcoeff, dict)
 
 ###########

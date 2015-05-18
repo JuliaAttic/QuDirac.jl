@@ -15,9 +15,11 @@ Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), e
 ketlabeltype(op::OuterProduct) = labeltype(op.kt)
 bralabeltype(op::OuterProduct) = labeltype(op.br)
 
-OpSum(op::OuterProduct) = scale!(op.scalar, OpSum(op.kt, op.br))
+OpSum(op::OuterProduct) = OpSum(op.kt, op.br, op.scalar)
 
 Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,K,B,T}}, op::OuterProduct) = convert(OpSum{P,N,K,B,T}, OpSum(op))
+Base.convert(::Type{OpSum}, op::OuterProduct) = OpSum(op)
+
 Base.promote_rule{OS<:OpSum, OP<:OuterProduct}(::Type{OS}, ::Type{OP}) = OS
 
 Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = OpSum(a) == OpSum(b) 
