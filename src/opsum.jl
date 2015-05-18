@@ -480,15 +480,11 @@ purity(op::DiracOp, i) = purity(ptrace(op,i))
 commute(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
 anticommute(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 
-function represent{P}(op::DiracOp{P}, basis)
-    T = inner_rettype(op)
-    return T[bra(P, i) * op * ket(P, j) for i in basis, j in basis]
-end
+represent{P}(op::DiracOp{P}, basis) = [bra(P, i) * op * ket(P, j) for i in basis, j in basis]
 
 function represent{P}(op::DiracOp{P}, basis...)
     prodbasis = product(basis...)
-    T = inner_rettype(op)
-    return T[bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
+    return [bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
 end
 
 ######################

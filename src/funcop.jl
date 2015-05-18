@@ -1,76 +1,95 @@
 abstract FuncOp <: DiracOp
 abstract FuncOpDef <: FuncOp
 
-Base.one{T<:FuncOp}(::Type{T}) = 1
 Base.one(::FuncOp) = 1
-Base.zero{T<:FuncOp}(::Type{T}) = 0
 Base.zero(::FuncOp) = 0
 
-Base.(:*){T<:FuncOpDef}(::Union(Type{T},T), kt::Ket) = T(kt)
-Base.(:*){T<:FuncOpDef}(br::Bra, ::Union(Type{T},T)) = T(br)
+apply_op_def() = error("apply_op_def requires arguments")
 
-############################
-# Functional Operator Math #
-############################
-immutable DualFunc{T<:FuncOp} <: FuncOp
+inner(op::FuncOpDef, kt::Ket) = apply_op_def(op, kt)
+inner(br::Bra, op::FuncOpDef) = apply_op_def(op, br)
+
+Base.copy(op::FuncOpDef) = op
+
+##############
+# DualFuncOp #
+##############
+immutable DualFuncOp{T<:FuncOp} <: FuncOp
     op::T
 end
 
-Base.ctranspose{T<:FuncOpDef}(::Type{T}) = DualFunc(T())
-Base.ctranspose(op::FuncOp) = DualFunc(op)
-Base.ctranspose(f::DualFunc) = f.op
+Base.ctranspose(op::FuncOp) = DualFuncOp(op)
+Base.ctranspose(f::DualFuncOp) = f.op
 
-Base.(:*)(a::DualFunc, b::DualFunc) = (b' * a')'
-Base.(:*)(f::DualFunc, kt::Ket) = (kt' * f')'
-Base.(:*)(br::Bra, f::DualFunc) = (f' * br')'
+inner(a::DualFuncOp, b::DualFuncOp) = inner(b',a')'
+inner(opc::DualFuncOp, kt::Ket) = inner(kt',opc')'
+inner(br::Bra, opc::DualFuncOp) = inner(opc',br')'
 
+#############
+# FuncOpExp #
+#############
 immutable FuncOpExp{T<:FuncOpDef} <: FuncOp
-    op::Type{T}
-    n::Integer
+    op::T
+    n::Int
 end
 
-apply_op{T<:FuncOpDef}(::Type{T}, state, n) = n == 0 ? state : apply_op(T, T(state), n-1)
-Base.(:*){T<:FuncOpDef}(f::FuncOpExp{T}, kt::Ket) = apply_op(T, kt, f.n)
-Base.(:*){T<:FuncOpDef}(br::Bra, f::FuncOpExp{T}) = apply_op(T, br, f.n)
+function apply_op_exp{T<:FuncOpDef}(ope::FuncOpExp{T}, state)
+    result = state
+    for i=1:f.n
+        result = apply_op_def(ope.op, result)
+    end
+    return result
+end
 
-Base.(:*){T<:FuncOpDef}(::Type{T}, ::Type{T}) = FuncOpExp(T, 2)
-Base.(:*){T<:FuncOpDef}(::Type{T}, ::T) = T * T
-Base.(:*){T<:FuncOpDef}(::T, ::Type{T}) = T * T
-Base.(:*){T<:FuncOpDef}(::T, ::T) = T * T
+inner{T<:FuncOpDef}(ope::FuncOpExp{T}, kt::Ket) = apply_op_exp(ope, kt)
+inner{T<:FuncOpDef}(br::Bra, ope::FuncOpExp{T}) = apply_op_exp(ope, br)
 
-Base.(:*){T<:FuncOpDef}(a::FuncOpExp{T}, b::FuncOpExp{T}) = FuncOpExp(T, a.n + b.n)
-Base.(:*){T<:FuncOpDef}(::Type{T}, f::FuncOpExp{T}) = FuncOpExp(T, f.n+1)
-Base.(:*){T<:FuncOpDef}(::T, f::FuncOpExp{T}) = T * f
+inner{T<:FuncOpDef}(a::FuncOpExp{T}, b::FuncOpExp{T}) = FuncOpExp(a.op, a.n + b.n)
+inner{T<:FuncOpDef}(op::T, ope::FuncOpExp{T}) = FuncOpExp(ope.op, ope.n + 1)
+inner{T<:FuncOpDef}(ope::FuncOpExp{T}, op::T) = inner(op,ope)
+inner{T<:FuncOpDef}(a::T, b::T) = FuncOpExp(a,2)
 
-Base.(:*){T<:FuncOpDef}(f::FuncOpExp{T}, ::Type{T}) = FuncOpExp(T, f.n+1)
-Base.(:*){T<:FuncOpDef}(f::FuncOpExp{T}, ::T) = f * T
+Base.(:^)(op::FuncOpDef, n::Int) = FuncOpExp(op,n)
+Base.(:^)(ope::FuncOpExp, n::Int) = FuncOpExp(ope.op, ope.n * n)
 
+###############
+# FuncOpChain #
+###############
 immutable FuncOpChain{T<:FuncOp} <: FuncOp
     ops::Vector{T}
 end
 
-apply_op(ops, kt::Ket) = length(ops) == 1 ? first(ops) * kt : apply_op(ops[1:end-1], last(ops) * kt)
-apply_op(ops, br::Bra) = length(ops) == 1 ? br * last(ops) : apply_op(ops[2:end], br * first(ops))
-
-Base.(:*)(a::FuncOpChain, b::FuncOpChain) = FuncOpChain(vcat(a.ops, b.ops))
-Base.(:*)(a::FuncOpChain, b::FuncOp) = FuncOpChain(vcat(a.ops, b))
-Base.(:*)(a::FuncOp, b::FuncOpChain) = FuncOpChain(vcat(a, b.ops))
-Base.(:*)(a::FuncOp, b::FuncOp) = FuncOpChain(vcat(a, b))
-
-Base.(:*){A<:FuncOpDef, B<:FuncOpDef}(::Type{A}, ::Type{B}) = A() * B()
-Base.(:*){A<:FuncOpDef}(::Type{A}, f::FuncOp) = A() * f
-Base.(:*){B<:FuncOpDef}(f::FuncOp, ::Type{B}) = f * B()
-
-Base.(:*)(f::FuncOpChain, kt::Ket) = apply_op(f.ops, kt)
-Base.(:*)(br::Bra, f::FuncOpChain) = apply_op(f.ops, br)
-
-function represent{T<:FuncOpDef}(::Union(FuncOp, Type{T}), basis)
-    return [bra(i) * T * ket(j) for i in basis, j in basis]
+function apply_op_chain(ops::FuncOpChain, kt::Ket)
+    result = kt
+    for i=1:length(f.ops)
+        result = f.ops[i] * result
+    end
+    return result
 end
 
-function represent{T<:FuncOpDef}(::Union(FuncOp, Type{T}), basis...)
+function apply_op_chain(ops::FuncOpChain, br::Bra)
+    result = br
+    for i=reverse(1:length(f.ops))
+        result = result * f.ops[i]
+    end
+    return result
+end
+
+inner(a::FuncOpChain, b::FuncOpChain) = FuncOpChain(vcat(a.ops, b.ops))
+inner(opch::FuncOpChain, op::FuncOp) = FuncOpChain(vcat(opch.ops, op))
+inner(op::FuncOp, opch::FuncOpChain) = FuncOpChain(vcat(op, opch.ops))
+inner(a::FuncOp, b::FuncOp) = FuncOpChain(vcat(a, b))
+
+inner(opch::FuncOpChain, kt::Ket) = apply_op_chain(opch, kt)
+inner(br::Bra, opch::FuncOpChain) = apply_op_chain(opch, br)
+
+function represent(op::FuncOp, basis)
+    return [bra(i) * op * ket(j) for i in basis, j in basis]
+end
+
+function represent(op::FuncOp, basis...)
     prodbasis = product(basis...)
-    return [bra(i...) * T * ket(j...) for i in prodbasis, j in prodbasis]
+    return [bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
 end
 
 ###########
@@ -87,7 +106,8 @@ function def_op_expr(ods::OpDefStr)
     lhs_type = odex.lhs_type
     single_lhs_type = symbol("Single"*string(lhs_type))
 
-    T = odex.op_sym
+    name = odex.op_sym
+    T = symbol(string(name) * "FuncOpDef")
     T_sym = Expr(:quote, T)
 
     if isa(odex.label_args, Expr)
@@ -123,8 +143,10 @@ function def_op_expr(ods::OpDefStr)
           return $(coeff_sym) * $on_label(label) 
         end  
 
-        $T(state::QuDirac.$(single_lhs_type)) = QuDirac.coeff(state) * $on_label(QuDirac.label(state))
-        $T(state::$(lhs_type)) = sum($on_pair, QuDirac.data(state))
+        QuDirac.apply_op_def(::$T, state::QuDirac.$(single_lhs_type)) = QuDirac.coeff(state) * $on_label(QuDirac.label(state))
+        QuDirac.apply_op_def(::$T, state::$(lhs_type)) = sum($on_pair, QuDirac.data(state))
+
+        const $name = $T()
     end
 
     return result

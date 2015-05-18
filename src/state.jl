@@ -329,15 +329,11 @@ filternz{P}(k::Ket{P}) = Ket(P, filternz(data(k)))
 filternz(b::Bra) = filternz(b')'
 filternz!(s::DiracState) = (filternz!(data(s)); return s)
 
-function represent{P}(kt::Ket{P}, basis)
-    T = inner_rettype(kt)
-    return T[bra(P, i) * kt for i in basis]
-end
+represent{P}(kt::Ket{P}, basis) = [bra(P, i) * kt for i in basis]
 
 function represent{P}(kt::Ket{P}, basis...)
     prodbasis = product(basis...)
-    T = inner_rettype(kt)
-    return T[bra(P, StateLabel(i)) * kt for i in prodbasis]
+    return [bra(P, StateLabel(i)) * kt for i in prodbasis]
 end
 
 represent(br::Bra, basis...) = represent(br', basis...)'
