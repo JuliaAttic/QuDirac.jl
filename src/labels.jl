@@ -27,7 +27,7 @@ setindex{N,T}(s::StateLabel{N,T}, x::T, y) = StateLabel{N,T}(setindex!(copy(s.la
 switch{N,T}(s::StateLabel{N,T}, i, j) =  StateLabel{N,T}(switch!(copy(s.label), i, j))
 permute{N,T}(label::StateLabel{N,T}, perm::Vector) = StateLabel{N,T}(label[perm])
 
-Base.copy{N,T}(s::StateLabel{N,T}) = StateLabel{N,T}(s.label)
+Base.copy{N,T}(s::StateLabel{N,T}) = StateLabel{N,T}(s.label, s.hash)
 Base.hash(s::StateLabel) = s.hash
 Base.hash(s::StateLabel, h::Uint64) = hash(hash(s), h)
 
