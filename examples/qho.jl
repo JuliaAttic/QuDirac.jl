@@ -57,14 +57,12 @@ default_inner(QHOInner)
 @def_op "a | n > = √n * | n - 1 >"
 @def_op "< n | a = √(n + 1) * < n + 1 |"
 
-a_dag = a'
-
 # `X` and `P` are Hermitian, so:
-@def_op "X | n > = √(1/2) * (a * | n > +  a_dag * | n >)"
-@def_op "< n | X = √(1/2) * (< n | * a +  < n | * a_dag)"
+@def_op "X | n > = √(1/2) * (a * | n > +  a' * | n >)"
+@def_op "< n | X = √(1/2) * (< n | * a +  < n | * a')"
 
-@def_op "P | n > = im * √(1/2) * (a_dag * | n > - a * | n >)"
-@def_op "< n | P = im * √(1/2) * (< n | * a_dag - < n | * a)"
+@def_op "P | n > = im * √(1/2) * (a' * | n > - a * | n >)"
+@def_op "< n | P = im * √(1/2) * (< n | * a' - < n | * a)"
 
 ####################
 # Make Some Plots! #
