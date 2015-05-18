@@ -58,8 +58,8 @@ module QuDirac
     include("opsum.jl")
     include("outerproduct.jl")
     include("printfuncs.jl")
-    # include("mapfuncs.jl")
-    # include("str_macros.jl")
+    include("mapfuncs.jl")
+    include("str_macros.jl")
     # include("funcop.jl")
     
     #################

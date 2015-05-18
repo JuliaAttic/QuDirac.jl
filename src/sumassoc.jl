@@ -102,7 +102,7 @@ filternz!(dict::SumDict) = filter!(nzcoeff, dict)
 # Mapping #
 ###########
 Base.map(f::Union(Function,DataType), term::SumTerm) = SumTerm(f(key(term), val(term)))
-Base.map(f::Union(Function,DataType), dict::SumDict) = SumDict(map(f, collect(dict)))
+Base.map(f::Union(Function,DataType), dict::SumDict) = SumDict(map(kv -> f(kv[1], kv[2]), collect(dict)))
 
 function mapvals!(f, dict::SumDict)
     for (k,v) in dict
