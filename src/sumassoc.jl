@@ -183,7 +183,7 @@ tensor(a::SumTerm, b::SumTerm) = SumTerm(tensor(key(a), key(b)), val(a) * val(b)
 ############
 function add_to_dict!(dict::SumDict, k, v)
     if v != 0
-        dict.data[k] = get(dict, k) + v
+        dict.data[k] = get(dict.data, k, 0) + v
     end
     return dict
 end

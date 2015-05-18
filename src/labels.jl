@@ -3,7 +3,9 @@
 ##############
 immutable StateLabel{N,T}
     label::Vector{T}
-    StateLabel(label::Vector{T}) = new(label)
+    hash::Uint64
+    StateLabel(label::Vector{T}, hash::Uint64) = new(label, hash)
+    StateLabel(label::Vector{T}) = StateLabel{N,T}(label, hash(label))
 end
 
 StateLabel(s::StateLabel) = s
@@ -26,10 +28,10 @@ switch{N,T}(s::StateLabel{N,T}, i, j) =  StateLabel{N,T}(switch!(copy(s.label), 
 permute{N,T}(label::StateLabel{N,T}, perm::Vector) = StateLabel{N,T}(label[perm])
 
 Base.copy{N,T}(s::StateLabel{N,T}) = StateLabel{N,T}(s.label)
-Base.hash(s::StateLabel) = hash(s.label)
+Base.hash(s::StateLabel) = s.hash
 Base.hash(s::StateLabel, h::Uint64) = hash(hash(s), h)
 
-Base.(:(==)){N}(a::StateLabel{N},b::StateLabel{N}) = a.label == b.label
+Base.(:(==)){N}(a::StateLabel{N},b::StateLabel{N}) = hash(a) == hash(b)
 
 Base.start(s::StateLabel) = start(s.label)
 Base.next(s::StateLabel, i) = next(s.label, i)
