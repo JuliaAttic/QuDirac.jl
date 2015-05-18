@@ -23,6 +23,7 @@ Base.copy(term::SumTerm) = SumTerm(copy(key(term)), copy(val(term)))
 
 Base.promote_rule{K1,V1,K2,V2}(::Type{SumTerm{K1,V1}}, ::Type{SumTerm{K2,V2}}) = SumTerm{promote_type(K1,K2), promote_type(V1,V2)}
 Base.convert{K,V}(::Type{SumTerm{K,V}}, term::SumTerm) = SumTerm(convert(K,key(term)), convert(V,val(term)))
+Base.convert{K,V}(::Type{SumTerm{K,V}}, term::SumTerm{K,V}) = term
 
 Base.keys(term::SumTerm) = tuple(key(term))
 Base.values(term::SumTerm) = tuple(values(term))
@@ -69,6 +70,7 @@ Base.promote_rule{K1,V1,K2,V2}(::Type{SumDict{K1,V1}}, ::Type{SumDict{K2,V2}}) =
 Base.promote_rule{K1,V1,K2,V2}(::Type{SumTerm{K1,V1}}, ::Type{SumDict{K2,V2}}) = SumDict{promote_type(K1,K2), promote_type(V1,V2)}
 Base.convert{K,V}(::Type{SumDict{K,V}}, term::SumTerm) = SumDict(convert(SumTerm{K,V}, term))
 Base.convert{K,V}(::Type{SumDict{K,V}}, dict::SumDict) = SumDict(convert(Dict{K,V}, dict.data))
+Base.convert{K,V}(::Type{SumDict{K,V}}, dict::SumDict{K,V}) = dict
 
 Base.keys(dict::SumDict) = keys(dict.data)
 Base.values(dict::SumDict) = values(dict.data)
@@ -195,8 +197,8 @@ function add_merge!(result::SumDict, dict::SumDict)
     return result
 end
 
-add_result{A,B,T,V}(a::SumDict{A,T}, b::SumDict{B,V}) = @compat sizehint!(SumDict{promote_type(A,B), promote_type(T,V)}(), max(length(a), length(b)))
-add_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = @compat sizehint!(SumDict{promote_type(K,L), promote_type(V,C)}(), length(d))
+add_result{A,B,T,V}(a::SumDict{A,T}, b::SumDict{B,V}) = SumDict{promote_type(A,B), promote_type(T,V)}()
+add_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = SumDict{promote_type(K,L), promote_type(V,C)}()
 add_result{K,V,L,C}(::SumTerm{K,V}, ::SumTerm{L,C}) = SumDict{promote_type(K,L), promote_type(V,C)}()
 
 Base.(:+)(a::SumDict, b::SumDict) = add_merge!(merge!(add_result(a,b), a), b)

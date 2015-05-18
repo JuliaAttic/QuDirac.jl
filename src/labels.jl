@@ -61,6 +61,7 @@ Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = Sta
 Base.promote_type{N,T}(::Type{StateLabel{N,T}}, ::Type{StateLabel{N,T}}) = StateLabel{N,T}
 
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N}) = StateLabel{N,T}(convert(Vector{T}, s.label))
+Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N,T}) = s
 
 ###########
 # OpLabel #
@@ -111,6 +112,7 @@ Base.promote_type{N,K,B1,B2}(::Type{OpLabel{N,K,B1}}, ::Type{OpLabel{N,K,B2}}) =
 Base.promote_type{N,K,B}(::Type{OpLabel{N,K,B}}, ::Type{OpLabel{N,K,B}}) = OpLabel{N,K,B}
 
 Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, o::OpLabel{N}) = OpLabel{N,K,B}(convert(StateLabel{N,K}, o.k), convert(StateLabel{N,B}, o.b))
+Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, o::OpLabel{N,K,B}) = o
 
 ####################
 # Helper Functions #

@@ -60,6 +60,7 @@ end
 data(op::OpSum) = op.data
 
 Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,K,B,T}}, op::OpSum{P}) = OpSum(P, convert(SumDict{OpLabel{N,K,B},T}, data(op)))
+Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,K,B,T}}, op::OpSum{P,N,K,B,T}) = op
 
 function Base.promote_rule{P,N,K1,B1,T1,K2,B2,T2}(::Type{OpSum{P,N,K1,B1,T1}}, ::Type{OpSum{P,N,K2,B2,T2}})
     return OpSum{P,N,promote_type(K1,K2),promote_type(B1,B2),promote_type(T1,T2)}
@@ -98,6 +99,8 @@ Base.convert{P,N,K,B,T}(::Type{OpSum}, opc::DualOpSum{P,N,K,B,T}) = OpSum(opc)
 function Base.convert{P,N,K,B,T}(::Type{DualOpSum{P,N,K,B,T}}, opc::DualOpSum)
     return DualOpSum(convert(OpSum{P,N,B,K,T}, opc.op))
 end
+
+Base.convert{P,N,K,B,T}(::Type{DualOpSum{P,N,K,B,T}}, opc::DualOpSum{P,N,K,B,T}) = opc
 
 Base.promote_rule{P,N,K,B,T}(::Type{OpSum{P,N,B,K,T}}, ::Type{DualOpSum{P,N,K,B,T}}) = OpSum{P,N,B,K,T}
 function Base.promote_rule{P,N,K1,B1,T1,K2,B2,T2}(::Type{DualOpSum{P,N,K1,B1,T1}}, ::Type{DualOpSum{P,N,K2,B2,T2}})

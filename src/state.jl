@@ -16,7 +16,9 @@ ket{P<:AbstractInner}(::Type{P}, args...) = ket(P, StateLabel(args))
 
 data(k::Ket) = k.data
 
-Base.convert{P,N,S}(::Type{Ket{P,N,S}}, k::Ket{P}) = Ket(P, convert(S, data(k))) 
+Base.convert{P,N,S<:SumAssoc}(::Type{Ket{P,N,S}}, k::Ket{P}) = Ket(P, convert(S, data(k)))
+Base.convert{P,N,S<:SumAssoc}(::Type{Ket{P,N,S}}, k::Ket{P,N,S}) = k
+
 Base.promote_rule{P,N,A,B}(::Type{Ket{P,N,A}}, ::Type{Ket{P,N,B}}) = Ket{P,N,promote_type(A,B)}
 
 Base.eltype{P,N,S}(::Type{Ket{P,N,S}}) = eltype(S)
@@ -53,7 +55,9 @@ bra(args...) = Bra(ket(args...))
 
 data(b::Bra) = data(b.kt)
 
-Base.convert{P,N,S}(::Type{Bra{P,N,S}}, b::Bra{P}) = Bra(convert(Ket{P,N,S}, b.kt)) 
+Base.convert{P,N,S}(::Type{Bra{P,N,S}}, b::Bra{P}) = Bra(convert(Ket{P,N,S}, b.kt))
+Base.convert{P,N,S}(::Type{Bra{P,N,S}}, b::Bra{P,N,S}) = b
+
 Base.promote_rule{P,N,A,B}(::Type{Bra{P,N,A}}, ::Type{Bra{P,N,B}}) = Bra{P,N,promote_type(A,B)}
 
 Base.eltype{P,N,S}(::Type{Bra{P,N,S}}) = eltype(S)

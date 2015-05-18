@@ -19,6 +19,7 @@ OpSum(op::OuterProduct) = OpSum(op.kt, op.br, op.scalar)
 
 Base.convert{P,N,K,B,T}(::Type{OpSum{P,N,K,B,T}}, op::OuterProduct) = convert(OpSum{P,N,K,B,T}, OpSum(op))
 Base.convert(::Type{OpSum}, op::OuterProduct) = OpSum(op)
+Base.convert{P,N,S,K,B}(::Type{OuterProduct{P,N,S,K,B}}, op::OuterProduct{P,N,S,K,B}) = op
 
 Base.promote_rule{OS<:OpSum, OP<:OuterProduct}(::Type{OS}, ::Type{OP}) = OS
 
