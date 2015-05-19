@@ -183,7 +183,7 @@ tensor(a::SumTerm, b::SumTerm) = SumTerm(tensor(key(a), key(b)), val(a) * val(b)
 ############
 # Addition #
 ############
-function add_to_dict!(dict::SumDict, k, v)
+function add_to_sum!(dict::SumDict, k, v)
     if v != 0
         dict.data[k] = get(dict.data, k, 0) + v
     end
@@ -192,7 +192,7 @@ end
 
 function add_merge!(result::SumDict, dict::SumDict)
     for (k,v) in dict
-        add_to_dict!(result, k, v)
+        add_to_sum!(result, k, v)
     end
     return result
 end
@@ -202,12 +202,12 @@ add_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = SumDict{promote_type(K,L)
 add_result{K,V,L,C}(::SumTerm{K,V}, ::SumTerm{L,C}) = SumDict{promote_type(K,L), promote_type(V,C)}()
 
 Base.(:+)(a::SumDict, b::SumDict) = add_merge!(merge!(add_result(a,b), a), b)
-Base.(:+)(dict::SumDict, term::SumTerm) = add_to_dict!(merge!(add_result(dict,term), dict), key(term), val(term))
+Base.(:+)(dict::SumDict, term::SumTerm) = add_to_sum!(merge!(add_result(dict,term), dict), key(term), val(term))
 Base.(:+)(term::SumTerm, dict::SumDict) = dict + term
 function Base.(:+)(a::SumTerm, b::SumTerm)
     result = add_result(a,b)
-    add_to_dict!(result, key(a), val(a))
-    add_to_dict!(result, key(b), val(b))
+    add_to_sum!(result, key(a), val(a))
+    add_to_sum!(result, key(b), val(b))
     return result
 end
 
@@ -216,18 +216,18 @@ end
 ###############
 function sub_merge!(result::SumDict, d::SumDict)
     for (k,v) in d
-        add_to_dict!(result, k, -v)
+        add_to_sum!(result, k, -v)
     end
     return result
 end
 
 Base.(:-)(a::SumDict, b::SumDict) = sub_merge!(merge!(add_result(a,b), a), b)
-Base.(:-)(term::SumTerm, dict::SumDict) = add_to_dict!(scale!(merge!(add_result(dict,term), dict), -1), key(term), val(term))
-Base.(:-)(dict::SumDict, term::SumTerm) = add_to_dict!(merge!(add_result(dict,term), dict), key(term), -val(term))
+Base.(:-)(term::SumTerm, dict::SumDict) = add_to_sum!(scale!(merge!(add_result(dict,term), dict), -1), key(term), val(term))
+Base.(:-)(dict::SumDict, term::SumTerm) = add_to_sum!(merge!(add_result(dict,term), dict), key(term), -val(term))
 function Base.(:-)(a::SumTerm, b::SumTerm)
     result = add_result(a,b)
-    add_to_dict!(result, key(a), val(a))
-    add_to_dict!(result, key(b), -val(b))
+    add_to_sum!(result, key(a), val(a))
+    add_to_sum!(result, key(b), -val(b))
     return result
 end
 

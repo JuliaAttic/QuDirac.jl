@@ -27,7 +27,7 @@ end
 function cons_outer!(result::SumDict, kt::KetSum, br::BraSum)
     for (k,kc) in data(kt)
         for (b,bc) in data(br)
-            add_to_dict!(result, OpLabel(k, b), kc * bc')
+            add_to_sum!(result, OpLabel(k, b), kc * bc')
         end
     end
     return result
@@ -37,7 +37,7 @@ function cons_outer!(result::SumDict, kt::SingleKet, br::BraSum)
     k = label(kt)
     kc = coeff(kt)
     for (b,bc) in data(br)
-        add_to_dict!(result, OpLabel(k, b), kc * bc')
+        add_to_sum!(result, OpLabel(k, b), kc * bc')
     end
     return result
 end
@@ -46,13 +46,13 @@ function cons_outer!(result::SumDict, kt::KetSum, br::SingleBra)
     b = label(br)
     bc = coeff(br)
     for (k,kc) in data(kt)
-        add_to_dict!(result, OpLabel(k, b), kc * bc)
+        add_to_sum!(result, OpLabel(k, b), kc * bc)
     end
     return result
 end
 
 function cons_outer!(result::SumDict, kt::SingleKet, br::SingleBra)
-    add_to_dict!(result, OpLabel(label(kt), label(br)), coeff(kt) * coeff(br))
+    add_to_sum!(result, OpLabel(label(kt), label(br)), coeff(kt) * coeff(br))
     return result
 end
 
@@ -186,7 +186,7 @@ function inner_load!{P}(result::SumDict, br::SingleBra{P}, op::OpSum{P})
     c = coeff(br)
     b = label(br)
     for (o,v) in data(op)
-        add_to_dict!(result, blabel(o), ctranspose(v*c*inner(P, b, klabel(o))))
+        add_to_sum!(result, blabel(o), ctranspose(v*c*inner(P, b, klabel(o))))
     end
     return result
 end
@@ -198,7 +198,7 @@ function inner_load!{P}(result::SumDict, br::BraSum{P}, op::OpSum{P})
         for (b,c) in data(br)
             coeff += c' * v * inner(P, b, k) 
         end
-        add_to_dict!(result, blabel(o), ctranspose(coeff))
+        add_to_sum!(result, blabel(o), ctranspose(coeff))
     end
     return result
 end
@@ -212,7 +212,7 @@ function inner_load!{P}(result::SumDict, op::OpSum{P}, kt::SingleKet{P})
     c = coeff(kt)
     k = label(kt)
     for (o,v) in data(op)
-        add_to_dict!(result, klabel(o), v*c*inner(P, blabel(o), k))
+        add_to_sum!(result, klabel(o), v*c*inner(P, blabel(o), k))
     end
     return result
 end
@@ -224,7 +224,7 @@ function inner_load!{P}(result::SumDict, op::OpSum{P}, kt::KetSum{P})
         for (k,c) in data(kt)
             coeff += c * v * inner(P, b, k) 
         end
-        add_to_dict!(result, klabel(o), coeff)
+        add_to_sum!(result, klabel(o), coeff)
     end
     return result
 end
@@ -236,7 +236,7 @@ end
 
 function inner_load!{P}(result::SumDict, a::OpSum{P}, b::OpSum{P})
     for (o1,v) in data(a), (o2,c) in data(b)
-        add_to_dict!(result, 
+        add_to_sum!(result, 
                      OpLabel(klabel(o1), blabel(o2)),
                      v*c*inner(P, blabel(o1), klabel(o2)))
     end
@@ -250,7 +250,7 @@ end
 
 function inner_load!{P}(result::SumDict, op::OpSum{P}, opc::DualOpSum{P})
     for (o,v) in data(op), (oc,c) in data(opc)
-        add_to_dict!(result, 
+        add_to_sum!(result, 
                      OpLabel(klabel(o), klabel(oc)),
                      v*c'*inner(P, blabel(o), blabel(oc)))
     end
@@ -264,7 +264,7 @@ end
 
 function inner_load!{P}(result::SumDict, opc::DualOpSum{P}, op::OpSum{P})
     for (oc,v) in data(opc), (o,c) in data(op)
-        add_to_dict!(result,
+        add_to_sum!(result,
                      OpLabel(blabel(oc), blabel(o)),
                      v'*c*inner(P, klabel(oc), klabel(o)))
     end
@@ -300,7 +300,7 @@ function act_on_dict!{P}(result, op::OpSum{P}, kt::SingleKet{P}, i)
     v = coeff(kt)
     k_i = k[i]
     for (o,c) in data(op)
-        add_to_dict!(result, 
+        add_to_sum!(result, 
                      setindex(k, klabel(o)[1], i),
                      c*v*P(blabel(o)[1], k_i))
     end
@@ -309,7 +309,7 @@ end
 
 function act_on_dict!{P}(result, op::OpSum{P}, kt::KetSum{P}, i)
     for (o,c) in data(op), (k,v) in data(kt)
-        add_to_dict!(result, 
+        add_to_sum!(result, 
                      setindex(k, klabel(o)[1], i),
                      c*v*P(blabel(o)[1], k[i]))
     end
@@ -321,7 +321,7 @@ function act_on_dict!{P}(result, opc::DualOpSum{P}, kt::SingleKet{P}, i)
     v = coeff(kt)
     k_i = k[i]
     for (o,c) in data(opc)
-        add_to_dict!(result,
+        add_to_sum!(result,
                      setindex(k, blabel(o)[1], i),
                      c'*v*P(klabel(o)[1], k_i))
     end
@@ -330,7 +330,7 @@ end
 
 function act_on_dict!{P}(result, opc::DualOpSum{P}, kt::KetSum{P}, i)
     for (o,c) in data(opc), (k,v) in data(kt)
-        add_to_dict!(result,
+        add_to_sum!(result,
                      setindex(k, blabel(o)[1], i),
                      c'*v*P(klabel(o)[1], k[i]))
     end
@@ -416,7 +416,7 @@ ptrace{P,N}(op::DiracOp{P,N}, over) = OpSum(P, ptrace_dict!(ptrace_result(op), o
 function ptrace_dict!(result, op::OpSum, over)
     for (o,v) in data(op)
         if klabel(o)[over] == blabel(o)[over]
-            add_to_dict!(result, except(o, over), v)
+            add_to_sum!(result, except(o, over), v)
         end
     end
     return result
@@ -425,7 +425,7 @@ end
 function ptrace_dict!(result, opc::DualOpSum, over)
     for (o,v) in data(opc)
         if blabel(o)[over] == klabel(o)[over]
-            add_to_dict!(result, except(o', over), v')
+            add_to_sum!(result, except(o', over), v')
         end
     end
     return result
@@ -449,14 +449,14 @@ ptranspose{P,N}(op::DiracOp{P,N}, over) = OpSum(P, ptrans_dict!(ptrans_result(op
 
 function ptrans_dict!(result, op::OpSum, over)
     for (o,v) in data(op)
-        add_to_dict!(result, ptranspose(o, over), v)
+        add_to_sum!(result, ptranspose(o, over), v)
     end
     return result
 end
 
 function ptrans_dict!(result, opc::DualOpSum, over)
     for (o,v) in data(opc)
-        add_to_dict!(result, ptranspose(o', over), v')
+        add_to_sum!(result, ptranspose(o', over), v')
     end
     return result
 end

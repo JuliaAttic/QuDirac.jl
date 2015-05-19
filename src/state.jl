@@ -202,7 +202,7 @@ end
 
 function act_on_dict!{P}(result::SumDict, br::BraSum{P}, kt::KetSum{P}, i)
     for (b,c) in data(br), (k,v) in data(kt)
-        add_to_dict!(result, except(k,i), c'*v*P(b[1], k[i]))
+        add_to_sum!(result, except(k,i), c'*v*P(b[1], k[i]))
     end
     return result
 end
@@ -211,7 +211,7 @@ function act_on_dict!{P}(result, br::SingleBra{P}, kt::KetSum{P}, i,)
     b = label(br)[1]
     c = coeff(br)
     for (k,v) in data(kt)
-        add_to_dict!(result, except(k,i), c'*v*P(b, k[i]))
+        add_to_sum!(result, except(k,i), c'*v*P(b, k[i]))
     end
     return result
 end
@@ -221,7 +221,7 @@ function act_on_dict!{P}(result, br::BraSum{P}, kt::SingleKet{P}, i,)
     new_k = except(label(kt),i)
     v = coeff(kt)
     for (b,c) in data(br)
-        add_to_dict!(result, new_k, c'*v*P(b[1], k))
+        add_to_sum!(result, new_k, c'*v*P(b[1], k))
     end
     return result
 end
@@ -301,14 +301,14 @@ raise{P}(k::KetSum{P}, i) = Ket(P, raisedict!(ladder_result(k), data(k), i))
 
 function lowerdict!(result, d, i)
     for (k,v) in d
-        add_to_dict!(result, setindex(k, k[i] - 1, i), sqrt(k[i])*v)
+        add_to_sum!(result, setindex(k, k[i] - 1, i), sqrt(k[i])*v)
     end
     return result
 end
 
 function raisedict!(result, d, i)
     for (k,v) in d
-        add_to_dict!(result, setindex(k, k[i] + 1, i), sqrt(k[i]+1)*v)
+        add_to_sum!(result, setindex(k, k[i] + 1, i), sqrt(k[i]+1)*v)
     end
     return result
 end

@@ -127,7 +127,7 @@ end
 function ptrace_dict!(result, op::OuterProduct, over)
     for k in keys(data(op.kt)), b in keys(data(op.br))
         if k[over] == b[over]
-            add_to_dict!(result, except(OpLabel(k, b), over), op[k,b])
+            add_to_sum!(result, except(OpLabel(k, b), over), op[k,b])
         end
     end
     return result
@@ -135,7 +135,7 @@ end
 
 function ptrans_dict!(result, op::OuterProduct, over)
     for k in keys(data(op.kt)), b in keys(data(op.br))
-        add_to_dict!(result, ptranspose(OpLabel(k, b), over), op[k,b])
+        add_to_sum!(result, ptranspose(OpLabel(k, b), over), op[k,b])
     end
     return result
 end
