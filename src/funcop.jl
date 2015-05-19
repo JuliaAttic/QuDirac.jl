@@ -19,7 +19,7 @@ immutable DualFuncOp{T<:FuncOp} <: FuncOp
 end
 
 Base.ctranspose(op::FuncOp) = DualFuncOp(op)
-Base.ctranspose(f::DualFuncOp) = f.op
+Base.ctranspose(opc::DualFuncOp) = opc.op
 
 inner(a::DualFuncOp, b::DualFuncOp) = inner(b',a')'
 inner(opc::DualFuncOp, kt::Ket) = inner(kt',opc')'
@@ -35,7 +35,7 @@ end
 
 function apply_op_exp{T<:FuncOpDef}(ope::FuncOpExp{T}, state)
     result = state
-    for i=1:f.n
+    for i=1:ope.n
         result = apply_op_def(ope.op, result)
     end
     return result
