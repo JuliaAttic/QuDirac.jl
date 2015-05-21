@@ -6,7 +6,7 @@ labeltype{K,V}(::SumAssoc{K,V}) = K
 ###########
 # SumTerm #
 ###########
-type SumTerm{K,V} <: SumAssoc{K,V}
+immutable SumTerm{K,V} <: SumAssoc{K,V}
     key::K
     val::V
 end
@@ -19,7 +19,7 @@ val(term::SumTerm) = term.val
 Base.eltype{K,V}(::Type{SumTerm{K,V}}) = V
 labeltype{K,V}(::Type{SumTerm{K,V}}) = K
 
-Base.copy(term::SumTerm) = SumTerm(copy(key(term)), copy(val(term)))
+Base.copy(term::SumTerm) = SumTerm(key(term), val(term))
 
 Base.promote_rule{K1,V1,K2,V2}(::Type{SumTerm{K1,V1}}, ::Type{SumTerm{K2,V2}}) = SumTerm{promote_type(K1,K2), promote_type(V1,V2)}
 Base.convert{K,V}(::Type{SumTerm{K,V}}, term::SumTerm) = SumTerm(convert(K,key(term)), convert(V,val(term)))
@@ -31,10 +31,9 @@ Base.values(term::SumTerm) = tuple(values(term))
 Base.length(term::SumTerm) = 1
 
 Base.getindex(term::SumTerm, x) = haskey(term, x) ? val(term) : throw(KeyError(x))
-Base.setindex!(term::SumTerm, x, y) = haskey(term, y) ? term.val = x : throw(KeyError(y))
 
 Base.start(term::SumTerm) = false
-Base.next(term::SumTerm, i) = (tuple(key(term), val(term)), true)
+Base.next(term::SumTerm, i) = tuple(tuple(key(term), val(term)), true)
 Base.done(term::SumTerm, i) = i
 Base.collect(term::SumTerm) = [first(term)]
 
@@ -112,7 +111,6 @@ function mapvals!(f, dict::SumDict)
     end
     return dict
 end
-mapvals!(f, term::SumTerm) = (term.val = f(val(term)); return term)
 
 mapvals(f, term::SumTerm) = SumTerm(key(term), f(val(term)))
 mapvals(f, d::SumDict) = SumDict(zip(collect(keys(d)), map(f, collect(values(d)))))
@@ -131,8 +129,7 @@ function Base.scale!(dict::SumDict, c::Number)
     return dict
 end
 
-Base.scale!(term::SumTerm, c::Number) = (term.val *= c; return term)
-Base.scale!(c::Number, sa::SumAssoc) = scale!(sa, c)
+Base.scale!(c::Number, sa::SumDict) = scale!(sa, c)
 
 Base.scale(dict::SumDict, c::Number) = scale!(scale_result(dict,c), c)
 Base.scale(term::SumTerm, c::Number) = SumTerm(key(term), val(term) * c)
