@@ -129,7 +129,7 @@ function Base.scale!(dict::SumDict, c::Number)
     return dict
 end
 
-Base.scale!(c::Number, sa::SumDict) = scale!(sa, c)
+Base.scale!(c::Number, dict::SumDict) = scale!(dict, c)
 
 Base.scale(dict::SumDict, c::Number) = scale!(scale_result(dict,c), c)
 Base.scale(term::SumTerm, c::Number) = SumTerm(key(term), val(term) * c)

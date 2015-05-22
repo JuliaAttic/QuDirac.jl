@@ -1,7 +1,7 @@
 ################
 # OuterProduct #
 ################
-type OuterProduct{P,N,S,K<:Ket,B<:Bra} <: DiracOp{P,N}
+immutable OuterProduct{P,N,S,K<:Ket,B<:Bra} <: DiracOp{P,N}
     scalar::S
     kt::K
     br::B
@@ -85,9 +85,6 @@ Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 ###########
 # Scaling #
 ###########
-Base.scale!(c::Number, op::OuterProduct) = (op.scalar = c*op.scalar; return op)
-Base.scale!(op::OuterProduct, c::Number) = (op.scalar = op.scalar*c; return op)
-
 Base.scale(c::Number, op::OuterProduct) = OuterProduct(c * op.scalar, copy(op.kt), copy(op.br))
 Base.scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt), copy(op.br))
 

@@ -1,90 +1,169 @@
-Base.eltype(s::DiracState) = eltype(typeof(s))
-labeltype(s::DiracState) = labeltype(typeof(s))
+#################
+# Ket/Bra Types #
+#################
+abstract Ket{P,N,T,L} <: DiracState{P,N}
+abstract Bra{P,N,T,L} <: DiracState{P,N}
 
-#######
-# Ket #
-#######
-type Ket{P,N,S<:SumAssoc} <: DiracState{P,N}
-    data::S
-    Ket{L,T}(data::SumAssoc{StateLabel{N,L},T}) = new(data)
+immutable SingleKet{P,N,T,L} <: Ket{P,N,T,L}
+    data::SumTerm{StateLabel{N,L},T}
 end
 
-Ket{P,N,L,T}(::Type{P}, data::SumAssoc{StateLabel{N,L},T}) = Ket{P,N,typeof(data)}(data)
+SingleKet{P,N,T,L}(::Type{P}, data::SumTerm{StateLabel{N,L},T}) = SingleKet{P,N,T,L}(data)
 
-ket{P<:AbstractInner}(::Type{P}, label::StateLabel) = Ket(P, SumTerm(label, 1))
-ket{P<:AbstractInner}(::Type{P}, args...) = ket(P, StateLabel(args))
+type KetSum{P,N,T,L} <: Ket{P,N,T,L}
+    data::SumDict{StateLabel{N,L},T}
+end
 
-data(k::Ket) = k.data
+KetSum{P,N,T,L}(::Type{P}, data::SumDict{StateLabel{N,L},T}) = KetSum{P,N,T,L}(data)
 
-Base.convert{P,N,S<:SumAssoc}(::Type{Ket{P,N,S}}, k::Ket{P}) = Ket(P, convert(S, data(k)))
-Base.convert{P,N,S<:SumAssoc}(::Type{Ket{P,N,S}}, k::Ket{P,N,S}) = k
+immutable SingleBra{P,N,T,L} <: Bra{P,N,T,L}
+    kt::SingleKet{P,N,T,L}
+end
 
-Base.promote_rule{P,N,A,B}(::Type{Ket{P,N,A}}, ::Type{Ket{P,N,B}}) = Ket{P,N,promote_type(A,B)}
+type BraSum{P,N,T,L} <: Bra{P,N,T,L}
+    kt::KetSum{P,N,T,L}
+end
 
-Base.eltype{P,N,S}(::Type{Ket{P,N,S}}) = eltype(S)
-labeltype{P,N,S}(::Type{Ket{P,N,S}}) = labeltype(S)
+typealias SingleState{P,N,T,L} Union(SingleKet{P,N,T,L}, SingleBra{P,N,T,L})
+typealias StateSum{P,N,T,L} Union(KetSum{P,N,T,L}, BraSum{P,N,T,L})
 
-Base.hash{P}(k::Ket{P}) = hash(data(k), hash(P))
-Base.hash(k::Ket, h::Uint64) = hash(hash(k), h)
-Base.copy{P}(k::Ket{P}) = Ket(P, copy(data(k)))
+################
+# Constructors #
+################
+make_kt{P}(::Type{P}, data::SumTerm) = SingleKet(P,data)
+make_kt{P}(::Type{P}, data::SumDict) = KetSum(P,data)
+
+ket{P}(::Type{P}, lbl::StateLabel) = SingleKet(P, SumTerm(lbl, 1))
+ket{P}(::Type{P}, i...) = ket(P, StateLabel(i))
+
+bra(i...) = SingleBra(ket(i...))
+
+##############
+# ctranspose #
+##############
+ctranspose(br::SingleBra) = br.kt
+ctranspose(br::BraSum) = br.kt
+ctranspose(kt::SingleKet) = SingleBra(kt)
+ctranspose(kt::KetSum) = BraSum(kt)
+
+######################
+# Accessor Functions #
+######################
+data(kt::SingleKet) = kt.data
+data(kt::KetSum) = kt.data
+data(br::Bra) = data(br')
+
+coeff(kt::SingleKet) = val(data(kt))
+coeff(br::SingleBra) = val(data(br))'
+label(state::SingleState) = key(data(state))
+
+Base.eltype{S<:DiracState}(::S) = eltype(S)
+labeltype{S<:DiracState}(::S) = labeltype(S)
+nfactors{S<:DiracState}(::S) = nfactors(S)
+
+for t in (:Ket, :SingleKet, :KetSum, :Bra, :SingleBra, :BraSum)
+    @eval begin
+        Base.eltype{P,N,T,L}(::Type{($t){P,N,T,L}}) = T
+        labeltype{P,N,T,L}(::Type{($t){P,N,T,L}}) = L
+        nfactors{P,N,T,L}(::Type{($t){P,N,T,L}}) = N
+    end
+end
+
+########################
+# Conversion/Promotion #
+########################
+Base.convert{P,N,T,L}(::Type{SingleKet{P,N,T,L}}, k::SingleKet{P,N,T,L}) = k 
+Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, k::KetSum{P,N,T,L}) = k
+Base.convert{P,N,T,L}(::Type{SingleBra{P,N,T,L}}, b::SingleBra{P,N,T,L}) = b
+Base.convert{P,N,T,L}(::Type{BraSum{P,N,T,L}}, b::BraSum{P,N,T,L}) = b
+
+Base.convert{P,N,T,L}(::Type{SingleKet{P,N,T,L}}, kt::SingleKet) = SingleKet{P,N,T,L}(data(kt))
+Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, kt::SingleKet) = KetSum{P,N,T,L}(data(kt))
+Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, kt::KetSum) = KetSum{P,N,T,L}(data(kt))
+Base.convert{P,N,T,L}(::Type{SingleBra{P,N,T,L}}, br::Bra) = SingleBra(convert(SingleKet{P,N,T,L}, br'))
+Base.convert{P,N,T,L}(::Type{BraSum{P,N,T,L}}, br::Bra) = BraSum(convert(KetSum{P,N,T,L}, br'))
+
+function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleKet{P,N,T1,L1}}, ::Type{SingleKet{P,N,T2,L2}})
+    return SingleKet{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+end
+
+function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{KetSum{P,N,T1,L1}}, ::Type{KetSum{P,N,T2,L2}})
+    return KetSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+end
+
+function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleKet{P,N,T1,L1}}, ::Type{KetSum{P,N,T2,L2}})
+    return KetSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+end
+
+function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleBra{P,N,T1,L1}}, ::Type{SingleBra{P,N,T2,L2}})
+    return SingleBra{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+end
+
+function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{BraSum{P,N,T1,L1}}, ::Type{BraSum{P,N,T2,L2}})
+    return BraSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+end
+
+function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleBra{P,N,T1,L1}}, ::Type{BraSum{P,N,T2,L2}})
+    return BraSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+end
+
+############################
+# Hashing/Equality/Copying #
+############################
+const kt_hash = hash(Ket)
+const br_hash = hash(Bra)
+
+Base.hash{P}(kt::Ket{P}) = hash(data(kt), kt_hash)
+Base.hash{P}(br::Bra{P}) = hash(data(br), br_hash)
+Base.hash(state::DiracState, h::Uint64) = hash(hash(state), h)
+
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = data(a) == data(b)
-Base.length(k::Ket) = length(data(k))
+Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = data(a) == data(b)
 
-Base.getindex(k::Ket, x::StateLabel) = k.data[x]
-Base.setindex!(k::Ket, x, y::StateLabel) = setindex!(data(k), x, y)
+Base.copy{P}(kt::SingleKet{P}) = SingleKet(P,copy(data(kt)))
+Base.copy{P}(kt::KetSum{P}) = KetSum(P,copy(data(kt)))
+Base.copy(br::Bra) = ctranspose(copy(br'))
 
-Base.haskey(k::Ket, x::StateLabel) = haskey(data(k), x)
-Base.get(k::Ket, x::StateLabel, default=predict_zero(eltype(k))) = get(data(k), x, default)
+#######################
+# Dict-like Functions #
+#######################
+Base.length(state::DiracState) = length(data(state))
 
-Base.start(k::Ket) = start(data(k))
-Base.next(k::Ket, i) = next(data(k), i)
-Base.done(k::Ket, i) = done(data(k), i)
-Base.collect(k::Ket) = collect(data(k))
+Base.getindex(s::DiracState, i) = s[StateLabel(i)]
+Base.getindex(s::DiracState, i, j...) = s[StateLabel(i, j...)]
+Base.getindex(kt::Ket, x::StateLabel) = getindex(data(kt), x)
+Base.getindex(br::Bra, x::StateLabel) = getindex(br', x)'
 
-#######
-# Bra #
-#######
-type Bra{P,N,S} <: DiracState{P,N}
-    kt::Ket{P,N,S}
-end
+Base.setindex!(s::StateSum, x, i) = setindex!(s, x, StateLabel(i))
+Base.setindex!(s::StateSum, x, i, j...) = setindex!(s, x, StateLabel(i, j...))
+Base.setindex!(kt::KetSum, x, y::StateLabel) = setindex!(data(kt), x, y)
+Base.setindex!(br::BraSum, x, y::StateLabel) = setindex!(br', x', y)
 
-const bra_hash = hash(Bra)
+Base.haskey(state::DiracState, x::StateLabel) = haskey(data(state), x)
 
-Bra{P,N,S}(kt::Ket{P,N,S}) = Bra{P,N,S}(kt)
-bra(args...) = Bra(ket(args...))
+Base.get(kt::Ket, x::StateLabel, default=predict_zero(eltype(kt))) = get(data(kt), x, default)
+Base.get(br::Bra, x::StateLabel, default=predict_zero(eltype(br))) = haskey(br', x) ? br[x] : default
 
-data(b::Bra) = data(b.kt)
+#############
+# Iteration #
+#############
+Base.start(state::DiracState) = start(data(state))
 
-Base.convert{P,N,S}(::Type{Bra{P,N,S}}, b::Bra{P}) = Bra(convert(Ket{P,N,S}, b.kt))
-Base.convert{P,N,S}(::Type{Bra{P,N,S}}, b::Bra{P,N,S}) = b
+Base.next(kt::Ket, i) = next(data(kt), i)
 
-Base.promote_rule{P,N,A,B}(::Type{Bra{P,N,A}}, ::Type{Bra{P,N,B}}) = Bra{P,N,promote_type(A,B)}
-
-Base.eltype{P,N,S}(::Type{Bra{P,N,S}}) = eltype(S)
-labeltype{P,N,S}(::Type{Bra{P,N,S}}) = labeltype(S)
-
-Base.hash(b::Bra) = hash(b.kt, bra_hash)
-Base.hash(b::Bra, h::Uint64) = hash(hash(b), h)
-Base.copy(b::Bra) = Bra(copy(b.kt))
-Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
-Base.length(b::Bra) = length(b.kt)
-
-Base.getindex(b::Bra, x::StateLabel) = b.kt[x]'
-Base.setindex!(b::Bra, x, y::StateLabel) = setindex!(b.kt, x', y)
-
-Base.haskey(b::Bra, x::StateLabel) = haskey(b.kt, x)
-Base.get(b::Bra, x::StateLabel, default=predict_zero(eltype(b))) = get(b.kt, x, default)
-
-Base.start(b::Bra) = start(b.kt)
-
-function Base.next(b::Bra, i)
-    (k,v), n = next(b.kt, i)
+function Base.next(br::Bra, i)
+    (k,v), n = next(br', i)
     return ((k,v'), n)
 end
 
-Base.done(b::Bra, i) = done(b.kt, i)
+Base.done(state::DiracState, i) = done(data(state), i)
 
-Base.collect{P,N,S}(b::Bra{P,N,S}) = @compat collect_pairs!(Array(Tuple{labeltype(b), eltype(b)}, length(b)), b)
+Base.collect(kt::Ket) = collect(data(kt))
+
+function Base.collect(br::Bra)
+    arr = @compat Array(Tuple{StateLabel{nfactors(br), labeltype(br)}, eltype(br)}, length(br))
+    return collect_pairs!(arr, br)
+end
 
 function collect_pairs!(result, b::Bra)
     i = 1
@@ -94,33 +173,6 @@ function collect_pairs!(result, b::Bra)
     end
     return result
 end
-
-##############
-# DiracState #
-##############
-Base.getindex(s::DiracState, i) = s[StateLabel(i)]
-Base.getindex(s::DiracState, i, j...) = s[StateLabel(i, j...)]
-Base.setindex!(s::DiracState, x, i) = setindex!(s, x, StateLabel(i))
-Base.setindex!(s::DiracState, x, i, j...) = setindex!(s, x, StateLabel(i, j...))
-
-################
-# Type Aliases #
-################
-typealias KetSum{P,N,S<:SumDict} Ket{P,N,S}
-typealias SingleKet{P,N,S<:SumTerm} Ket{P,N,S}
-typealias BraSum{P,N,S<:SumDict} Bra{P,N,S}
-typealias SingleBra{P,N,S<:SumTerm} Bra{P,N,S}
-
-coeff(k::SingleKet) = val(data(k))
-coeff(b::SingleBra) = val(data(b))'
-label(k::SingleKet) = key(data(k))
-label(b::SingleBra) = key(data(b))
-
-##############
-# ctranspose #
-##############
-Base.ctranspose(k::Ket) = Bra(k)
-Base.ctranspose(b::Bra) = b.kt
 
 #########
 # inner #
@@ -187,7 +239,7 @@ inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 ##########
 act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
 # redundant definitions to resolve ambiguity warnings
-act_on{P,L,T}(br::Bra{P,1}, kt::Ket{P,1,SumDict{StateLabel{1,L},T}}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
+act_on{P,T,L}(br::Bra{P,1}, kt::Ket{P,1,T,L}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P}(br::SingleBra{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P}(br::BraSum{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 
@@ -195,9 +247,9 @@ function act_on{P,N}(br::SingleBra{P,1}, kt::SingleKet{P,N}, i)
     return (br * ket(P, label(kt)[i])) * ket(P, except(label(kt), i))
 end
 
-function act_on{P,N,L,T}(br::Bra{P,1}, kt::Ket{P,N,SumDict{StateLabel{N,L},T}}, i)
+function act_on{P,N,T,L}(br::Bra{P,1}, kt::Ket{P,N,T,L}, i)
     result = SumDict{StateLabel{N-1, L}, inner_rettype(br,kt)}()
-    return Ket(P, act_on_dict!(result, br, kt, i))
+    return KetSum(P, act_on_dict!(result, br, kt, i))
 end
 
 function act_on_dict!{P}(result::SumDict, br::BraSum{P}, kt::KetSum{P}, i)
@@ -229,28 +281,28 @@ end
 ###########
 # Scaling #
 ###########
-Base.scale!(k::Ket, c::Number) = (scale!(data(k), c); return k)
-Base.scale!(c::Number, k::Ket) = scale!(k, c)
-Base.scale!(b::Bra, c::Number) = (scale!(b', c'); return b)
-Base.scale!(c::Number, b::Bra) = scale!(b, c)
+Base.scale!(kt::KetSum, c::Number) = (scale!(data(kt), c); return kt)
+Base.scale!(c::Number, kt::KetSum) = scale!(kt, c)
+Base.scale!(br::BraSum, c::Number) = (scale!(br', c'); return br)
+Base.scale!(c::Number, br::BraSum) = scale!(br, c)
 
-Base.scale{P}(k::Ket{P}, c::Number) = Ket(P, scale(data(k), c))
-Base.scale(c::Number, k::Ket) = scale(k, c)
-Base.scale(b::Bra, c::Number) = scale(b', c')'
-Base.scale(c::Number, b::Bra) = scale(b, c)
+Base.scale{P}(kt::Ket{P}, c::Number) = make_kt(P, scale(data(kt), c))
+Base.scale(c::Number, kt::Ket) = scale(kt, c)
+Base.scale(br::Bra, c::Number) = scale(br', c')'
+Base.scale(c::Number, br::Bra) = scale(br, c)
 
-Base.(:*)(c::Number, s::DiracState) = scale(c, s)
-Base.(:*)(s::DiracState, c::Number) = scale(s, c)
-Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
+Base.(:*)(c::Number, state::DiracState) = scale(c, state)
+Base.(:*)(state::DiracState, c::Number) = scale(state, c)
+Base.(:/)(state::DiracState, c::Number) = scale(state, 1/c)
 
 ###########
 # + and - #
 ###########
-Base.(:-){P}(k::Ket{P}) = Ket(P, -data(k))
-Base.(:-)(b::Bra) = ctranspose(-(b'))
+Base.(:-){P}(kt::Ket{P}) = make_kt(P, -data(kt))
+Base.(:-)(br::Bra) = ctranspose(-(br'))
 
-Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = Ket(P, data(a) + data(b))
-Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = Ket(P, data(a) - data(b))
+Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = make_kt(P, data(a) + data(b))
+Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = make_kt(P, data(a) - data(b))
 
 Base.(:+)(a::Bra, b::Bra) = ctranspose(a' + b')
 Base.(:-)(a::Bra, b::Bra) = ctranspose(a' - b')
@@ -258,7 +310,7 @@ Base.(:-)(a::Bra, b::Bra) = ctranspose(a' - b')
 ##########
 # tensor #
 ##########
-tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(P, tensor(data(a), data(b)))
+tensor{P}(a::Ket{P}, b::Ket{P}) = make_kt(P, tensor(data(a), data(b)))
 tensor(a::Bra, b::Bra) = tensor(a', b')'
 
 Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
@@ -267,37 +319,37 @@ Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
 #################
 # Normalization #
 #################
-Base.norm(k::SingleKet) = abs(coeff(k))
-Base.norm(k::KetSum) = sqrt(sum(abs2, values(data(k))))
-Base.norm(b::Bra) = norm(b')
-normalize(s::DiracState) = (1/norm(s))*s
-normalize!(s::DiracState) = scale!(1/norm(s), s)
+Base.norm(kt::SingleKet) = abs(coeff(kt))
+Base.norm(kt::KetSum) = sqrt(sum(abs2, values(data(kt))))
+Base.norm(br::Bra) = norm(br')
+normalize(state::DiracState) = (1/norm(state))*state
+normalize!(state::DiracState) = scale!(1/norm(state), state)
 
 ####################
 # Raising/Lowering #
 ####################
-lower{P}(s::DiracState{P,1}) = lower(s, 1)
-raise{P}(s::DiracState{P,1}) = raise(s, 1)
+lower{P}(state::DiracState{P,1}) = lower(state, 1)
+raise{P}(state::DiracState{P,1}) = raise(state, 1)
 
-function lower{P}(k::SingleKet{P}, i)
-    l = setindex(label(k), label(k)[i] - 1, i)
-    c = sqrt(label(k)[i])*coeff(k) 
-    return Ket(P, SumTerm(l, c))
+function lower{P}(kt::SingleKet{P}, i)
+    lbl = setindex(label(kt), label(kt)[i] - 1, i)
+    c = sqrt(label(kt)[i])*coeff(kt) 
+    return SingleKet(P, SumTerm(lbl, c))
 end
 
-function raise{P}(k::SingleKet{P}, i)
-    l = setindex(label(k), label(k)[i] + 1, i)
-    c = sqrt(label(k)[i]+1)*coeff(k) 
-    return Ket(P, SumTerm(l, c))
+function raise{P}(kt::SingleKet{P}, i)
+    lbl = setindex(label(kt), label(kt)[i] + 1, i)
+    c = sqrt(label(kt)[i]+1)*coeff(kt) 
+    return SingleKet(P, SumTerm(lbl, c))
 end
 
-function ladder_result(k::Ket)
-    T = promote_type(Float64, eltype(labeltype(k)), eltype(k))
-    @compat sizehint!(SumDict{labeltype(k), T}(), length(k))
+function ladder_result(kt::Ket)
+    T = promote_type(Float64, labeltype(kt), eltype(kt))
+    @compat sizehint!(SumDict{StateLabel{nfactors(kt), labeltype(kt)}, T}(), length(kt))
 end
 
-lower{P}(k::KetSum{P}, i) = Ket(P, lowerdict!(ladder_result(k), data(k), i))
-raise{P}(k::KetSum{P}, i) = Ket(P, raisedict!(ladder_result(k), data(k), i))
+lower{P}(kt::KetSum{P}, i) = KetSum(P, lowerdict!(ladder_result(kt), data(kt), i))
+raise{P}(kt::KetSum{P}, i) = KetSum(P, raisedict!(ladder_result(kt), data(kt), i))
 
 function lowerdict!(result, d, i)
     for (k,v) in d
@@ -313,21 +365,19 @@ function raisedict!(result, d, i)
     return result
 end
 
-lower(b::Bra, i) = lower(b', i)'
-raise(b::Bra, i) = raise(b', i)'
+lower(br::Bra, i) = lower(br', i)'
+raise(br::Bra, i) = raise(br', i)'
 
 ########################
 # Misc. Math Functions #
 ########################
-nfactors{P,N}(::DiracState{P,N}) = N
+xsubspace(state::DiracState, x) = filter((k,v)->is_sum_x(k,x), state)
+switch(state::DiracState, i, j) = maplabels(l->switch(l, i, j), state)
+permute(state::DiracState, perm::Vector) = maplabels(l->permute(l, perm), state)
 
-xsubspace(s::DiracState, x) = filter((k,v)->is_sum_x(k,x), s)
-switch(s::DiracState, i, j) = maplabels(l->switch(l, i, j), s)
-permute(s::DiracState, perm::Vector) = maplabels(l->permute(l, perm), k)
-
-filternz{P}(k::Ket{P}) = Ket(P, filternz(data(k)))
-filternz(b::Bra) = filternz(b')'
-filternz!(s::DiracState) = (filternz!(data(s)); return s)
+filternz{P}(kt::Ket{P}) = make_kt(P, filternz(data(kt)))
+filternz(br::Bra) = filternz(br')'
+filternz!(state::StateSum) = (filternz!(data(state)); return state)
 
 represent{P}(kt::Ket{P}, basis) = [bra(P, i) * kt for i in basis]
 
@@ -357,7 +407,11 @@ Base.showcompact(io::IO, s::DiracState) = dirac_showcompact(io, s)
 Base.repr(s::DiracState) = dirac_repr(s)
 
 export Ket,
+    SingleKet,
+    KetSum,
     Bra,
+    SingleBra,
+    BraSum,
     ket,
     bra,
     represent,

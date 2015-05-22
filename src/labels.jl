@@ -57,8 +57,10 @@ Base.show(io::IO, s::StateLabel) = print(io, repr(s))
 tensor_type{N,M,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{M,B}}) = StateLabel{N+M,Any}
 tensor_type{N,M,T}(::Type{StateLabel{N,T}}, ::Type{StateLabel{M,T}}) = StateLabel{N+M,T}
 
-Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = StateLabel{N,Any}
-Base.promote_type{N,T}(::Type{StateLabel{N,T}}, ::Type{StateLabel{N,T}}) = StateLabel{N,T}
+label_promote{L1,L2}(::Type{L1}, ::Type{L2}) = Any
+label_promote{L}(::Type{L}, ::Type{L}) = L
+
+Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = StateLabel{N,label_promote(A,B)}
 
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N}) = StateLabel{N,T}(convert(Vector{T}, s.label))
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N,T}) = s
@@ -106,10 +108,7 @@ tensor_type{N,M,K1,K2,B}(::Type{OpLabel{N,K1,B}}, ::Type{OpLabel{M,K2,B}}) = OpL
 tensor_type{N,M,K,B1,B2}(::Type{OpLabel{N,K,B1}}, ::Type{OpLabel{M,K,B2}}) = OpLabel{N+M,K,Any}
 tensor_type{N,M,K,B}(::Type{OpLabel{N,K,B}}, ::Type{OpLabel{M,K,B}}) = OpLabel{N+M,K,B}
 
-Base.promote_type{N,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{N,K2,B2}}) = OpLabel{N,Any,Any}
-Base.promote_type{N,K1,K2,B}(::Type{OpLabel{N,K1,B}}, ::Type{OpLabel{N,K2,B}}) = OpLabel{N,Any,B}
-Base.promote_type{N,K,B1,B2}(::Type{OpLabel{N,K,B1}}, ::Type{OpLabel{N,K,B2}}) = OpLabel{N,K,Any}
-Base.promote_type{N,K,B}(::Type{OpLabel{N,K,B}}, ::Type{OpLabel{N,K,B}}) = OpLabel{N,K,B}
+Base.promote_type{N,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{N,K2,B2}}) = OpLabel{N,label_promote(K1,K2),label_promote(B1,B2)}
 
 Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, o::OpLabel{N}) = OpLabel{N,K,B}(convert(StateLabel{N,K}, o.k), convert(StateLabel{N,B}, o.b))
 Base.convert{N,K,B}(::Type{OpLabel{N,K,B}}, o::OpLabel{N,K,B}) = o
