@@ -384,10 +384,6 @@ xsubspace(state::DiracState, x) = filter((k,v)->is_sum_x(k,x), state)
 switch(state::DiracState, i, j) = maplabels(l->switch(l, i, j), state)
 permute(state::DiracState, perm::Vector) = maplabels(l->permute(l, perm), state)
 
-filternz{P}(kt::Ket{P}) = make_kt(P, filternz(data(kt)))
-filternz(br::Bra) = filternz(br')'
-filternz!(state::StateSum) = (filternz!(data(state)); return state)
-
 represent{P}(kt::Ket{P}, basis) = [bra(P, i) * kt for i in basis]
 
 function represent{P}(kt::Ket{P}, basis...)
@@ -413,11 +409,7 @@ export Ket,
     nfactors,
     xsubspace,
     switch,
-    switch!,
     permute,
-    permute!,
-    filternz,
-    filternz!,
     purity,
     lower,
     raise,

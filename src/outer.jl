@@ -588,11 +588,6 @@ switch(op::OuterProduct, i, j) = switch(OuterSum(op), i, j)
 permute(op::AbsOuterSum, perm::Vector) = maplabels(l->permute(l,perm), op)
 permute(op::OuterProduct, perm::Vector) = permute(OuterSum(op), perm)
 
-filternz!(op::AbsOuterSum) = (filter!(nzcoeff, data(op)); return op)
-filternz{P}(op::OuterSum{P}) = OuterSum(P, filternz(data(op)))
-filternz(opc::DualOuterSum) = filternz(opc')'
-filternz(op::OuterProduct) = filternz(OuterSum(op))
-
 purity(op::DiracOp) = trace(op^2)
 purity(op::DiracOp, i) = purity(ptrace(op,i))
 
@@ -611,13 +606,9 @@ export OuterSum,
     ptranspose,
     represent,
     xsubspace,
+    switch,
+    permute,
     nfactors,
-    maplabels!,
-    mapcoeffs!,
-    mapcoeffs,
-    maplabels,
-    filternz,
-    filternz!,
     purity,
     act_on,
     inner_eval,

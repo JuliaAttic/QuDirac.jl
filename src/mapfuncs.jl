@@ -14,6 +14,15 @@ Base.filter(f::Function, opc::DualOuterSum) = ctranspose(filter((k,v)->f(k',v'),
 
 Base.filter(f::Function, op::OuterProduct) = filter(f, OuterSum(op))
 
+filternz!(op::AbsOuterSum) = (filter!(nzcoeff, data(op)); return op)
+filternz!(state::StateSum) = (filternz!(data(state)); return state)
+
+filternz{P}(op::OuterSum{P}) = OuterSum(P, filternz(data(op)))
+filternz(opc::DualOuterSum) = filternz(opc')'
+filternz(op::OuterProduct) = filternz(OuterSum(op))
+filternz{P}(kt::Ket{P}) = make_kt(P, filternz(data(kt)))
+filternz(br::Bra) = filternz(br')'
+
 ########################
 # mapcoeffs!/mapcoeffs #
 ########################
@@ -58,4 +67,6 @@ br_tup(tup) = (tup[1], tup[2]')
 export maplabels!,
     mapcoeffs!,
     maplabels,
-    mapcoeffs
+    mapcoeffs,
+    filternz!,
+    filternz
