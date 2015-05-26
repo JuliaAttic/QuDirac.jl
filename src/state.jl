@@ -180,14 +180,50 @@ end
 #########
 # inner #
 #########
+kron_init(br::Bra{KronDelta}, kt::Ket{KronDelta}) = predict_zero(promote_type(eltype(br), eltype(kt), Int))
+undef_init(br::Bra{UndefInner}, kt::Ket{UndefInner}) = predict_zero(promote_type(eltype(br), eltype(kt), InnerExpr))
+
+function inner_init{P}(br::SingleBra{P}, kt::KetSum{P})
+    c = coeff(br)
+    b = label(br)
+    (k0,v0) = first(data(kt))
+    result = c * v0 * inner(P, b, k0)
+    return result - result 
+end
+
+inner_init(br::SingleBra{KronDelta}, kt::KetSum{KronDelta}) = kron_init(br,kt)
+inner_init(br::SingleBra{UndefInner}, kt::KetSum{UndefInner}) = undef_init(br,kt)
+
+function inner_init{P}(br::BraSum{P}, kt::SingleKet{P})
+    v = coeff(kt)
+    k = label(kt)
+    (b0,c0) = first(data(br))
+    result = c0' * v * inner(P, b0, k)
+    return result - result 
+end
+
+inner_init(br::BraSum{KronDelta}, kt::SingleKet{KronDelta}) = kron_init(br,kt)
+inner_init(br::BraSum{UndefInner}, kt::SingleKet{UndefInner}) = undef_init(br,kt)
+
+function inner_init{P}(br::BraSum{P}, kt::KetSum{P})
+    # initialize result to the correct type
+    (b0,c0) = first(data(br))
+    (k0,v0) = first(data(kt))
+    result = c0' * v0 * inner(P, b0, k0)
+    return result - result 
+end
+
+inner_init(br::BraSum{KronDelta}, kt::KetSum{KronDelta}) = kron_init(br,kt)
+inner_init(br::BraSum{UndefInner}, kt::KetSum{UndefInner}) = undef_init(br,kt)
+
 function inner{P,N}(br::SingleBra{P,N}, kt::SingleKet{P,N})
     return coeff(br) * coeff(kt) * inner(P, label(br), label(kt))
 end
 
 function inner{P,N}(br::SingleBra{P,N}, kt::KetSum{P,N})
-    result = predict_zero(inner_rettype(br, kt))
     c = coeff(br)
     b = label(br)
+    result = inner_init(br, kt)
     for (k,v) in data(kt)
         result += c * v * inner(P, b, k)
     end
@@ -195,9 +231,9 @@ function inner{P,N}(br::SingleBra{P,N}, kt::KetSum{P,N})
 end
 
 function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
-    result = predict_zero(inner_rettype(br, kt))
     v = coeff(kt)
     k = label(kt)
+    result = inner_init(br, kt)
     for (b,c) in data(br)
         result += c' * v * inner(P, b, k)
     end
@@ -205,7 +241,7 @@ function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
 end
 
 function inner{P,N}(br::BraSum{P,N}, kt::KetSum{P,N})
-    result = predict_zero(inner_rettype(br, kt))
+    result = inner_init(br, kt)
     for (b,c) in data(br), (k,v) in data(kt)
         result += c' * v * inner(P, b, k)
     end
@@ -224,7 +260,7 @@ function inner{N}(br::BraSum{KronDelta,N}, kt::KetSum{KronDelta,N})
 end
 
 function ortho_inner(a::DiracState{KronDelta}, b::DiracState{KronDelta})
-    result = predict_zero(inner_rettype(a, b))
+    result = 0
     for l in keys(data(b))
         if haskey(a, l)
             result += a[l]*b[l]
