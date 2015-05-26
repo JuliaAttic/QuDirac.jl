@@ -543,7 +543,6 @@ end
 #####################
 function ptrans_result{P,N}(op::DiracOp{P,N})
     T = label_promote(ketlabeltype(op), bralabeltype(op))
-
     return SumDict{OpLabel{N,T,T}, eltype(op)}()
 end
 
