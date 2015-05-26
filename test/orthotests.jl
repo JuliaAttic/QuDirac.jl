@@ -1,6 +1,6 @@
 simpk = d" (1+3im)| 1 > "
 proj = simpk*simpk'
-projop = convert(OpSum, proj)
+projop = convert(OuterSum, proj)
 
 k = sum([d" (i+(i*im)) * | i >" for i=0:3])
 b = sum([d" (i+(i*3*im)) * | i >" for i=0:3])'

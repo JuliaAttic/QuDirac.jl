@@ -109,17 +109,17 @@ julia> op[(8,1,10),(2,1,2)]
 320
 ```
 
-The above obviously works with `OpSum`s as well as `OuterProduct`s.
+The above obviously works with `OuterSum`s as well as `OuterProduct`s.
 
-Assigning coefficients, however, only works with `OpSum`s (due to the 
+Assigning coefficients, however, only works with `OuterSum`s (due to the 
 `OuterProduct` type simply being a view on its underlying state factors):
 
 ```julia
 julia> op[(8,1,10),(2,1,2)] = 1
 ERROR: `setindex!` has no method matching setindex!(::OuterProduct{KronDelta,3,Int64,Ket{KronDelta,3,Int64},Bra{KronDelta,3,Int64}}, ::Int64, ::(Int64,Int64,Int64), ::(Int64,Int64,Int64))
 
-julia> ops = convert(OpSum, op)
-OpSum{KronDelta,3,Int64} with 1000000 operator(s):
+julia> ops = convert(OuterSum, op)
+OuterSum{KronDelta,3,Int64} with 1000000 operator(s):
   168 | 7,4,1 ⟩⟨ 1,6,1 |
   90 | 1,1,9 ⟩⟨ 5,1,2 |
   2520 | 5,6,2 ⟩⟨ 2,3,7 |
@@ -179,7 +179,7 @@ julia> get(k, ('a', 'b', 'c'), "Not here")
 # QuDirac Objects as Data Structures
 ---
 
-Under the hood, QuDirac's `Ket` and `OpSum` types use `Dict`s to map labels to coefficients.
+Under the hood, QuDirac's `Ket` and `OuterSum` types use `Dict`s to map labels to coefficients.
 
 There are few important things to keep in mind when working with these structures:
 
@@ -191,10 +191,10 @@ There are few important things to keep in mind when working with these structure
 
 
 ---
-# Iterating through States and `OpSum`s
+# Iterating through States and `OuterSum`s
 ---
 
-States, `OpSum`s, and `DualOpSum`s are iterable:
+States, `OuterSum`s, and `DualOuterSum`s are iterable:
 
 ```julia
 julia> k = normalize(sum(i -> d" i * im * | i > ", 1:3));
@@ -211,9 +211,9 @@ StateLabel{1}(3), 0.0 - 0.8017837257372732im
 StateLabel{1}(2), 0.0 - 0.5345224838248488im
 StateLabel{1}(1), 0.0 - 0.2672612419124244im
 
-julia> op = OpSum(k, k');
+julia> op = OuterSum(k, k');
 
-# iterating through an OpSum
+# iterating through an OuterSum
 julia> for (label, c) in op println(label, ", ", c) end
 OpLabel{1}(| 2 ⟩,⟨ 1 |), 0.14285714285714288 + 0.0im
 OpLabel{1}(| 3 ⟩,⟨ 3 |), 0.6428571428571429 + 0.0im

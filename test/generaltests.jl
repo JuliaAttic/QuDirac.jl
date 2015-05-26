@@ -31,7 +31,7 @@ B = sum([d" c2*(i-j)*| i >< j |" for i in 1:3, j in 1:3])
 @assert A-A == 0A
 @assert A-B+B == A
 @assert length(filter((o,v) -> klabel(o)==StateLabel(3), A)) == 2
-@assert convert(OpSum, A') == maplabels(ctranspose, mapcoeffs(ctranspose, A))
+@assert convert(OuterSum, A') == maplabels(ctranspose, mapcoeffs(ctranspose, A))
 @assert xsubspace(tensor(A,A,A),3) == d" A[1,1]^3 * | 1,1,1 >< 1,1,1 | "
 
 C = tensor(A, B')

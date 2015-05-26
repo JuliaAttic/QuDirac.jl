@@ -50,10 +50,6 @@ tensor{N,M,T}(a::StateLabel{N,T}, b::StateLabel{M,T}) = StateLabel{N+M,T}(vcat(a
 
 Base.(:*)(a::StateLabel, b::StateLabel) = tensor(a,b)
 
-labelstr(s::StateLabel) = join(map(repr, s.label), ',')
-Base.repr(s::StateLabel) = repr(typeof(s)) * "(" * labelstr(s) * ")"
-Base.show(io::IO, s::StateLabel) = print(io, repr(s))
-
 tensor_type{N,M,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{M,B}}) = StateLabel{N+M,Any}
 tensor_type{N,M,T}(::Type{StateLabel{N,T}}, ::Type{StateLabel{M,T}}) = StateLabel{N+M,T}
 
@@ -99,9 +95,6 @@ ptranspose(o::OpLabel, i) = OpLabel(setindex(o.k, o.b[i], i), setindex(o.b, o.k[
 permute(o::OpLabel, perm::Vector) = OpLabel(permute(o.k, perm), permute(o.b, perm))
 except(o::OpLabel, i) = OpLabel(except(o.k, i), except(o.b, i))
 switch(o::OpLabel, i, j) = OpLabel(switch(o.k, i, j), switch(o.b, i, j))
-
-Base.repr(o::OpLabel) = repr(typeof(o)) * "(" * ktstr(o.k) * "," * brstr(o.b) * ")"
-Base.show(io::IO, o::OpLabel) = print(io, repr(o))
 
 tensor_type{N,M,K1,K2,B1,B2}(::Type{OpLabel{N,K1,B1}}, ::Type{OpLabel{M,K2,B2}}) = OpLabel{N+M,Any,Any}
 tensor_type{N,M,K1,K2,B}(::Type{OpLabel{N,K1,B}}, ::Type{OpLabel{M,K2,B}}) = OpLabel{N+M,Any,B}

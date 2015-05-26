@@ -187,45 +187,50 @@ function add_to_sum!(dict::SumDict, k, v)
     return dict
 end
 
-function add_merge!(result::SumDict, dict::SumDict)
+function add!(result::SumDict, dict::SumDict)
     for (k,v) in dict
         add_to_sum!(result, k, v)
     end
     return result
 end
 
+add!(result::SumDict, term::SumTerm) = add_to_sum!(result, key(term), val(term))
+
 add_result{A,B,T,V}(a::SumDict{A,T}, b::SumDict{B,V}) = SumDict{promote_type(A,B), promote_type(T,V)}()
 add_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = SumDict{promote_type(K,L), promote_type(V,C)}()
 add_result{K,V,L,C}(::SumTerm{K,V}, ::SumTerm{L,C}) = SumDict{promote_type(K,L), promote_type(V,C)}()
 
-Base.(:+)(a::SumDict, b::SumDict) = add_merge!(merge!(add_result(a,b), a), b)
-Base.(:+)(dict::SumDict, term::SumTerm) = add_to_sum!(merge!(add_result(dict,term), dict), key(term), val(term))
+Base.(:+)(a::SumDict, b::SumAssoc) = add!(merge!(add_result(a,b), a), b)
 Base.(:+)(term::SumTerm, dict::SumDict) = dict + term
 function Base.(:+)(a::SumTerm, b::SumTerm)
     result = add_result(a,b)
-    add_to_sum!(result, key(a), val(a))
-    add_to_sum!(result, key(b), val(b))
+    add!(result, a)
+    add!(result, b)
     return result
 end
 
 ###############
 # Subtraction #
 ###############
-function sub_merge!(result::SumDict, d::SumDict)
+function sub!(result::SumDict, d::SumDict)
     for (k,v) in d
         add_to_sum!(result, k, -v)
     end
     return result
 end
 
-Base.(:-)(a::SumDict, b::SumDict) = sub_merge!(merge!(add_result(a,b), a), b)
-Base.(:-)(term::SumTerm, dict::SumDict) = add_to_sum!(scale!(merge!(add_result(dict,term), dict), -1), key(term), val(term))
-Base.(:-)(dict::SumDict, term::SumTerm) = add_to_sum!(merge!(add_result(dict,term), dict), key(term), -val(term))
-function Base.(:-)(a::SumTerm, b::SumTerm)
-    result = add_result(a,b)
-    add_to_sum!(result, key(a), val(a))
-    add_to_sum!(result, key(b), -val(b))
-    return result
+sub!(result::SumDict, term::SumTerm) = add_to_sum!(result, key(term), -val(term))
+
+Base.(:-)(a::SumDict, b::SumAssoc) = sub!(merge!(add_result(a,b), a), b)
+
+function Base.(:-)(term::SumTerm, dict::SumDict)
+    result = scale!(merge!(add_result(dict,term), dict), -1)
+    return add!(result, term)
 end
 
-export SumTerm, SumDict, filternz, filternz!, mapvals, mapkeys
+function Base.(:-)(a::SumTerm, b::SumTerm)
+    result = add_result(a,b)
+    add!(result, a)
+    sub!(result, b)
+    return result
+end

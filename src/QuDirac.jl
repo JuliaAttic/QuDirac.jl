@@ -51,17 +51,16 @@ module QuDirac
     ######################
     # Include Statements #
     ######################
-    include("labels.jl")
     include("sumassoc.jl")
+    include("labels.jl")
     include("inner.jl")
     include("state.jl")
-    include("opsum.jl")
-    include("outerproduct.jl")
-    include("printfuncs.jl")
+    include("outer.jl")
     include("mapfuncs.jl")
     include("str_macros.jl")
     include("funcop.jl")
-    
+    include("printfuncs.jl")
+
     #################
     # default_inner #
     #################

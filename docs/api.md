@@ -14,9 +14,9 @@ type Bra{P,N,T} <: DiracState{P,N}
 
 type OuterProduct{P,N,S,K,B} <: DiracOp{P,N}
 
-abstract AbsOpSum{P,N,T} <: DiracOp{P,N}
-type OpSum{P,N,T} <: AbsOpSum{P,N,T}
-type DualOpSum{P,N,T} <: AbsOpSum{P,N,T}
+abstract AbsOuterSum{P,N,T} <: DiracOp{P,N}
+type OuterSum{P,N,T} <: AbsOuterSum{P,N,T}
+type DualOuterSum{P,N,T} <: AbsOuterSum{P,N,T}
 ```
 
 ---
@@ -42,9 +42,9 @@ Construct a single (i.e. non-superposed) Bra with as many factors as there are `
 See the [Constructing Single Bras](constructing_states/#constructing-single-bras) section for more.
 
 ---
-**OpSum(dict::Dict{OpLabel{N}, T}),**
+**OuterSum(dict::Dict{OpLabel{N}, T}),**
 
-**OpSum(ptype::AbstractInner, dict::Dict{OpLabel{N}, T})**
+**OuterSum(ptype::AbstractInner, dict::Dict{OpLabel{N}, T})**
 
 Construct an operator from the provided `dict`.
 
@@ -212,7 +212,7 @@ For example:
 
 ```julia
 julia> @rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > ) " 0:1
-OpSum{KronDelta,1,Float64} with 4 operator(s):
+OuterSum{KronDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |

@@ -32,7 +32,7 @@ Bra{KronDelta,2,Float64} with 2 state(s):
   0.7071067811865475 ⟨ 1,1 |
 
 julia> ptrace(bell * bell', 1)
-OpSum{KronDelta,1,Float64} with 2 operator(s):
+OuterSum{KronDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 0 ⟩⟨ 0 |
   0.4999999999999999 | 1 ⟩⟨ 1 |
 ```
@@ -103,7 +103,7 @@ julia> d" < 3,4,5 | * a₂ * | 3,5,5 > "
 julia> @rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > ) " 0:1;
 
 julia> H
-OpSum{KronDelta,1,Float64} with 4 operator(s):
+OuterSum{KronDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |

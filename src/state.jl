@@ -113,8 +113,8 @@ end
 const kt_hash = hash(Ket)
 const br_hash = hash(Bra)
 
-Base.hash{P}(kt::Ket{P}) = hash(data(kt), kt_hash)
-Base.hash{P}(br::Bra{P}) = hash(data(br), br_hash)
+Base.hash{P}(kt::Ket{P}) = hash(P, hash(data(kt), kt_hash))
+Base.hash{P}(br::Bra{P}) = hash(P, hash(data(br), br_hash))
 Base.hash(state::DiracState, h::Uint64) = hash(hash(state), h)
 
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = data(a) == data(b)
@@ -158,6 +158,9 @@ end
 
 Base.done(state::DiracState, i) = done(data(state), i)
 
+###########
+# collect #
+###########
 Base.collect(kt::Ket) = collect(data(kt))
 
 function Base.collect(br::Bra)
@@ -298,6 +301,12 @@ Base.(:/)(state::DiracState, c::Number) = scale(state, 1/c)
 ###########
 # + and - #
 ###########
+add!{P,N}(a::KetSum{P,N}, b::Ket{P,N}) = (add!(data(a), data(b)); return a)
+add!{P,N}(a::BraSum{P,N}, b::Bra{P,N}) = (add!(data(a), data(b)); return a)
+
+sub!{P,N}(a::KetSum{P,N}, b::Ket{P,N}) = (sub!(data(a), data(b)); return a)
+sub!{P,N}(a::BraSum{P,N}, b::Bra{P,N}) = (sub!(data(a), data(b)); return a)
+
 Base.(:-){P}(kt::Ket{P}) = make_kt(P, -data(kt))
 Base.(:-)(br::Bra) = ctranspose(-(br'))
 
@@ -392,20 +401,6 @@ purity(s::DiracState) = 1
 purity(kt::Ket, i) = purity(kt*kt', i)
 purity(br::Bra, i) = purity(br', i)
 
-######################
-# Printing Functions #
-######################
-ktstr(sl) = "| $(labelstr(sl)) $rang"
-brstr(sl) = "$lang $(labelstr(sl)) |"
-
-labelrepr(kt::Ket, sl, pad) = "$pad$(kt[sl]) $(ktstr(sl))"
-labelrepr(br::Bra, sl, pad) = "$pad$(br[sl]) $(brstr(sl))"
-
-Base.summary(s::DiracState) = "$(typeof(s)) with $(length(s)) state(s)"
-Base.show(io::IO, s::DiracState) = dirac_show(io, s)
-Base.showcompact(io::IO, s::DiracState) = dirac_showcompact(io, s)
-Base.repr(s::DiracState) = dirac_repr(s)
-
 export Ket,
     SingleKet,
     KetSum,
@@ -427,4 +422,6 @@ export Ket,
     lower,
     raise,
     act_on,
-    inner_eval
+    inner_eval,
+    add!,
+    sub!

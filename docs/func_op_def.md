@@ -122,14 +122,14 @@ to mimicking the behavior of *actual* quantum operators. For example, they can't
 be added or be factors of a tensor product (this functionality may indeed be implemented
 in the future, however).
 
-For those capabilities, we'll need to generate an `OpSum` representation in a basis. To do so, 
+For those capabilities, we'll need to generate an `OuterSum` representation in a basis. To do so, 
 we can use the `@rep_op` macro. Here's a familiar example:
 
 ```julia
 julia> @rep_op " a | n > = √n * | n-1 > " 1:10;
 
 julia> a
-OpSum{KronDelta,1,Float64} with 10 operator(s):
+OuterSum{KronDelta,1,Float64} with 10 operator(s):
   2.449489742783178 | 5 ⟩⟨ 6 |
   3.1622776601683795 | 9 ⟩⟨ 10 |
   2.23606797749979 | 4 ⟩⟨ 5 |
@@ -145,7 +145,7 @@ OpSum{KronDelta,1,Float64} with 10 operator(s):
 The `@rep_op` macro takes in a definition string, and an iterable of items to be used as basis labels.
 The grammar and allowable syntax of the definition string is *exactly* that of the definition string passed 
 to `@def_op`. The only difference between the two is that the `@rep_op` macro feeds in the given basis labels
-to produce an `OpSum`.
+to produce an `OuterSum`.
 
 To generate a representation on a product basis, one can provide multiple iterables to `@rep_op`.
 Their cartesian product will then be used as the basis for the representation: 
@@ -153,7 +153,7 @@ Their cartesian product will then be used as the basis for the representation:
 ```julia
 # define P₁₃₂ by it's action on a Bra
 julia> @rep_op " < i,j,k | P₁₃₂  = < i,k,j | "  1:10  'a':'f'  -(1:10)
-OpSum{KronDelta,3,Int64} with 600 operator(s):
+OuterSum{KronDelta,3,Int64} with 600 operator(s):
   1 | 10,'e',-2 ⟩⟨ 10,-2,'e' |
   1 | 4,'c',-5 ⟩⟨ 4,-5,'c' |
   1 | 3,'c',-10 ⟩⟨ 3,-10,'c' |
@@ -184,7 +184,7 @@ calling `h` on the right-hand side:
 
 ```julia
 julia> @rep_op " H | n > = h * | n > " 0:1
-OpSum{KronDelta,1,Float64} with 4 operator(s):
+OuterSum{KronDelta,1,Float64} with 4 operator(s):
   0.7071067811865475 | 1 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 0 |
   0.7071067811865475 | 0 ⟩⟨ 1 |

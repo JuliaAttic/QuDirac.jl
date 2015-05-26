@@ -23,7 +23,7 @@ The `OuterProduct` type is a lazy representation of the outer product of two sta
 the two factor states, and uses the state information to behave like an operator. Thus, the `OuterProduct` type acts as 
 a *view* onto the factor states.
 
-With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `OpSum` type. The `OpSum` type represents a sum of operators rather than an outer product of states, and is *not* a view. 
+With the exception of scaling functions, most mutating functions are not defined on `OuterProduct`. The non-mutating versions of these functions will work, however, by converting the operator into the more flexible `OuterSum` type. The `OuterSum` type represents a sum of operators rather than an outer product of states, and is *not* a view. 
 
 ---
 # Scalar Multiplication
@@ -53,16 +53,16 @@ Operators can be added and subtracted just like states:
 
 ```julia
 julia> op + op
-OpSum{KronDelta,1,Int64} with 1 operator(s):
+OuterSum{KronDelta,1,Int64} with 1 operator(s):
   2 | 'a' ⟩⟨ 'b' |
 
 julia> d" 1/√2 * (op - | 0 >< 1 |) "
-OpSum{KronDelta,1,Float64} with 2 operator(s):
+OuterSum{KronDelta,1,Float64} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   -0.7071067811865475 | 0 ⟩⟨ 1 |
 ```
 
-As you can see, generic sums of operators are represented using the `OpSum` type rather than the `OuterProduct` type.
+As you can see, generic sums of operators are represented using the `OuterSum` type rather than the `OuterProduct` type.
 
 ---
 # Normalization
@@ -72,7 +72,7 @@ Similarly to states, one can normalize operators using the `normalize` and `norm
 
 ```julia
 julia> op = normalize(sum(i -> d"| i >< i^2 |", 1:5))
-OpSum{KronDelta,1,Float64} with 5 operator(s):
+OuterSum{KronDelta,1,Float64} with 5 operator(s):
   0.4472135954999579 | 5 ⟩⟨ 25 |
   0.4472135954999579 | 3 ⟩⟨ 9 |
   0.4472135954999579 | 4 ⟩⟨ 16 |
@@ -93,18 +93,18 @@ Take the conjugate transpose of an operator, simply call `ctranspose` on it:
 
 ```julia
 julia> A = normalize(d"(1+3im)| 1 >< 2 | + (5-2im)| 3 >< 4 |")
-OpSum{KronDelta,1,Complex{Float64}} with 2 operator(s):
+OuterSum{KronDelta,1,Complex{Float64}} with 2 operator(s):
   0.8006407690254357 - 0.32025630761017426im | 3 ⟩⟨ 4 |
   0.16012815380508713 + 0.48038446141526137im | 1 ⟩⟨ 2 |
 
 julia> A'
-DualOpSum{KronDelta,1,Complex{Float64}} with 2 operator(s):
+DualOuterSum{KronDelta,1,Complex{Float64}} with 2 operator(s):
   0.8006407690254357 + 0.32025630761017426im | 4 ⟩⟨ 3 |
   0.16012815380508713 - 0.48038446141526137im | 2 ⟩⟨ 1 |
 ```
 
-Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of an `OpSum` is a `DualOpSum`.
-The `DualOpSum` type is a *view* on the original operator, so mutating a `DualOpSum` will mutate the underlying `OpSum` (one can explicitly make a copy via the `copy` function). 
+Like the conjugate transpose of a Ket is a Bra, the conjugate transpose of an `OuterSum` is a `DualOuterSum`.
+The `DualOuterSum` type is a *view* on the original operator, so mutating a `DualOuterSum` will mutate the underlying `OuterSum` (one can explicitly make a copy via the `copy` function). 
 
 The dual of an `OuterProduct` is simply an `OuterProduct`, and is still a view on the original factor states.
 
@@ -159,7 +159,7 @@ i.e. to compute `Ôᵢ | k₁,…,kᵢ,…,kⱼ ⟩`:
 
 ```julia
 julia> a = sum(i-> d"(√i)| i-1 >< i |", 1:5)
-OpSum{KronDelta,1,Float64} with 5 operator(s):
+OuterSum{KronDelta,1,Float64} with 5 operator(s):
   2.23606797749979 | 4 ⟩⟨ 5 |
   2.0 | 3 ⟩⟨ 4 |
   1.0 | 0 ⟩⟨ 1 |
@@ -194,12 +194,12 @@ already used for inner products. Thus, one must use the `tensor` function:
 
 ```julia
 julia> op = d" 1/√2 * (| 'a' >< 'b' | + | 'c' >< 'd' |)"
-OpSum{KronDelta,1,Float64} with 2 operator(s):
+OuterSum{KronDelta,1,Float64} with 2 operator(s):
   0.7071067811865475 | 'a' ⟩⟨ 'b' |
   0.7071067811865475 | 'c' ⟩⟨ 'd' |
 
 julia> tensor(op,op,op)
-OpSum{KronDelta,3,Float64} with 8 operator(s):
+OuterSum{KronDelta,3,Float64} with 8 operator(s):
   0.3535533905932737 | 'c','c','a' ⟩⟨ 'd','d','b' |
   0.3535533905932737 | 'c','a','a' ⟩⟨ 'd','b','b' |
   0.3535533905932737 | 'a','c','a' ⟩⟨ 'b','d','b' |
@@ -248,7 +248,7 @@ OuterProduct with 4 operator(s); Ket{KronDelta,2,Float64} * Bra{KronDelta,2,Floa
   0.4999999999999999 | 'a','b' ⟩⟨ 'a','b' |
 
 julia> ptrace(dense,1) # trace over the 1st subsystem
-OpSum{KronDelta,1,Float64} with 2 operator(s):
+OuterSum{KronDelta,1,Float64} with 2 operator(s):
   0.4999999999999999 | 'b' ⟩⟨ 'b' |
   0.4999999999999999 | 'a' ⟩⟨ 'a' |
 
@@ -264,12 +264,12 @@ Take the partial transpose of an operator via the `ptranspose` function:
 
 ```
 julia> op = normalize(d" | 'a','b','c' >< 'd','e','f' | + 2| 'i','j','k' >< 'l','m','n' | ")
-OpSum{KronDelta,3,Float64} with 2 operator(s):
+OuterSum{KronDelta,3,Float64} with 2 operator(s):
   0.8944271909999159 | 'i','j','k' ⟩⟨ 'l','m','n' |
   0.4472135954999579 | 'a','b','c' ⟩⟨ 'd','e','f' |
 
 julia> ptranspose(op, 2) # transpose the 2nd subsystem
-OpSum{KronDelta,3,Float64} with 2 operator(s):
+OuterSum{KronDelta,3,Float64} with 2 operator(s):
   0.4472135954999579 | 'a','e','c' ⟩⟨ 'd','b','f' |
   0.8944271909999159 | 'i','m','k' ⟩⟨ 'l','j','n' |
 ```
