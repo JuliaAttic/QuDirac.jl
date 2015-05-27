@@ -244,10 +244,17 @@ Base.show(io::IO, iex::InnerExpr) = print(io, repr(iex))
 ###############
 # Inner rules #
 ###############
-immutable KronDelta <: AbstractInner end
+
+macro definner(name)
+    return quote 
+        immutable $name <: AbstractInner end
+    end
+end
+
+@definner KronDelta
 KronDelta(b, k) = b == k ? 1 : 0
 
-immutable UndefInner <: AbstractInner end
+@definner UndefInner
 UndefInner(b, k) = InnerExpr(InnerLabel(b, k))
 
 function inner{P<:AbstractInner,N}(::Type{P}, b::StateLabel{N}, k::StateLabel{N})
@@ -291,4 +298,4 @@ export InnerExpr,
     UndefInner,
     KronDelta,
     inner_eval,
-    @def_inner
+    @definner

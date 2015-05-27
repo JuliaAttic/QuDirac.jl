@@ -25,7 +25,7 @@ end
 ##################
 # Custom inner product type
 # the QHO problem
-immutable QHOInner <: AbstractInner end
+@definner QHOInner
 
 QHOInner(x::Float64, k::BigInt) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
 QHOInner(x::Float64, k::Int) = QHOInner(x, BigInt(k))

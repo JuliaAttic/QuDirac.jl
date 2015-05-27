@@ -57,9 +57,7 @@ julia> inner_eval((b, k) -> sum(k) - sum(b), s)
 #### Custom inner product rules
 
 ```julia
-julia> @def_inner MyInner Float64
-INFO: MyInner is now defined as an inner product type.
-INFO: Inner products using the MyInner type should return values of type Float64.
+julia> @definner MyInner
 
 julia> MyInner(a::Float64, b::Float64) = sqrt(a+b)
 MyInner (constructor with 2 methods)
