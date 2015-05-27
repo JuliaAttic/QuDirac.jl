@@ -20,6 +20,7 @@ Base.eltype{K,V}(::Type{SumTerm{K,V}}) = V
 labeltype{K,V}(::Type{SumTerm{K,V}}) = K
 
 Base.copy(term::SumTerm) = SumTerm(key(term), val(term))
+Base.similar(term::SumTerm) = copy(term)
 
 Base.promote_rule{K1,V1,K2,V2}(::Type{SumTerm{K1,V1}}, ::Type{SumTerm{K2,V2}}) = SumTerm{promote_type(K1,K2), promote_type(V1,V2)}
 Base.convert{K,V}(::Type{SumTerm{K,V}}, term::SumTerm) = SumTerm(convert(K,key(term)), convert(V,val(term)))
@@ -58,6 +59,7 @@ labeltype{K,V}(::Type{SumDict{K,V}}) = K
 
 Base.sizehint(dict::SumDict, len) = @compat (sizehint!(dict.data, len); return dict)
 Base.copy(dict::SumDict) = SumDict(copy(dict.data))
+Base.similar(dict::SumDict) = SumDict(similar(dict.data))
 
 Base.merge!(result::SumDict, dict::SumDict) = (merge!(result.data, dict.data); return result)
 

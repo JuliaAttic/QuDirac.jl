@@ -72,6 +72,9 @@ end
 ########################
 # Conversion/Promotion #
 ########################
+issimilar{P,N,T,L}(::Ket{P,N,T,L}, ::Ket{P,N,T,L}) = true
+issimilar{P,N,T,L}(::Bra{P,N,T,L}, ::Bra{P,N,T,L}) = true
+
 Base.convert{P,N,T,L}(::Type{SingleKet{P,N,T,L}}, k::SingleKet{P,N,T,L}) = k 
 Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, k::KetSum{P,N,T,L}) = k
 Base.convert{P,N,T,L}(::Type{SingleBra{P,N,T,L}}, b::SingleBra{P,N,T,L}) = b
@@ -123,6 +126,10 @@ Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = data(a) == data(b)
 Base.copy{P}(kt::SingleKet{P}) = SingleKet(P,copy(data(kt)))
 Base.copy{P}(kt::KetSum{P}) = KetSum(P,copy(data(kt)))
 Base.copy(br::Bra) = ctranspose(copy(br'))
+
+Base.similar{P}(kt::SingleKet{P}) = SingleKet(P,similar(data(kt)))
+Base.similar{P}(kt::KetSum{P}) = KetSum(P,similar(data(kt)))
+Base.similar(br::Bra) = ctranspose(similar(br'))
 
 #######################
 # Dict-like Functions #
@@ -180,42 +187,6 @@ end
 #########
 # inner #
 #########
-kron_init(br::Bra{KronDelta}, kt::Ket{KronDelta}) = predict_zero(promote_type(eltype(br), eltype(kt), Int))
-undef_init(br::Bra{UndefInner}, kt::Ket{UndefInner}) = predict_zero(promote_type(eltype(br), eltype(kt), InnerExpr))
-
-function inner_init{P}(br::SingleBra{P}, kt::KetSum{P})
-    c = coeff(br)
-    b = label(br)
-    (k0,v0) = first(data(kt))
-    result = c * v0 * inner(P, b, k0)
-    return result - result 
-end
-
-inner_init(br::SingleBra{KronDelta}, kt::KetSum{KronDelta}) = kron_init(br,kt)
-inner_init(br::SingleBra{UndefInner}, kt::KetSum{UndefInner}) = undef_init(br,kt)
-
-function inner_init{P}(br::BraSum{P}, kt::SingleKet{P})
-    v = coeff(kt)
-    k = label(kt)
-    (b0,c0) = first(data(br))
-    result = c0' * v * inner(P, b0, k)
-    return result - result 
-end
-
-inner_init(br::BraSum{KronDelta}, kt::SingleKet{KronDelta}) = kron_init(br,kt)
-inner_init(br::BraSum{UndefInner}, kt::SingleKet{UndefInner}) = undef_init(br,kt)
-
-function inner_init{P}(br::BraSum{P}, kt::KetSum{P})
-    # initialize result to the correct type
-    (b0,c0) = first(data(br))
-    (k0,v0) = first(data(kt))
-    result = c0' * v0 * inner(P, b0, k0)
-    return result - result 
-end
-
-inner_init(br::BraSum{KronDelta}, kt::KetSum{KronDelta}) = kron_init(br,kt)
-inner_init(br::BraSum{UndefInner}, kt::KetSum{UndefInner}) = undef_init(br,kt)
-
 function inner{P,N}(br::SingleBra{P,N}, kt::SingleKet{P,N})
     return coeff(br) * coeff(kt) * inner(P, label(br), label(kt))
 end
@@ -223,28 +194,39 @@ end
 function inner{P,N}(br::SingleBra{P,N}, kt::KetSum{P,N})
     c = coeff(br)
     b = label(br)
-    result = inner_init(br, kt)
-    for (k,v) in data(kt)
+    (k0,v0) = first(data(kt))
+    result = c * v0 * inner(P, b, k0)
+
+    for (k,v) in drop(data(kt), 1)
         result += c * v * inner(P, b, k)
     end
+
     return result
 end
 
 function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
     v = coeff(kt)
     k = label(kt)
-    result = inner_init(br, kt)
-    for (b,c) in data(br)
+    (b0,c0) = first(data(br))
+    result = c0' * v * inner(P, b0, k)
+
+    for (b,c) in drop(data(br), 1)
         result += c' * v * inner(P, b, k)
     end
+
     return result
 end
 
 function inner{P,N}(br::BraSum{P,N}, kt::KetSum{P,N})
-    result = inner_init(br, kt)
+    (b0,c0) = first(data(br))
+    (k0,v0) = first(data(kt))
+    result = c0' * v0 * inner(P, b0, k0)
+    result -= result 
+
     for (b,c) in data(br), (k,v) in data(kt)
         result += c' * v * inner(P, b, k)
     end
+
     return result  
 end
 
@@ -260,7 +242,7 @@ function inner{N}(br::BraSum{KronDelta,N}, kt::KetSum{KronDelta,N})
 end
 
 function ortho_inner(a::DiracState{KronDelta}, b::DiracState{KronDelta})
-    result = 0
+    result = predict_zero(inner_rettype(a,b))
     for l in keys(data(b))
         if haskey(a, l)
             result += a[l]*b[l]
@@ -278,6 +260,7 @@ inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 ##########
 act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
 # redundant definitions to resolve ambiguity warnings
+act_on{P<:ProvidedInner,T,L}(br::Bra{P,1}, kt::Ket{P,1,T,L}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P,T,L}(br::Bra{P,1}, kt::Ket{P,1,T,L}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P}(br::SingleBra{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 act_on{P}(br::BraSum{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
@@ -286,19 +269,37 @@ function act_on{P,N}(br::SingleBra{P,1}, kt::SingleKet{P,N}, i)
     return (br * ket(P, label(kt)[i])) * ket(P, except(label(kt), i))
 end
 
-function act_on{P,N,T,L}(br::Bra{P,1}, kt::Ket{P,N,T,L}, i)
+function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
+    (k0,v0) = first(data(kt))
+    (b0,c0) = first(data(br))
+    result = act_on(c0*bra(P,b0), v0*ket(P,k0), i)
+    result -= result
+
+    for (k,v) in data(kt), (b,c) in data(br)
+        tmp = act_on(c*bra(P,b), v*ket(P,k), i)
+        if issimilar(result, tmp)
+            add!(result, tmp)
+        else
+            result += tmp
+        end
+    end
+
+    return result
+end
+
+function act_on{P<:ProvidedInner,N,T,L}(br::Bra{P,1}, kt::Ket{P,N,T,L}, i)
     result = SumDict{StateLabel{N-1, L}, inner_rettype(br,kt)}()
     return KetSum(P, act_on_dict!(result, br, kt, i))
 end
 
-function act_on_dict!{P}(result::SumDict, br::BraSum{P}, kt::KetSum{P}, i)
+function act_on_dict!{P<:ProvidedInner}(result::SumDict, br::BraSum{P}, kt::KetSum{P}, i)
     for (b,c) in data(br), (k,v) in data(kt)
         add_to_sum!(result, except(k,i), c'*v*P(b[1], k[i]))
     end
     return result
 end
 
-function act_on_dict!{P}(result, br::SingleBra{P}, kt::KetSum{P}, i,)
+function act_on_dict!{P<:ProvidedInner}(result, br::SingleBra{P}, kt::KetSum{P}, i,)
     b = label(br)[1]
     c = coeff(br)
     for (k,v) in data(kt)
@@ -307,7 +308,7 @@ function act_on_dict!{P}(result, br::SingleBra{P}, kt::KetSum{P}, i,)
     return result
 end
 
-function act_on_dict!{P}(result, br::BraSum{P}, kt::SingleKet{P}, i,)
+function act_on_dict!{P<:ProvidedInner}(result, br::BraSum{P}, kt::SingleKet{P}, i,)
     k = label(kt)[i]
     new_k = except(label(kt),i)
     v = coeff(kt)

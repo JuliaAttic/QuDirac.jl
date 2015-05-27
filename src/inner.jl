@@ -251,10 +251,12 @@ macro definner(name)
     end
 end
 
-@definner KronDelta
+abstract ProvidedInner <: AbstractInner
+
+immutable KronDelta <: ProvidedInner end
 KronDelta(b, k) = b == k ? 1 : 0
 
-@definner UndefInner
+immutable UndefInner <: ProvidedInner end
 UndefInner(b, k) = InnerExpr(InnerLabel(b, k))
 
 function inner{P<:AbstractInner,N}(::Type{P}, b::StateLabel{N}, k::StateLabel{N})
@@ -268,28 +270,36 @@ end
 inner{N}(::Type{KronDelta}, b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
 inner{N}(::Type{UndefInner}, b::StateLabel{N}, k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
 
-inner_rettype{P<:AbstractInner,A,B}(::Type{P}, ::Type{A}, ::Type{B}) = first(Base.return_types(inner, (Type{P}, StateLabel{2,A}, StateLabel{2,B})))
-inner_rettype{A,B}(::Type{KronDelta}, ::Type{A}, ::Type{B}) = Int
-inner_rettype{A,B}(::Type{UndefInner}, ::Type{A}, ::Type{B}) = InnerExpr
+# inner_rettype{P<:AbstractInner,A,B}(::Type{P}, ::Type{A}, ::Type{B}) = first(Base.return_types(inner, (Type{P}, StateLabel{2,A}, StateLabel{2,B})))
+# inner_rettype{A,B}(::Type{KronDelta}, ::Type{A}, ::Type{B}) = Int
+# inner_rettype{A,B}(::Type{UndefInner}, ::Type{A}, ::Type{B}) = InnerExpr
 
-function inner_rettype{P}(a::DiracState{P}, b::DiracState{P})
-    T = inner_rettype(P, labeltype(a), labeltype(b))
-    return promote_type(eltype(a), eltype(b), T)
-end
 
-function inner_rettype{P}(a::DiracState{P}, b::DiracOp{P})
-    T = inner_rettype(P, labeltype(a), ketlabeltype(b))
-    return promote_type(eltype(a), eltype(b), T)
-end
+# function inner_rettype{P}(a::DiracState{P}, b::DiracState{P})
+#     T = inner_rettype(P, labeltype(a), labeltype(b))
+#     return promote_type(eltype(a), eltype(b), T)
+# end
 
-function inner_rettype{P}(a::DiracOp{P}, b::DiracState{P})
-    T = inner_rettype(P, bralabeltype(a), labeltype(b))
-    return promote_type(eltype(a), eltype(b), T)
-end
+# function inner_rettype{P}(a::DiracState{P}, b::DiracOp{P})
+#     T = inner_rettype(P, labeltype(a), ketlabeltype(b))
+#     return promote_type(eltype(a), eltype(b), T)
+# end
 
-function inner_rettype{P}(a::DiracOp{P}, b::DiracOp{P})
-    T = inner_rettype(P, bralabeltype(a), ketlabeltype(b))
-    return promote_type(eltype(a), eltype(b), T)
+# function inner_rettype{P}(a::DiracOp{P}, b::DiracState{P})
+#     T = inner_rettype(P, bralabeltype(a), labeltype(b))
+#     return promote_type(eltype(a), eltype(b), T)
+# end
+
+# function inner_rettype{P}(a::DiracOp{P}, b::DiracOp{P})
+#     T = inner_rettype(P, bralabeltype(a), ketlabeltype(b))
+#     return promote_type(eltype(a), eltype(b), T)
+# end
+
+inner_rettype(::Type{KronDelta}) = Int
+inner_rettype(::Type{UndefInner}) = InnerExpr
+
+function inner_rettype{P}(a::AbstractDirac{P}, b::AbstractDirac{P})
+    return promote_type(eltype(a), eltype(b), inner_rettype(P))
 end
 
 inner_rettype(d::AbstractDirac) = inner_rettype(d,d)

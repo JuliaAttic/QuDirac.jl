@@ -1,7 +1,7 @@
 module QuDirac
     
     using Compat
-    using Iterators.product
+    using Iterators
 
     if !(v"0.3-" <= VERSION < v"0.4-")
         warn("QuDirac v0.2 only officially supports the v0.3 release of Julia. Your version of Julia is $VERSION.")
