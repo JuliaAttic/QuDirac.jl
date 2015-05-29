@@ -9,6 +9,7 @@ immutable SingleKet{P,N,T,L} <: Ket{P,N,T,L}
 end
 
 SingleKet{P,N,T,L}(::Type{P}, data::SumTerm{StateLabel{N,L},T}) = SingleKet{P,N,T,L}(data)
+SingleKet{P}(::Type{P}, label::StateLabel, coeff) = SingleKet(P, SumTerm(label, coeff))
 
 type KetSum{P,N,T,L} <: Ket{P,N,T,L}
     data::SumDict{StateLabel{N,L},T}
@@ -194,7 +195,7 @@ end
 function inner{P,N}(br::SingleBra{P,N}, kt::KetSum{P,N})
     c = coeff(br)
     b = label(br)
-    (k0,v0) = first(data(kt))
+    k0,v0 = first(data(kt))
     result = c * v0 * inner(P, b, k0)
 
     for (k,v) in drop(data(kt), 1)
@@ -207,7 +208,7 @@ end
 function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
     v = coeff(kt)
     k = label(kt)
-    (b0,c0) = first(data(br))
+    b0,c0 = first(data(br))
     result = c0' * v * inner(P, b0, k)
 
     for (b,c) in drop(data(br), 1)
@@ -218,8 +219,8 @@ function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
 end
 
 function inner{P,N}(br::BraSum{P,N}, kt::KetSum{P,N})
-    (b0,c0) = first(data(br))
-    (k0,v0) = first(data(kt))
+    b0,c0 = first(data(br))
+    k0,v0 = first(data(kt))
     result = c0' * v0 * inner(P, b0, k0)
     result -= result 
 
@@ -266,22 +267,17 @@ act_on{P}(br::SingleBra{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : th
 act_on{P}(br::BraSum{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
 
 function act_on{P,N}(br::SingleBra{P,1}, kt::SingleKet{P,N}, i)
-    return (br * ket(P, label(kt)[i])) * ket(P, except(label(kt), i))
+    return (br * ket(P, label(kt)[i])) * SingleKet(P, except(label(kt), i), coeff(kt))
 end
 
 function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
-    (k0,v0) = first(data(kt))
-    (b0,c0) = first(data(br))
-    result = act_on(c0*bra(P,b0), v0*ket(P,k0), i)
+    k0,v0 = first(data(kt))
+    b0,c0 = first(data(br))
+    result = act_on(SingleKet(P,b0,c0)', SingleKet(P,k0,v0), i)
     result -= result
 
     for (k,v) in data(kt), (b,c) in data(br)
-        tmp = act_on(c*bra(P,b), v*ket(P,k), i)
-        if issimilar(result, tmp)
-            add!(result, tmp)
-        else
-            result += tmp
-        end
+        result = unsafe_add!(result, act_on(SingleKet(P,b,c)', SingleKet(P,k,v), i))
     end
 
     return result
@@ -352,6 +348,10 @@ Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = make_kt(P, data(a) - data(b))
 
 Base.(:+)(a::Bra, b::Bra) = ctranspose(a' + b')
 Base.(:-)(a::Bra, b::Bra) = ctranspose(a' - b')
+
+unsafe_add!(a, b) = a + b
+unsafe_add!{P,N,T,L}(result::KetSum{P,N,T,L}, other::Ket{P,N,T,L}) = add!(result, other)
+unsafe_add!{P,N,T,L}(result::BraSum{P,N,T,L}, other::Bra{P,N,T,L}) = add!(result, other)
 
 ##########
 # tensor #

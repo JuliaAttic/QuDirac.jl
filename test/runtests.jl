@@ -11,3 +11,12 @@ default_inner(KronDelta)
 include("generaltests.jl")
 include("orthotests.jl")
 include("laddertests.jl")
+
+@definner TestOrtho
+TestOrtho(a,b) = KronDelta(a,b)
+
+default_inner(TestOrtho)
+
+include("generaltests.jl")
+include("orthotests.jl")
+include("laddertests.jl")

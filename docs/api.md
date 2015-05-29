@@ -42,9 +42,9 @@ Construct a single (i.e. non-superposed) Bra with as many factors as there are `
 See the [Constructing Single Bras](constructing_states/#constructing-single-bras) section for more.
 
 ---
-**OuterSum(dict::Dict{OpLabel{N}, T}),**
+**OuterSum(dict::Dict{OuterLabel{N}, T}),**
 
-**OuterSum(ptype::AbstractInner, dict::Dict{OpLabel{N}, T})**
+**OuterSum(ptype::AbstractInner, dict::Dict{OuterLabel{N}, T})**
 
 Construct an operator from the provided `dict`.
 
@@ -69,14 +69,14 @@ Construct a `StateLabel` with the given factor labels.
 `StateLabel`s are iterable, indexable, and mappable.
 
 ---
-**OpLabel(ketlabel::StateLabel, bralabel::StateLabel),**
+**OuterLabel(ketlabel::StateLabel, bralabel::StateLabel),**
 
-**OpLabel(ketlabel, bralabel)**
+**OuterLabel(ketlabel, bralabel)**
 
-Construct an `OpLabel` with the given Ket and Bra labels.
+Construct an `OuterLabel` with the given Ket and Bra labels.
 
-To retrieve an `OpLabel`'s Ket label, call `klabel(::OpLabel)`.
-To retrieve an `OpLabel`'s Bra label, call `blabel(::OpLabel)`.
+To retrieve an `OuterLabel`'s Ket label, call `klabel(::OuterLabel)`.
+To retrieve an `OuterLabel`'s Bra label, call `blabel(::OuterLabel)`.
 
 ---
 # Math Functions
@@ -346,7 +346,7 @@ This function is not implemented on `OuterProduct`s.
 
 **map(f::Function, obj::AbstractDirac)**
 
-Maps `f` onto the `(label, coefficient)` pairs of `obj`. For states, `f` is called as `f(::StateLabel,::T)` where `T` is the coefficient type of `obj`. For operators, `f` is called as `f(:OpLabel,::T)`.
+Maps `f` onto the `(label, coefficient)` pairs of `obj`. For states, `f` is called as `f(::StateLabel,::T)` where `T` is the coefficient type of `obj`. For operators, `f` is called as `f(:OuterLabel,::T)`.
 
 Example:
 
@@ -370,7 +370,7 @@ Ket{KronDelta,1,Int64} with 11 state(s):
 ---
 **maplabels(f::Function, obj::AbstractDirac)**
 
-Maps `f` onto the labels of `obj`. For states, `f` is called as `f(::StateLabel)`. For operators, `f` is called as `f(::OpLabel)`.
+Maps `f` onto the labels of `obj`. For states, `f` is called as `f(::StateLabel)`. For operators, `f` is called as `f(::OuterLabel)`.
 
 Example:
 

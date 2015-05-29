@@ -88,35 +88,35 @@ function gen_plot_data{P}(kt::Ket{P,2}, x, y)
     ]
 end
 
-# some default stuff
-len = 50
-max = pi
-const xpoints = linspace(-max, max, len)
-const ypoints = copy(xpoints)
+# # some default stuff
+# len = 50
+# max = pi
+# const xpoints = linspace(-max, max, len)
+# const ypoints = copy(xpoints)
 
-info("Loading the Plotly package, this could take a little while since it has to sign in...")
+# info("Loading the Plotly package, this could take a little while since it has to sign in...")
 
-using Plotly
+# using Plotly
 
-# Generate the distribution, sending it to Plotly.
-# Return the response URL, which you can then go to
-# to see and interact with your plot.
-#
-# To generate a plot of a wave function for a 2-factor Ket, 
-# just call plot_wave2D(kt, xpoints, ypoints). This function
-# will build your plot and return the URL you should go to to
-# view the result. Here are some examples: 
-#
-# Basis state:
-# julia> plot_wave2D(d" | 1, 1 > ")
-#
-# Random superposition of the first 4 basis states:
-# julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
-#        plot_wave2D(randkt)
-#
-function plot_wave2D{P}(kt::Ket{P,2})
-    response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints))
-    return response["url"]
-end
+# # Generate the distribution, sending it to Plotly.
+# # Return the response URL, which you can then go to
+# # to see and interact with your plot.
+# #
+# # To generate a plot of a wave function for a 2-factor Ket, 
+# # just call plot_wave2D(kt, xpoints, ypoints). This function
+# # will build your plot and return the URL you should go to to
+# # view the result. Here are some examples: 
+# #
+# # Basis state:
+# # julia> plot_wave2D(d" | 1, 1 > ")
+# #
+# # Random superposition of the first 4 basis states:
+# # julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
+# #        plot_wave2D(randkt)
+# #
+# function plot_wave2D{P}(kt::Ket{P,2})
+#     response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints))
+#     return response["url"]
+# end
 
-info("Finished loading Plotly. Make sure you're signed in before trying to plot!")
+# info("Finished loading Plotly. Make sure you're signed in before trying to plot!")

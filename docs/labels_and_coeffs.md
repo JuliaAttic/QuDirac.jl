@@ -185,8 +185,8 @@ There are few important things to keep in mind when working with these structure
 
 - All state labels are of type `StateLabel`. 
     - `StateLabel`s are wrappers around tuples, and are indexable, iterable, and mappable. 
-- All operator labels are of type `OpLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra). 
-    - The function `klabel(opl::OpLabel)` returns `opl`'s Ket label, and the function `blabel(opl::OpLabel)` returns `opl`'s Bra label.
+- All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra). 
+    - The function `klabel(opl::OuterLabel)` returns `opl`'s Ket label, and the function `blabel(opl::OuterLabel)` returns `opl`'s Bra label.
 - Because the label --> coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
 
 
@@ -215,15 +215,15 @@ julia> op = OuterSum(k, k');
 
 # iterating through an OuterSum
 julia> for (label, c) in op println(label, ", ", c) end
-OpLabel{1}(| 2 ⟩,⟨ 1 |), 0.14285714285714288 + 0.0im
-OpLabel{1}(| 3 ⟩,⟨ 3 |), 0.6428571428571429 + 0.0im
-OpLabel{1}(| 1 ⟩,⟨ 3 |), 0.2142857142857143 + 0.0im
-OpLabel{1}(| 1 ⟩,⟨ 1 |), 0.07142857142857144 + 0.0im
-OpLabel{1}(| 3 ⟩,⟨ 1 |), 0.2142857142857143 + 0.0im
-OpLabel{1}(| 3 ⟩,⟨ 2 |), 0.4285714285714286 + 0.0im
-OpLabel{1}(| 2 ⟩,⟨ 2 |), 0.28571428571428575 + 0.0im
-OpLabel{1}(| 1 ⟩,⟨ 2 |), 0.14285714285714288 + 0.0im
-OpLabel{1}(| 2 ⟩,⟨ 3 |), 0.4285714285714286 + 0.0im
+OuterLabel{1}(| 2 ⟩,⟨ 1 |), 0.14285714285714288 + 0.0im
+OuterLabel{1}(| 3 ⟩,⟨ 3 |), 0.6428571428571429 + 0.0im
+OuterLabel{1}(| 1 ⟩,⟨ 3 |), 0.2142857142857143 + 0.0im
+OuterLabel{1}(| 1 ⟩,⟨ 1 |), 0.07142857142857144 + 0.0im
+OuterLabel{1}(| 3 ⟩,⟨ 1 |), 0.2142857142857143 + 0.0im
+OuterLabel{1}(| 3 ⟩,⟨ 2 |), 0.4285714285714286 + 0.0im
+OuterLabel{1}(| 2 ⟩,⟨ 2 |), 0.28571428571428575 + 0.0im
+OuterLabel{1}(| 1 ⟩,⟨ 2 |), 0.14285714285714288 + 0.0im
+OuterLabel{1}(| 2 ⟩,⟨ 3 |), 0.4285714285714286 + 0.0im
 ```
 
 ---
