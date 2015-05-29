@@ -244,7 +244,6 @@ Base.show(io::IO, iex::InnerExpr) = print(io, repr(iex))
 ###############
 # Inner rules #
 ###############
-
 macro definner(name)
     return quote 
         immutable $name <: AbstractInner end
