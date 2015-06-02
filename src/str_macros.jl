@@ -18,16 +18,7 @@ function prune_dirac(str)
 end
 
 macro d_str(str)
-    return esc(parse(prune_dirac(str)))
-end
-
-macro d_mstr(str)
-    return esc(quote
-        local s;
-        for s in filter(x -> ! isempty(x), split(strip($str), '\n'))
-            eval(parse(QuDirac.prune_dirac(s)))
-        end
-    end)
+    return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
 end
 
 ###################################
@@ -140,5 +131,4 @@ function gen_bra_repr_expr(odex::OpDefExpr, basis)
 end
 
 export @d_str,
-       @d_mstr,
        @rep_op

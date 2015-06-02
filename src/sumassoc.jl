@@ -57,7 +57,12 @@ SumDict(args...) = SumDict(Dict(args...))
 Base.eltype{K,V}(::Type{SumDict{K,V}}) = V
 labeltype{K,V}(::Type{SumDict{K,V}}) = K
 
-Base.sizehint(dict::SumDict, len) = @compat (sizehint!(dict.data, len); return dict)
+if !(v"0.3-" <= VERSION < v"0.4-")
+    Base.sizehint!(dict::SumDict, len) = (sizehint!(dict.data, len); return dict)
+else
+    Base.sizehint(dict::SumDict, len) = @compat (sizehint!(dict.data, len); return dict)
+end
+
 Base.copy(dict::SumDict) = SumDict(copy(dict.data))
 Base.similar(dict::SumDict) = SumDict(similar(dict.data))
 

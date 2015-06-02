@@ -1,5 +1,7 @@
 module QuDirac
     
+    importall Base
+    
     using Compat
     using Iterators
 

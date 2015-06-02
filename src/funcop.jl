@@ -1,8 +1,13 @@
 abstract FuncOp <: DiracOp
-abstract FuncOpDef <: FuncOp
+abstract FuncOpTerm <: FuncOp
 
 Base.one(::FuncOp) = 1
 Base.zero(::FuncOp) = 0
+
+#############
+# FuncOpDef #
+#############
+abstract FuncOpDef <: FuncOpTerm
 
 apply_op_def() = error("apply_op_def requires arguments")
 
@@ -11,29 +16,23 @@ inner(br::Bra, op::FuncOpDef) = apply_op_def(op, br)
 
 Base.copy(op::FuncOpDef) = op
 
-##############
-# DualFuncOp #
-##############
-immutable DualFuncOp{T<:FuncOp} <: FuncOp
-    op::T
-end
+Base.hash{F<:FuncOpDef}(::F) = hash(F)
+Base.hash(op::FuncOpDef, h::Uint64) = hash(hash(op), h)
 
-Base.ctranspose(op::FuncOp) = DualFuncOp(op)
-Base.ctranspose(opc::DualFuncOp) = opc.op
+Base.(:(==)){F<:FuncOpDef}(::F) = hash(F)
+Base.(:(==))(op::FuncOpDef, h::Uint64) = hash(hash(op), h)
 
-inner(a::DualFuncOp, b::DualFuncOp) = inner(b',a')'
-inner(opc::DualFuncOp, kt::Ket) = inner(kt',opc')'
-inner(br::Bra, opc::DualFuncOp) = inner(opc',br')'
+Base.show(io::IO, op::FuncOpDef) = print(io, split(string(typeof(op)), '_')[1])
 
 #############
 # FuncOpExp #
 #############
-immutable FuncOpExp{T<:FuncOpDef} <: FuncOp
-    op::T
+immutable FuncOpExp{F<:FuncOpDef} <: FuncOpTerm
+    op::F
     n::Int
 end
 
-function apply_op_exp{T<:FuncOpDef}(ope::FuncOpExp{T}, state)
+function apply_op_exp(ope::FuncOpExp, state)
     result = state
     for i=1:ope.n
         result = apply_op_def(ope.op, result)
@@ -41,36 +40,40 @@ function apply_op_exp{T<:FuncOpDef}(ope::FuncOpExp{T}, state)
     return result
 end
 
-inner{T<:FuncOpDef}(ope::FuncOpExp{T}, kt::Ket) = apply_op_exp(ope, kt)
-inner{T<:FuncOpDef}(br::Bra, ope::FuncOpExp{T}) = apply_op_exp(ope, br)
+inner(ope::FuncOpExp, kt::Ket) = apply_op_exp(ope, kt)
+inner(br::Bra, ope::FuncOpExp) = apply_op_exp(ope, br)
 
-inner{T<:FuncOpDef}(a::FuncOpExp{T}, b::FuncOpExp{T}) = FuncOpExp(a.op, a.n + b.n)
-inner{T<:FuncOpDef}(op::T, ope::FuncOpExp{T}) = FuncOpExp(ope.op, ope.n + 1)
-inner{T<:FuncOpDef}(ope::FuncOpExp{T}, op::T) = inner(op,ope)
-inner{T<:FuncOpDef}(a::T, b::T) = FuncOpExp(a,2)
+inner{F<:FuncOpDef}(a::FuncOpExp{F}, b::FuncOpExp{F}) = FuncOpExp(a.op, a.n + b.n)
+inner{F<:FuncOpDef}(op::F, ope::FuncOpExp{F}) = FuncOpExp(ope.op, ope.n + 1)
+inner{F<:FuncOpDef}(ope::FuncOpExp{F}, op::F) = inner(op,ope)
+inner{F<:FuncOpDef}(a::F, b::F) = FuncOpExp(a,2)
 
 Base.(:^)(op::FuncOpDef, n::Int) = FuncOpExp(op,n)
 Base.(:^)(ope::FuncOpExp, n::Int) = FuncOpExp(ope.op, ope.n * n)
 
+Base.show(io::IO, ope::FuncOpExp) = print(io, "$(ope.op)^$(ope.n)")
+
 ###############
 # FuncOpChain #
 ###############
-immutable FuncOpChain{T<:FuncOp} <: FuncOp
-    ops::Vector{T}
+immutable FuncOpChain{F<:FuncOpTerm} <: FuncOpTerm
+    ops::Vector{F}
 end
 
-function apply_op_chain(ops::FuncOpChain, kt::Ket)
+function apply_op_chain(opch::FuncOpChain, kt::Ket)
     result = kt
-    for i=1:length(f.ops)
-        result = f.ops[i] * result
+    ops = opch.ops
+    for i=1:length(ops)
+        result = ops[i] * result
     end
     return result
 end
 
-function apply_op_chain(ops::FuncOpChain, br::Bra)
+function apply_op_chain(opch::FuncOpChain, br::Bra)
     result = br
-    for i=reverse(1:length(f.ops))
-        result = result * f.ops[i]
+    ops = opch.ops
+    for i=reverse(1:length(ops))
+        result = result * ops[i]
     end
     return result
 end
@@ -83,6 +86,66 @@ inner(a::FuncOp, b::FuncOp) = FuncOpChain(vcat(a, b))
 inner(opch::FuncOpChain, kt::Ket) = apply_op_chain(opch, kt)
 inner(br::Bra, opch::FuncOpChain) = apply_op_chain(opch, br)
 
+Base.show(io::IO, op::FuncOpChain) = print(io, "("*join(op.ops, "*")*")")
+
+################
+# ScaledFuncOp #
+################
+immutable ScaledFuncOp{F<:FuncOp, N<:Number} <: FuncOp
+    term::SumTerm{F,N}
+end
+
+ScaledFuncOp(op, c) = ScaledFuncOp(SumTerm(op, c))
+
+coeff(sop::ScaledFuncOp) = val(sop.term)
+oper(sop::ScaledFuncOp) = key(sop.term)
+
+inner(sop::ScaledFuncOp, kt::Ket) = coeff(sop) * inner(oper(sop), kt)
+inner(br::Bra, sop::ScaledFuncOp) = coeff(sop) * inner(br, oper(sop))
+
+inner(a::ScaledFuncOp, b::ScaledFuncOp) = ScaledFuncOp(inner(oper(a), oper(b)), coeff(a) * coeff(b))
+
+# generate redundant code to resolve ambiguity warnings
+for T in (:FuncOpChain, :FuncOp)
+    @eval begin
+        inner(op::($T), sop::ScaledFuncOp) = ScaledFuncOp(inner(op, oper(sop)), coeff(sop))
+        inner(sop::ScaledFuncOp, op::($T)) = ScaledFuncOp(inner(oper(sop), op), coeff(sop))
+    end
+end
+
+Base.scale(op::FuncOp, c::Number) = ScaledFuncOp(op, c)
+Base.scale(c::Number, op::FuncOp) = scale(op, c) 
+Base.scale(sop::ScaledFuncOp, c::Number) = ScaledFuncOp(oper(sop), c * coeff(sop))
+Base.scale(c::Number, sop::ScaledFuncOp) = scale(sop, c) 
+
+Base.ctranspose(sop::ScaledFuncOp) = ScaledFuncOp(oper(sop)', coeff(sop)')
+
+Base.show(io::IO, op::ScaledFuncOp) = print(io, "($(coeff(op)) * $(oper(op)))")
+
+#############
+# FuncOpSum #
+#############
+type FuncOpSum{F<:FuncOpTerm, N<:Number} <: FuncOp
+    data::SumDict{F,N}    
+end
+
+##############
+# DualFuncOp #
+##############
+immutable DualFuncOp{F<:FuncOp} <: FuncOp
+    op::F
+end
+
+Base.ctranspose(op::FuncOp) = DualFuncOp(op)
+Base.ctranspose(opc::DualFuncOp) = opc.op
+
+inner(a::DualFuncOp, b::DualFuncOp) = inner(b',a')'
+inner(opc::DualFuncOp, kt::Ket) = inner(kt',opc')'
+inner(br::Bra, opc::DualFuncOp) = inner(opc',br')'
+
+#############
+# represent #
+#############
 function represent(op::FuncOp, basis)
     return [bra(i) * op * ket(j) for i in basis, j in basis]
 end
@@ -107,13 +170,13 @@ function def_op_expr(ods::OpDefStr)
     single_lhs_type = symbol("Single"*string(lhs_type))
 
     name = odex.op_sym
-    T = symbol(string(name) * "FuncOpDef")
+    T = symbol(string(name) * "_FuncOpDefType")
     T_sym = Expr(:quote, T)
 
     if isa(odex.label_args, Expr)
-        label_args = {odex.label_args.args...}
+        label_args = Any[odex.label_args.args...]
     else # isa(odex.label_args, Symbol)
-        label_args = {odex.label_args}
+        label_args = [odex.label_args]
     end
 
     args_ex = parse(join(label_args,","))

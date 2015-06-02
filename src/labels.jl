@@ -97,9 +97,9 @@ except(o::OuterLabel, i) = OuterLabel(except(o.k, i), except(o.b, i))
 switch(o::OuterLabel, i, j) = OuterLabel(switch(o.k, i, j), switch(o.b, i, j))
 
 tensor_type{N,M,K1,K2,B1,B2}(::Type{OuterLabel{N,K1,B1}}, ::Type{OuterLabel{M,K2,B2}}) = OuterLabel{N+M,Any,Any}
+tensor_type{N,M,K,B}(::Type{OuterLabel{N,K,B}}, ::Type{OuterLabel{M,K,B}}) = OuterLabel{N+M,K,B}
 tensor_type{N,M,K1,K2,B}(::Type{OuterLabel{N,K1,B}}, ::Type{OuterLabel{M,K2,B}}) = OuterLabel{N+M,Any,B}
 tensor_type{N,M,K,B1,B2}(::Type{OuterLabel{N,K,B1}}, ::Type{OuterLabel{M,K,B2}}) = OuterLabel{N+M,K,Any}
-tensor_type{N,M,K,B}(::Type{OuterLabel{N,K,B}}, ::Type{OuterLabel{M,K,B}}) = OuterLabel{N+M,K,B}
 
 Base.promote_type{N,K1,K2,B1,B2}(::Type{OuterLabel{N,K1,B1}}, ::Type{OuterLabel{N,K2,B2}}) = OuterLabel{N,label_promote(K1,K2),label_promote(B1,B2)}
 
