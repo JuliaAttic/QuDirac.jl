@@ -21,6 +21,12 @@ macro d_str(str)
     return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
 end
 
+if (v"0.3-" <= VERSION < v"0.4-")
+    macro d_mstr(str)
+        return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
+    end
+end
+
 ###################################
 # Definition String Parsing Utils #
 ###################################
@@ -131,4 +137,5 @@ function gen_bra_repr_expr(odex::OpDefExpr, basis)
 end
 
 export @d_str,
+       @d_mstr,
        @rep_op
