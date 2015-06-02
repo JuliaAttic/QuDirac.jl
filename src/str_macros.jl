@@ -21,7 +21,7 @@ macro d_str(str)
     return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
 end
 
-if (v"0.3-" <= VERSION < v"0.4-")
+if v"0.3-" <= VERSION < v"0.4-"
     macro d_mstr(str)
         return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
     end
