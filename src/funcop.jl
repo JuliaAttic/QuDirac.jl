@@ -185,13 +185,6 @@ function def_op_expr(ods::OpDefStr)
     on_label = symbol("_" * string(T) * "_on_" * string(lhs_type) * "_label")
     on_pair = symbol("_" * string(T) * "_on_" * string(lhs_type) * "_pair")
 
-    on_label_def = quote 
-        function $on_label(label::StateLabel{$len_args})
-            $args_ex = label
-            $(odex.rhs)
-        end
-    end
-
     coeff_sym = lhs_type == :Ket ? :c : :(c')
 
     result = quote
@@ -199,15 +192,18 @@ function def_op_expr(ods::OpDefStr)
             immutable $T <: QuDirac.FuncOpDef end
         end
 
-        $on_label_def
+        function $on_label(label::StateLabel{$len_args})
+            $args_ex = label
+            $(odex.rhs)
+        end
 
         function $on_pair(pair::Tuple)
           label, c = pair # c and coeff_sym are RELATED; see coeff_sym def above
           return $(coeff_sym) * $on_label(label) 
-        end  
+        end 
 
+        QuDirac.apply_op_def(::$T, state::$(lhs_type)) = isempty(state) ? state : sum($on_pair, QuDirac.data(state))
         QuDirac.apply_op_def(::$T, state::QuDirac.$(single_lhs_type)) = QuDirac.coeff(state) * $on_label(QuDirac.label(state))
-        QuDirac.apply_op_def(::$T, state::$(lhs_type)) = sum($on_pair, QuDirac.data(state))
 
         const $name = $T()
     end

@@ -128,8 +128,7 @@ Base.copy{P}(kt::SingleKet{P}) = SingleKet(P,copy(data(kt)))
 Base.copy{P}(kt::KetSum{P}) = KetSum(P,copy(data(kt)))
 Base.copy(br::Bra) = ctranspose(copy(br'))
 
-Base.similar{P}(kt::SingleKet{P}) = SingleKet(P,similar(data(kt)))
-Base.similar{P}(kt::KetSum{P}) = KetSum(P,similar(data(kt)))
+Base.similar{P}(kt::Ket{P}) = KetSum(P,similar(data(kt)))
 Base.similar(br::Bra) = ctranspose(similar(br'))
 
 #######################
@@ -151,6 +150,9 @@ Base.haskey(state::DiracState, x::StateLabel) = haskey(data(state), x)
 
 Base.get(kt::Ket, x::StateLabel, default=predict_zero(eltype(kt))) = get(data(kt), x, default)
 Base.get(br::Bra, x::StateLabel, default=predict_zero(eltype(br))) = haskey(br', x) ? br[x] : default
+
+Base.isempty(state::DiracState) = isempty(data(state))
+Base.empty!(state::DiracState) = (empty!(data(state)); return s)
 
 #############
 # Iteration #
