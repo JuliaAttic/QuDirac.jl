@@ -133,18 +133,6 @@ inner(a::DualFuncOp, b::DualFuncOp) = inner(b',a')'
 inner(opc::DualFuncOp, kt::Ket) = inner(kt',opc')'
 inner(br::Bra, opc::DualFuncOp) = inner(opc',br')'
 
-#############
-# represent #
-#############
-function represent(op::FuncOp, basis)
-    return [bra(i) * op * ket(j) for i in basis, j in basis]
-end
-
-function represent(op::FuncOp, basis...)
-    prodbasis = product(basis...)
-    return [bra(i...) * op * ket(j...) for i in prodbasis, j in prodbasis]
-end
-
 ###########
 # @def_op #
 ###########

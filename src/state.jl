@@ -157,35 +157,25 @@ Base.empty!(state::DiracState) = (empty!(data(state)); return s)
 #############
 # Iteration #
 #############
-Base.start(state::DiracState) = start(data(state))
+Base.start(state::SingleState) = false
+Base.next(state::SingleState, i) = tuple(state, true)
+Base.done(state::SingleState, i) = i
 
-Base.next(kt::Ket, i) = next(data(kt), i)
+Base.start(state::StateSum) = start(data(state))
 
-function Base.next(br::Bra, i)
-    (k,v), n = next(br', i)
-    return ((k,v'), n)
+function Base.next{P,N,T,L}(kt::KetSum{P,N,T,L}, i)
+    (lab,c), n = next(data(kt), i)
+    return tuple(SingleKet{P,N,T,L}(SumTerm(lab, c)), n)
 end
 
-Base.done(state::DiracState, i) = done(data(state), i)
-
-###########
-# collect #
-###########
-Base.collect(kt::Ket) = collect(data(kt))
-
-function Base.collect(br::Bra)
-    arr = @compat Array(Tuple{StateLabel{nfactors(br), labeltype(br)}, eltype(br)}, length(br))
-    return collect_pairs!(arr, br)
+function Base.next(br::BraSum, i)
+    kt, n = next(br', i)
+    return tuple(kt', n)
 end
 
-function collect_pairs!(result, b::Bra)
-    i = 1
-    for (k,v) in data(br)
-        result[i] = (k, v')
-        i += 1
-    end
-    return result
-end
+Base.done(state::StateSum, i) = done(data(state), i)
+
+Base.collect(state::DiracState) = [i for i in state]
 
 #########
 # inner #
@@ -423,14 +413,8 @@ xsubspace(state::DiracState, x) = filter((k,v)->is_sum_x(k,x), state)
 switch(state::DiracState, i, j) = maplabels(l->switch(l, i, j), state)
 permute(state::DiracState, perm::Vector) = maplabels(l->permute(l, perm), state)
 
-represent{P}(kt::Ket{P}, basis) = [bra(P, i) * kt for i in basis]
-
-function represent{P}(kt::Ket{P}, basis...)
-    prodbasis = product(basis...)
-    return [bra(P, StateLabel(i)) * kt for i in prodbasis]
-end
-
-represent(br::Bra, basis...) = represent(br', basis...)'
+represent(kt::Ket, bras) = [b * kt for b in bras]
+represent(br::Bra, kets) = [br * k for k in kets]
 
 purity(s::DiracState) = 1
 purity(kt::Ket, i) = purity(kt*kt', i)

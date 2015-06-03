@@ -12,7 +12,7 @@ end
 
 type SumDict{K,V} <: SumAssoc{K,V}
     data::Dict{K,V}
-    SumDict(data::Dict{K,V}) =new(data)
+    SumDict(data::Dict{K,V}) = new(data)
     SumDict(args...) = SumDict{K,V}(Dict{K,V}(args...))
 end
 

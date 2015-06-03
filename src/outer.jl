@@ -81,7 +81,14 @@ end
 ##############
 # ctranspose #
 ##############
-eager_ctranspose{P}(op::OuterSum{P}) = OuterSum(P, SumDict(collect(op')))
+eager_ctranspose{P,N,T,K,B}(op::OuterSum{P,N,T,K,B}) = OuterSum(P, load_ct!(SumDict{OuterLabel{N,B,K},T}(), op))
+
+function load_ct!(result, op)
+    for (o,v) in data(op)
+        result[o'] = v'
+    end
+    return result
+end
 
 Base.ctranspose(op::OuterSum) = DualOuterSum(op)
 Base.ctranspose(opc::DualOuterSum) = opc.op
@@ -200,48 +207,25 @@ Base.get(op::AbsOuterSum, k, b, default=predict_zero(eltype(op))) = get(op, Stat
 #############
 Base.start(op::AbsOuterSum) = start(data(op))
 
-Base.next(op::OuterSum, i) = next(data(op), i)
+function Base.next{P}(op::OuterSum{P}, i)
+    (lab,c), n = next(data(op), i)
+    return tuple(OuterProduct(P, lab, c), n)
+end
 
 function Base.next(opc::DualOuterSum, i)
-    (k,v), n = next(data(opc), i)
-    return ((k',v'), n)
+    op, n = next(opc', i)
+    return tuple(op', n)
 end
 
 Base.done(op::AbsOuterSum, i) = done(data(op), i)
 
-###########
-# collect #
-###########
-Base.collect(op::OuterSum) = collect(data(op))
-
-function Base.collect(op::Union(OuterProduct, DualOuterSum))
-    T = @compat Tuple{OuterLabel{nfactors(op),ketlabeltype(op),bralabeltype(op)}, eltype(op)}
-    return collect_pairs!(Array(T, length(op)), op)
-end
-
-function collect_pairs!(result, op::OuterProduct)
-    i = 1
-    for (k,kc) in data(op.kt), (b,bc) in data(op.br)
-        result[i] = tuple(OuterLabel(k, b), op.scalar * kc * bc')
-        i += 1
-    end
-    return result
-end
-
-function collect_pairs!(result, opc::DualOuterSum)
-    i = 1
-    for (k,v) in data(opc)
-        result[i] = tuple(k', v')
-        i += 1
-    end
-    return result
-end
+Base.collect(op::AbsOuterSum) = [i for i in op]
+Base.collect(op::OuterProduct) = [OuterProduct(op.scalar,k,b) for k in op.kt, b in op.br]
 
 #########
 # inner #
 #########
 inner_ol_kt{P}(::Type{P}, ol::OuterLabel, v, k::StateLabel, c) = SingleKet(P, klabel(ol), v*c*inner(P, blabel(ol), k))
-
 inner_br_ol{P}(::Type{P}, b::StateLabel, c, ol::OuterLabel, v) = ctranspose(SingleKet(P, blabel(ol), v*c*inner(P, b, klabel(ol))))
 
 function inner_ol_ol{P}(::Type{P}, oa::OuterLabel, va, ob::OuterLabel, vb)
@@ -775,12 +759,7 @@ purity(op::DiracOp, i) = purity(ptrace(op,i))
 commute(a::DiracOp, b::DiracOp) = (a*b) - (b*a)
 anticommute(a::DiracOp, b::DiracOp) = (a*b) + (b*a)
 
-represent{P}(op::DiracOp{P}, basis) = [bra(P, i) * op * ket(P, j) for i in basis, j in basis]
-
-function represent{P}(op::DiracOp{P}, basis...)
-    prodbasis = product(basis...)
-    return [bra(P, i...) * op * ket(P, j...) for i in prodbasis, j in prodbasis]
-end
+represent(op::DiracOp, kets) = [kj' * (op * ki) for ki in kets, kj in kets]
 
 export OuterSum,
     ptrace,
