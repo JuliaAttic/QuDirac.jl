@@ -9,18 +9,8 @@ Base.zero(::FuncOp) = 0
 #############
 abstract FuncOpDef <: FuncOpTerm
 
-apply_op_def() = error("apply_op_def requires arguments")
-
-inner(op::FuncOpDef, kt::Ket) = apply_op_def(op, kt)
-inner(br::Bra, op::FuncOpDef) = apply_op_def(op, br)
-
-Base.copy(op::FuncOpDef) = op
-
-Base.hash{F<:FuncOpDef}(::F) = hash(F)
-Base.hash(op::FuncOpDef, h::Uint64) = hash(hash(op), h)
-
-Base.(:(==)){F<:FuncOpDef}(::F) = hash(F)
-Base.(:(==))(op::FuncOpDef, h::Uint64) = hash(hash(op), h)
+inner{F<:FuncOpDef}(::F, kt::Ket) = F(kt)
+inner{F<:FuncOpDef}(br::Bra, ::F) = F(br)
 
 Base.show(io::IO, op::FuncOpDef) = print(io, split(string(typeof(op)), '_')[1])
 
@@ -32,10 +22,10 @@ immutable FuncOpExp{F<:FuncOpDef} <: FuncOpTerm
     n::Int
 end
 
-function apply_op_exp(ope::FuncOpExp, state)
+function apply_op_exp{F<:FuncOpDef}(ope::FuncOpExp{F}, state)
     result = state
     for i=1:ope.n
-        result = apply_op_def(ope.op, result)
+        result = F(result)
     end
     return result
 end
@@ -170,7 +160,7 @@ function def_op_expr(ods::OpDefStr)
     single_lhs_type = symbol("Single"*string(lhs_type))
 
     name = odex.op_sym
-    T = symbol(string(name) * "_FuncOpDefType")
+    T = symbol(string(name) * "Def")
     T_sym = Expr(:quote, T)
 
     if isa(odex.label_args, Expr)
@@ -202,8 +192,8 @@ function def_op_expr(ods::OpDefStr)
           return $(coeff_sym) * $on_label(label) 
         end 
 
-        QuDirac.apply_op_def(::$T, state::$(lhs_type)) = isempty(state) ? state : sum($on_pair, QuDirac.data(state))
-        QuDirac.apply_op_def(::$T, state::QuDirac.$(single_lhs_type)) = QuDirac.coeff(state) * $on_label(QuDirac.label(state))
+        $T{P}(state::$(lhs_type){P,$len_args}) = isempty(state) ? state : sum($on_pair, QuDirac.data(state))
+        $T{P}(state::QuDirac.$(single_lhs_type){P,$len_args}) = QuDirac.coeff(state) * $on_label(QuDirac.label(state))
 
         const $name = $T()
     end
