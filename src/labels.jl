@@ -61,9 +61,9 @@ Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = Sta
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N}) = StateLabel{N,T}(convert(Vector{T}, s.label))
 Base.convert{N,T}(::Type{StateLabel{N,T}}, s::StateLabel{N,T}) = s
 
-###########
+##############
 # OuterLabel #
-###########
+##############
 immutable OuterLabel{N,K,B}
     k::StateLabel{N,K}
     b::StateLabel{N,B}
