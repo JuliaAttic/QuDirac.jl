@@ -22,9 +22,9 @@ module QuDirac
     ##################
     abstract AbstractInner
 
-    abstract AbstractDirac{P<:AbstractInner,N}
-    abstract DiracOp{P,N} <: AbstractDirac{P,N}
-    abstract DiracState{P,N} <: AbstractDirac{P,N}
+    abstract AbstractDirac{P<:AbstractInner}
+    abstract DiracOp{P} <: AbstractDirac{P}
+    abstract DiracState{P} <: AbstractDirac{P}
 
     abstract DiracScalar <: Number
 
@@ -36,7 +36,7 @@ module QuDirac
     tensor() = error("Cannot call tensor function without arguments")
     tensor(s...) = reduce(tensor, s)
 
-    ptype{P}(::AbstractDirac{P}) = P
+    innertype{P}(::AbstractDirac{P}) = P
 
     Base.copy(i::AbstractInner) = i # no-op by default
 
@@ -50,6 +50,12 @@ module QuDirac
     predict_one{T}(::Type{T}) = one(T)
     predict_one(::Type{Any}) = 1
 
+    function matching_nfactors(a, b)
+        return nfactors(a) == nfactors(b) || 
+               nfactors(a) == 0 ||
+               nfactors(b) == 0
+    end
+
     ######################
     # Include Statements #
     ######################
@@ -59,7 +65,7 @@ module QuDirac
     include("state.jl")
     include("outer.jl")
     include("mapfuncs.jl")
-    include("str_macros.jl")
+    include("d_str.jl")
     include("funcop.jl")
     include("printfuncs.jl")
 
@@ -90,6 +96,7 @@ module QuDirac
         AbstractDirac,
         DiracState,
         DiracOp,
+        innertype,
         # All functions that conflict 
         # with QuBase should be exported 
         # below:

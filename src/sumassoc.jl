@@ -140,11 +140,17 @@ mapvals(f, d::SumDict) = SumDict(zip(collect(keys(d)), map(f, collect(values(d))
 mapkeys(f, term::SumTerm) = SumTerm(f(key(term)), val(term))
 mapkeys(f, d::SumDict) = SumDict(zip(map(f, collect(keys(d))), collect(values(d))))
 
+##########
+# Tensor #
+##########
+tensor(a::SumDict, b::SumDict) = SumDict([tensor(ka,kb) => va*vb for (ka,va) in a, (kb,vb) in b])
+tensor(dict::SumDict, term::SumTerm) = SumDict([tensor(k,key(term)) => v*val(term) for (k,v) in dict])
+tensor(term::SumTerm, dict::SumDict) = SumDict([tensor(key(term),k) => val(term)*v for (k,v) in dict])
+tensor(a::SumTerm, b::SumTerm) = SumTerm(tensor(key(a), key(b)), val(a) * val(b))
+
 ###########
 # Scaling #
 ###########
-scale_result{K,V,T}(d::SumDict{K,V}, ::T) = SumDict{K, promote_type(T,V)}(d)
-
 function Base.scale!(dict::SumDict, c::Number)
     for k in keys(dict)
         dict.data[k] *= c
@@ -154,7 +160,7 @@ end
 
 Base.scale!(c::Number, dict::SumDict) = scale!(dict, c)
 
-Base.scale(dict::SumDict, c::Number) = scale!(scale_result(dict,c), c)
+Base.scale(dict::SumDict, c::Number) = SumDict([k => c * v for (k,v) in dict])
 Base.scale(term::SumTerm, c::Number) = SumTerm(key(term), val(term) * c)
 Base.scale(c::Number, s::SumAssoc) = scale(s, c)
 
@@ -163,42 +169,6 @@ Base.(:*)(c::Number, s::SumAssoc) = scale(c, s)
 Base.(:*)(s::SumAssoc, c::Number) = scale(s, c)
 Base.(:/)(s::SumAssoc, c::Number) = scale(s, 1/c)
 Base.(:-)(s::SumAssoc) = scale(s, -1)
-
-##########
-# Tensor #
-##########
-function tensor_merge!(result::SumDict, a::SumDict, b::SumDict)
-    for (k,v) in a
-        for (l,c) in b
-            result.data[tensor(k,l)] = v*c
-        end
-    end
-    return result
-end
-
-function tensor_merge!(result::SumDict, dict::SumDict, term::SumTerm)
-    k0,v0 = key(term), val(term)
-    for (k,v) in dict
-        result.data[tensor(k,k0)] = v*v0
-    end
-    return result
-end
-
-function tensor_merge!(result::SumDict, term::SumTerm, dict::SumDict)
-    k0,v0 = key(term), val(term)
-    for (k,v) in dict
-        result.data[tensor(k0,k)] = v*v0
-    end
-    return result
-end
-
-tensor_result{A,B,T,V}(a::SumDict{A,T}, b::SumDict{B,V}) = @compat sizehint!(SumDict{tensor_type(A,B), promote_type(T,V)}(), length(a) * length(b))
-tensor_result{K,V,L,C}(d::SumDict{K,V}, ::SumTerm{L,C}) = @compat sizehint!(SumDict{tensor_type(K,L), promote_type(V,C)}(), length(d))
-
-tensor(a::SumDict, b::SumDict) = tensor_merge!(tensor_result(a, b), a, b)
-tensor(dict::SumDict, term::SumTerm) = tensor_merge!(tensor_result(dict, term), dict, term)
-tensor(term::SumTerm, dict::SumDict) = tensor_merge!(tensor_result(dict, term), term, dict)
-tensor(a::SumTerm, b::SumTerm) = SumTerm(tensor(key(a), key(b)), val(a) * val(b))
 
 ############
 # Addition #

@@ -1,32 +1,37 @@
 #################
 # Ket/Bra Types #
 #################
-abstract Ket{P,N,T,L} <: DiracState{P,N}
-abstract Bra{P,N,T,L} <: DiracState{P,N}
+abstract Ket{P,T,L} <: DiracState{P}
+abstract Bra{P,T,L} <: DiracState{P}
 
-immutable SingleKet{P,N,T,L} <: Ket{P,N,T,L}
-    data::SumTerm{StateLabel{N,L},T}
+immutable SingleKet{P,T,L} <: Ket{P,T,L}
+    data::SumTerm{StateLabel{L},T}
 end
 
-SingleKet{P,N,T,L}(::Type{P}, data::SumTerm{StateLabel{N,L},T}) = SingleKet{P,N,T,L}(data)
+SingleKet{P,T,L}(::Type{P}, data::SumTerm{StateLabel{L},T}) = SingleKet{P,T,L}(data)
 SingleKet{P}(::Type{P}, label::StateLabel, coeff) = SingleKet(P, SumTerm(label, coeff))
 
-type KetSum{P,N,T,L} <: Ket{P,N,T,L}
-    data::SumDict{StateLabel{N,L},T}
+type KetSum{P,T,L} <: Ket{P,T,L}
+    data::SumDict{StateLabel{L},T}
+    nfactors::Int
+    function KetSum(data::SumDict{StateLabel{L},T})        
+        n = isempty(data) ? 0 : nfactors(first(keys(data)))
+        return new(data, n)
+    end
 end
 
-KetSum{P,N,T,L}(::Type{P}, data::SumDict{StateLabel{N,L},T}) = KetSum{P,N,T,L}(data)
+KetSum{P,T,L}(::Type{P}, data::SumDict{StateLabel{L},T}) = KetSum{P,T,L}(data)
 
-immutable SingleBra{P,N,T,L} <: Bra{P,N,T,L}
-    kt::SingleKet{P,N,T,L}
+immutable SingleBra{P,T,L} <: Bra{P,T,L}
+    kt::SingleKet{P,T,L}
 end
 
-type BraSum{P,N,T,L} <: Bra{P,N,T,L}
-    kt::KetSum{P,N,T,L}
+type BraSum{P,T,L} <: Bra{P,T,L}
+    kt::KetSum{P,T,L}
 end
 
-typealias SingleState{P,N,T,L} Union(SingleKet{P,N,T,L}, SingleBra{P,N,T,L})
-typealias StateSum{P,N,T,L} Union(KetSum{P,N,T,L}, BraSum{P,N,T,L})
+typealias SingleState{P,T,L} Union(SingleKet{P,T,L}, SingleBra{P,T,L})
+typealias StateSum{P,T,L} Union(KetSum{P,T,L}, BraSum{P,T,L})
 
 ################
 # Constructors #
@@ -55,60 +60,59 @@ data(kt::KetSum) = kt.data
 data(br::Bra) = data(br')
 
 coeff(kt::SingleKet) = val(data(kt))
-coeff(br::SingleBra) = val(data(br))'
+coeff(br::SingleBra) = coeff(br')'
 label(state::SingleState) = key(data(state))
 
 Base.eltype{S<:DiracState}(::S) = eltype(S)
 labeltype{S<:DiracState}(::S) = labeltype(S)
-nfactors{S<:DiracState}(::S) = nfactors(S)
 
 for t in (:Ket, :SingleKet, :KetSum, :Bra, :SingleBra, :BraSum)
     @eval begin
-        Base.eltype{P,N,T,L}(::Type{($t){P,N,T,L}}) = T
-        labeltype{P,N,T,L}(::Type{($t){P,N,T,L}}) = L
-        nfactors{P,N,T,L}(::Type{($t){P,N,T,L}}) = N
+        Base.eltype{P,T,L}(::Type{($t){P,T,L}}) = T
+        labeltype{P,T,L}(::Type{($t){P,T,L}}) = L
     end
 end
+
+nfactors(s::SingleState) = nfactors(label(s))
+nfactors(kt::KetSum) = kt.nfactors
+nfactors(br::BraSum) = nfactors(br')
 
 ########################
 # Conversion/Promotion #
 ########################
-issimilar{P,N,T,L}(::Ket{P,N,T,L}, ::Ket{P,N,T,L}) = true
-issimilar{P,N,T,L}(::Bra{P,N,T,L}, ::Bra{P,N,T,L}) = true
+Base.convert{P,T,L}(::Type{SingleKet{P,T,L}}, k::SingleKet{P,T,L}) = k 
+Base.convert{P,T,L}(::Type{KetSum{P,T,L}}, k::KetSum{P,T,L}) = k
+Base.convert{P,T,L}(::Type{SingleBra{P,T,L}}, b::SingleBra{P,T,L}) = b
+Base.convert{P,T,L}(::Type{BraSum{P,T,L}}, b::BraSum{P,T,L}) = b
 
-Base.convert{P,N,T,L}(::Type{SingleKet{P,N,T,L}}, k::SingleKet{P,N,T,L}) = k 
-Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, k::KetSum{P,N,T,L}) = k
-Base.convert{P,N,T,L}(::Type{SingleBra{P,N,T,L}}, b::SingleBra{P,N,T,L}) = b
-Base.convert{P,N,T,L}(::Type{BraSum{P,N,T,L}}, b::BraSum{P,N,T,L}) = b
+Base.convert{P,T,L}(::Type{SingleKet{P,T,L}}, kt::SingleKet) = SingleKet{P,N,T,L}(data(kt))
+Base.convert{P,T,L}(::Type{KetSum{P,T,L}}, kt::SingleKet) = KetSum{P,N,T,L}(data(kt))
+Base.convert{P,T,L}(::Type{KetSum{P,T,L}}, kt::KetSum) = KetSum{P,N,T,L}(data(kt))
+Base.convert{P,T,L}(::Type{SingleBra{P,T,L}}, br::Bra) = SingleBra(convert(SingleKet{P,T,L}, br'))
+Base.convert{P,T,L}(::Type{BraSum{P,T,L}}, br::Bra) = BraSum(convert(KetSum{P,T,L}, br'))
 
-Base.convert{P,N,T,L}(::Type{SingleKet{P,N,T,L}}, kt::SingleKet) = SingleKet{P,N,T,L}(data(kt))
-Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, kt::SingleKet) = KetSum{P,N,T,L}(data(kt))
-Base.convert{P,N,T,L}(::Type{KetSum{P,N,T,L}}, kt::KetSum) = KetSum{P,N,T,L}(data(kt))
-Base.convert{P,N,T,L}(::Type{SingleBra{P,N,T,L}}, br::Bra) = SingleBra(convert(SingleKet{P,N,T,L}, br'))
-Base.convert{P,N,T,L}(::Type{BraSum{P,N,T,L}}, br::Bra) = BraSum(convert(KetSum{P,N,T,L}, br'))
-
-function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleKet{P,N,T1,L1}}, ::Type{SingleKet{P,N,T2,L2}})
-    return SingleKet{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+function Base.promote_rule{P,T1,T2,L1,L2}(::Type{SingleKet{P,T1,L1}}, ::Type{SingleKet{P,T2,L2}})
+    return SingleKet{P,promote_type(T1,T2),promote_type(L1,L2)}
 end
 
-function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{KetSum{P,N,T1,L1}}, ::Type{KetSum{P,N,T2,L2}})
-    return KetSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+function Base.promote_rule{P,T1,T2,L1,L2}(::Type{KetSum{P,T1,L1}}, ::Type{KetSum{P,T2,L2}})
+    return KetSum{P,promote_type(T1,T2),promote_type(L1,L2)}
 end
 
-function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleKet{P,N,T1,L1}}, ::Type{KetSum{P,N,T2,L2}})
-    return KetSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+function Base.promote_rule{P,T1,T2,L1,L2}(::Type{SingleKet{P,T1,L1}}, ::Type{KetSum{P,T2,L2}})
+    return KetSum{P,promote_type(T1,T2),promote_type(L1,L2)}
 end
 
-function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleBra{P,N,T1,L1}}, ::Type{SingleBra{P,N,T2,L2}})
-    return SingleBra{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+function Base.promote_rule{P,T1,T2,L1,L2}(::Type{SingleBra{P,T1,L1}}, ::Type{SingleBra{P,T2,L2}})
+    return SingleBra{P,promote_type(T1,T2),promote_type(L1,L2)}
 end
 
-function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{BraSum{P,N,T1,L1}}, ::Type{BraSum{P,N,T2,L2}})
-    return BraSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+function Base.promote_rule{P,T1,T2,L1,L2}(::Type{BraSum{P,T1,L1}}, ::Type{BraSum{P,T2,L2}})
+    return BraSum{P,promote_type(T1,T2),promote_type(L1,L2)}
 end
 
-function Base.promote_rule{P,N,T1,T2,L1,L2}(::Type{SingleBra{P,N,T1,L1}}, ::Type{BraSum{P,N,T2,L2}})
-    return BraSum{P,N,promote_type(T1,T2),label_promote(L1,L2)}
+function Base.promote_rule{P,T1,T2,L1,L2}(::Type{SingleBra{P,T1,L1}}, ::Type{BraSum{P,T2,L2}})
+    return BraSum{P,promote_type(T1,T2),promote_type(L1,L2)}
 end
 
 ############################
@@ -121,8 +125,8 @@ Base.hash{P}(kt::Ket{P}) = hash(P, hash(data(kt), kt_hash))
 Base.hash{P}(br::Bra{P}) = hash(P, hash(data(br), br_hash))
 Base.hash(state::DiracState, h::Uint64) = hash(hash(state), h)
 
-Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = data(a) == data(b)
-Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = data(a) == data(b)
+Base.(:(==)){P}(a::Ket{P}, b::Ket{P}) = data(a) == data(b)
+Base.(:(==)){P}(a::Bra{P}, b::Bra{P}) = data(a) == data(b)
 
 Base.copy{P}(kt::SingleKet{P}) = SingleKet(P,copy(data(kt)))
 Base.copy{P}(kt::KetSum{P}) = KetSum(P,copy(data(kt)))
@@ -163,9 +167,9 @@ Base.done(state::SingleState, i) = i
 
 Base.start(state::StateSum) = start(data(state))
 
-function Base.next{P,N,T,L}(kt::KetSum{P,N,T,L}, i)
+function Base.next{P,T,L}(kt::KetSum{P,T,L}, i)
     (lab,c), n = next(data(kt), i)
-    return tuple(SingleKet{P,N,T,L}(SumTerm(lab, c)), n)
+    return tuple(SingleKet{P,T,L}(SumTerm(lab, c)), n)
 end
 
 function Base.next(br::BraSum, i)
@@ -180,11 +184,11 @@ Base.collect(state::DiracState) = [i for i in state]
 #########
 # inner #
 #########
-function inner{P,N}(br::SingleBra{P,N}, kt::SingleKet{P,N})
+function execute_inner{P}(br::SingleBra{P}, kt::SingleKet{P})
     return coeff(br) * coeff(kt) * inner(P, label(br), label(kt))
 end
 
-function inner{P,N}(br::SingleBra{P,N}, kt::KetSum{P,N})
+function execute_inner{P}(br::SingleBra{P}, kt::KetSum{P})
     c = coeff(br)
     b = label(br)
     k0,v0 = first(data(kt))
@@ -197,7 +201,7 @@ function inner{P,N}(br::SingleBra{P,N}, kt::KetSum{P,N})
     return result
 end
 
-function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
+function execute_inner{P}(br::BraSum{P}, kt::SingleKet{P})
     v = coeff(kt)
     k = label(kt)
     b0,c0 = first(data(br))
@@ -210,7 +214,7 @@ function inner{P,N}(br::BraSum{P,N}, kt::SingleKet{P,N})
     return result
 end
 
-function inner{P,N}(br::BraSum{P,N}, kt::KetSum{P,N})
+function execute_inner{P}(br::BraSum{P}, kt::KetSum{P})
     b0,c0 = first(data(br))
     k0,v0 = first(data(kt))
     result = c0' * v0 * inner(P, b0, k0)
@@ -223,10 +227,10 @@ function inner{P,N}(br::BraSum{P,N}, kt::KetSum{P,N})
     return result  
 end
 
-inner{N}(br::BraSum{KronDelta,N}, kt::SingleKet{KronDelta,N}) = get(br, label(kt)) * coeff(kt)
-inner{N}(br::SingleBra{KronDelta,N}, kt::KetSum{KronDelta,N}) = get(kt, label(br)) * coeff(br)
+execute_inner(br::BraSum{KronDelta}, kt::SingleKet{KronDelta}) = get(br, label(kt)) * coeff(kt)
+execute_inner(br::SingleBra{KronDelta}, kt::KetSum{KronDelta}) = get(kt, label(br)) * coeff(br)
 
-function inner{N}(br::BraSum{KronDelta,N}, kt::KetSum{KronDelta,N})
+function execute_inner(br::BraSum{KronDelta}, kt::KetSum{KronDelta})
     if length(br) < length(kt)
         return ortho_inner(kt, br)
     else
@@ -248,21 +252,16 @@ Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
 
 inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 
-##########
-# act_on #
-##########
-act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
-# redundant definitions to resolve ambiguity warnings
-act_on{P<:ProvidedInner,T,L}(br::Bra{P,1}, kt::Ket{P,1,T,L}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
-act_on{P,T,L}(br::Bra{P,1}, kt::Ket{P,1,T,L}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
-act_on{P}(br::SingleBra{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
-act_on{P}(br::BraSum{P,1}, kt::SingleKet{P,1}, i) = i==1 ? inner(br, kt) : throw(BoundsError())
+##################
+# execute_act_on #
+##################
+execute_act_on(kt::Ket, br::Bra, i) = act_on(kt', br', i)'
 
-function act_on{P,N}(br::SingleBra{P,1}, kt::SingleKet{P,N}, i)
+function execute_act_on{P}(br::SingleBra{P}, kt::SingleKet{P}, i)
     return (br * ket(P, label(kt)[i])) * SingleKet(P, except(label(kt), i), coeff(kt))
 end
 
-function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
+function execute_act_on{P}(br::Bra{P}, kt::Ket{P}, i)
     k0,v0 = first(data(kt))
     b0,c0 = first(data(br))
     result = act_on(SingleKet(P,b0,c0)', SingleKet(P,k0,v0), i)
@@ -275,8 +274,8 @@ function act_on{P,N}(br::Bra{P,1}, kt::Ket{P,N}, i)
     return result
 end
 
-function act_on{P<:ProvidedInner,N,T,L}(br::Bra{P,1}, kt::Ket{P,N,T,L}, i)
-    result = SumDict{StateLabel{N-1, L}, inner_rettype(br,kt)}()
+function execute_act_on{P<:ProvidedInner,T,L}(br::Bra{P}, kt::Ket{P,T,L}, i)
+    result = SumDict{StateLabel{L}, inner_rettype(br,kt)}()
     return KetSum(P, act_on_dict!(result, br, kt, i))
 end
 
@@ -326,24 +325,31 @@ Base.(:/)(state::DiracState, c::Number) = scale(state, 1/c)
 ###########
 # + and - #
 ###########
-add!{P,N}(a::KetSum{P,N}, b::Ket{P,N}) = (add!(data(a), data(b)); return a)
-add!{P,N}(a::BraSum{P,N}, b::Bra{P,N}) = (add!(data(a), data(b)); return a)
-
-sub!{P,N}(a::KetSum{P,N}, b::Ket{P,N}) = (sub!(data(a), data(b)); return a)
-sub!{P,N}(a::BraSum{P,N}, b::Bra{P,N}) = (sub!(data(a), data(b)); return a)
-
 Base.(:-){P}(kt::Ket{P}) = make_kt(P, -data(kt))
 Base.(:-)(br::Bra) = ctranspose(-(br'))
 
-Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = make_kt(P, data(a) + data(b))
-Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = make_kt(P, data(a) - data(b))
+Base.(:+){P}(a::Ket{P}, b::Ket{P}) = (@assert matching_nfactors(a, b); make_kt(P, data(a) + data(b)))
+Base.(:-){P}(a::Ket{P}, b::Ket{P}) = (@assert matching_nfactors(a, b); make_kt(P, data(a) - data(b)))
 
 Base.(:+)(a::Bra, b::Bra) = ctranspose(a' + b')
 Base.(:-)(a::Bra, b::Bra) = ctranspose(a' - b')
 
+# The below methods are unsafe because:
+# 1. The first argument is potentially not mutated
+# 2. No nfactors check is performed
 unsafe_add!(a, b) = a + b
-unsafe_add!{P,N,T,L}(result::KetSum{P,N,T,L}, other::Ket{P,N,T,L}) = add!(result, other)
-unsafe_add!{P,N,T,L}(result::BraSum{P,N,T,L}, other::Bra{P,N,T,L}) = add!(result, other)
+unsafe_add!{P,T,L}(a::KetSum{P,T,L}, b::Ket{P,T,L}) = (add!(data(a), data(b)); a)
+unsafe_add!{P,T,L}(a::BraSum{P,T,L}, b::Bra{P,T,L}) = (add!(data(a), data(b)); a)
+
+unsafe_sub!(a, b) = a - b
+unsafe_sub!{P,T,L}(a::KetSum{P,T,L}, b::Ket{P,T,L}) = (sub!(data(a), data(b)); a)
+unsafe_sub!{P,T,L}(a::BraSum{P,T,L}, b::Bra{P,T,L}) = (sub!(data(a), data(b)); a)
+
+add!{P}(a::KetSum{P}, b::Ket{P}) = (@assert matching_nfactors(a, b); unsafe_add!(a, b))
+add!{P}(a::BraSum{P}, b::Bra{P}) = (@assert matching_nfactors(a, b); unsafe_add!(a, b))
+
+sub!{P}(a::KetSum{P}, b::Ket{P}) = (@assert matching_nfactors(a, b); unsafe_sub!(a, b))
+sub!{P}(a::BraSum{P}, b::Bra{P}) = (@assert matching_nfactors(a, b); unsafe_sub!(a, b))
 
 ##########
 # tensor #
@@ -366,8 +372,8 @@ normalize!(state::DiracState) = scale!(1/norm(state), state)
 ####################
 # Raising/Lowering #
 ####################
-lower{P}(state::DiracState{P,1}) = lower(state, 1)
-raise{P}(state::DiracState{P,1}) = raise(state, 1)
+lower{P}(state::DiracState{P}) = (@assert nfactors(state) == 1; lower(state, 1))
+raise{P}(state::DiracState{P}) = (@assert nfactors(state) == 1; raise(state, 1))
 
 function lower{P}(kt::SingleKet{P}, i)
     lbl = setindex(label(kt), label(kt)[i] - 1, i)
@@ -383,7 +389,7 @@ end
 
 function ladder_result(kt::Ket)
     T = promote_type(Float64, labeltype(kt), eltype(kt))
-    @compat sizehint!(SumDict{StateLabel{nfactors(kt), labeltype(kt)}, T}(), length(kt))
+    @compat sizehint!(SumDict{StateLabel{labeltype(kt)}, T}(), length(kt))
 end
 
 lower{P}(kt::KetSum{P}, i) = KetSum(P, lowerdict!(ladder_result(kt), data(kt), i))

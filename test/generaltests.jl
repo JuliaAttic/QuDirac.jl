@@ -1,9 +1,9 @@
 @assert sum(i -> d" i * | 1,i > ", 1:3) == ket(1) * sum(i -> d" i * | i > ", 1:3)
 @assert sum(i -> d" i * | i,1 > ", 1:3) == sum(i -> d" i * | i > ", 1:3) * ket(1)
 
-a1,a2,a3,a4 = rand(Complex{Int64},4)
-b1,b2,b3,b4 = conj(rand(Complex{Int64},4))
-c1,c2 = rand(Complex{Int64},2)
+a1,a2,a3,a4 = rand(-10:10,4) + rand(-10:10,4)im
+b1,b2,b3,b4 = rand(-10:10,4) + rand(-10:10,4)im
+c1,c2 = rand(-10:10,2) + rand(-10:10,2)im
 
 d"""
 @assert (a1 * | 1 >)' == a1' * < 1 | 

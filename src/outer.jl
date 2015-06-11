@@ -1,34 +1,44 @@
-abstract OuterOp{P,N} <: DiracOp{P,N}
-abstract AbsOuterSum{P,N,T,K,B} <: OuterOp{P,N}
+abstract OuterOp{P} <: DiracOp{P}
+abstract AbsOuterSum{P,T,K,B} <: OuterOp{P}
 
 #####################
 # OuterProduct Type #
 #####################
-immutable OuterProduct{P,N,S,K<:Ket,B<:Bra} <: OuterOp{P,N}
-    scalar::S
+immutable OuterProduct{P,S,K<:Ket,B<:Bra} <: OuterOp{P}
+    coeff::S
     kt::K
     br::B
-    OuterProduct(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) = new(scalar, kt, br)
+    function OuterProduct(kt::Ket{P}, br::Bra{P}, coeff::S)
+        @assert matching_nfactors(kt, br)
+        return new(coeff, kt, br)
+    end
 end
 
-OuterProduct{P,N,S}(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) = OuterProduct{P,N,S,typeof(kt),typeof(br)}(scalar, kt, br)
-OuterProduct{P}(::Type{P}, ol::OuterLabel, scalar) = OuterProduct(scalar, ket(P, klabel(ol)), bra(P, blabel(ol)))
+OuterProduct{P,S}(kt::Ket{P}, br::Bra{P}, coeff::S=1) = OuterProduct{P,S,typeof(kt),typeof(br)}(kt, br, coeff)
+OuterProduct{P}(::Type{P}, ol::OuterLabel, coeff=1) = OuterProduct(ket(P, klabel(ol)), bra(P, blabel(ol)), coeff)
 
 #################
 # OuterSum Type #
 #################
-type OuterSum{P,N,T,K,B} <: AbsOuterSum{P,N,T,K,B}
-    data::SumDict{OuterLabel{N,K,B},T}
+type OuterSum{P,T,K,B} <: AbsOuterSum{P,T,K,B}
+    data::SumDict{OuterLabel{K,B},T}
+    nfactors::Int
+    function OuterSum(data::SumDict{OuterLabel{K,B},T})
+        n = isempty(data) ? 0 : nfactors(first(keys(data)))
+        return new(data, n)
+    end
 end
 
 OuterSum(op::OuterSum) = op
-OuterSum{P,N,T,K,B}(::Type{P}, data::SumDict{OuterLabel{N,K,B},T}) = OuterSum{P,N,T,K,B}(data)
+OuterSum{P,T,K,B}(::Type{P}, data::SumDict{OuterLabel{K,B},T}) = OuterSum{P,T,K,B}(data)
 
-function OuterSum{P,N}(kt::Ket{P,N}, br::Bra{P,N}, scalar = 1)
+function OuterSum{P}(kt::Ket{P}, br::Bra{P}, scalar=1)
+    @assert matching_nfactors(kt, br)
+
     T = promote_type(eltype(kt), eltype(br), typeof(scalar))
     K = labeltype(kt)
     B = labeltype(br)
-    result = @compat sizehint!(SumDict{OuterLabel{N,K,B},T}(), length(kt) * length(br))
+    result = @compat sizehint!(SumDict{OuterLabel{K,B},T}(), length(kt) * length(br))
     
     cons_outer!(result, kt, br)
     
@@ -74,14 +84,14 @@ end
 #####################
 # DualOuterSum Type #
 #####################
-type DualOuterSum{P,N,T,K,B} <: AbsOuterSum{P,N,T,K,B}
-    op::OuterSum{P,N,T,B,K}
+type DualOuterSum{P,T,K,B} <: AbsOuterSum{P,T,K,B}
+    op::OuterSum{P,T,B,K}
 end
 
 ##############
 # ctranspose #
 ##############
-eager_ctranspose{P,N,T,K,B}(op::OuterSum{P,N,T,K,B}) = OuterSum(P, load_ct!(SumDict{OuterLabel{N,B,K},T}(), op))
+eager_ctranspose{P,T,K,B}(op::OuterSum{P,T,K,B}) = OuterSum(P, load_ct!(SumDict{OuterLabel{B,K},T}(), op))
 
 function load_ct!(result, op)
     for (o,v) in data(op)
@@ -92,7 +102,7 @@ end
 
 Base.ctranspose(op::OuterSum) = DualOuterSum(op)
 Base.ctranspose(opc::DualOuterSum) = opc.op
-Base.ctranspose(op::OuterProduct) = OuterProduct(op.scalar', op.br', op.kt')
+Base.ctranspose(op::OuterProduct) = OuterProduct(op.br', op.kt', coeff(op)')
 
 ######################
 # Accessor Functions #
@@ -100,54 +110,51 @@ Base.ctranspose(op::OuterProduct) = OuterProduct(op.scalar', op.br', op.kt')
 data(op::OuterSum) = op.data
 data(opc::DualOuterSum) = data(opc.op)
 
+coeff(op::OuterProduct) = op.coeff
+
 Base.eltype(op::OuterOp) = eltype(typeof(op))
-Base.eltype{P,N,S,K,B}(::Type{OuterProduct{P,N,S,K,B}}) = promote_type(S, eltype(K), eltype(B))
-Base.eltype{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}) = T
-Base.eltype{P,N,T,K,B}(::Type{DualOuterSum{P,N,T,K,B}}) = T
+Base.eltype{P,S,K,B}(::Type{OuterProduct{P,S,K,B}}) = promote_type(S, eltype(K), eltype(B))
+Base.eltype{P,T,K,B}(::Type{OuterSum{P,T,K,B}}) = T
+Base.eltype{P,T,K,B}(::Type{DualOuterSum{P,T,K,B}}) = T
 
 ketlabeltype(op::OuterOp) = ketlabeltype(typeof(op))
-ketlabeltype{P,N,S,K,B}(::Type{OuterProduct{P,N,S,K,B}}) = labeltype(K)
-ketlabeltype{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}) = K
-ketlabeltype{P,N,T,K,B}(::Type{DualOuterSum{P,N,T,K,B}}) = K
+ketlabeltype{P,S,K,B}(::Type{OuterProduct{P,S,K,B}}) = labeltype(K)
+ketlabeltype{P,T,K,B}(::Type{OuterSum{P,T,K,B}}) = K
+ketlabeltype{P,T,K,B}(::Type{DualOuterSum{P,T,K,B}}) = K
 
 bralabeltype(op::OuterOp) = bralabeltype(typeof(op))
-bralabeltype{P,N,S,K,B}(::Type{OuterProduct{P,N,S,K,B}}) = labeltype(B)
-bralabeltype{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}) = B
-bralabeltype{P,N,T,K,B}(::Type{DualOuterSum{P,N,T,K,B}}) = B
+bralabeltype{P,S,K,B}(::Type{OuterProduct{P,S,K,B}}) = labeltype(B)
+bralabeltype{P,T,K,B}(::Type{OuterSum{P,T,K,B}}) = B
+bralabeltype{P,T,K,B}(::Type{DualOuterSum{P,T,K,B}}) = B
 
-nfactors(op::OuterOp) = nfactors(typeof(op))
-nfactors{P,N,S,K,B}(::Type{OuterProduct{P,N,S,K,B}}) = N
-nfactors{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}) = N
-nfactors{P,N,T,K,B}(::Type{DualOuterSum{P,N,T,K,B}}) = N
+nfactors(op::OuterSum) = op.nfactors
+nfactors(op::DualOuterSum) = nfactors(op')
+nfactors(op::OuterProduct) = min(nfactors(op.kt), nfactors(op.br))
 
 ########################
 # Conversion/Promotion #
 ########################
 OuterSum(opc::DualOuterSum) = eager_ctranspose(opc')
-OuterSum(op::OuterProduct) = OuterSum(op.kt, op.br, op.scalar)
+OuterSum(op::OuterProduct) = OuterSum(op.kt, op.br, coeff(op))
 
-Base.convert{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}, op::OuterProduct) = convert(OuterSum{P,N,T,K,B}, OuterSum(op))
 Base.convert(::Type{OuterSum}, op::OuterProduct) = OuterSum(op)
-Base.convert{P,N,S,K,B}(::Type{OuterProduct{P,N,S,K,B}}, op::OuterProduct{P,N,S,K,B}) = op
-
-Base.convert{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}, op::OuterSum{P}) = OuterSum(P, convert(SumDict{OuterLabel{N,K,B},T}, data(op)))
-Base.convert{P,N,T,K,B}(::Type{OuterSum{P,N,T,K,B}}, op::OuterSum{P,N,T,K,B}) = op
-
-Base.convert{P,N,T,K,B}(::Type{OuterSum{P,N,T,B,K}}, opc::DualOuterSum{P,N,T,K,B}) = OuterSum(opc)
-Base.convert{P,N,T,K,B}(::Type{OuterSum}, opc::DualOuterSum{P,N,T,K,B}) = OuterSum(opc)
-Base.convert{P,N,T,K,B}(::Type{DualOuterSum{P,N,T,K,B}}, opc::DualOuterSum) = DualOuterSum(convert(OuterSum{P,N,T,B,K}, opc'))
-Base.convert{P,N,T,K,B}(::Type{DualOuterSum{P,N,T,K,B}}, opc::DualOuterSum{P,N,T,K,B}) = opc
+Base.convert(::Type{OuterSum}, opc::DualOuterSum) = OuterSum(opc)
+Base.convert{P,T,K,B}(::Type{OuterSum{P,T,B,K}}, opc::DualOuterSum{P,T,K,B}) = OuterSum(opc)
+Base.convert{P,T,K,B}(::Type{OuterSum{P,T,K,B}}, op::OuterProduct{P}) = convert(OuterSum{P,T,K,B}, OuterSum(op))
+Base.convert{P,T,K,B}(::Type{OuterSum{P,T,K,B}}, op::OuterSum{P}) = OuterSum(P, convert(SumDict{OuterLabel{K,B},T}, data(op)))
+Base.convert{P,T,K,B}(::Type{DualOuterSum{P,T,K,B}}, opc::DualOuterSum) = DualOuterSum(convert(OuterSum{P,T,B,K}, opc'))
+Base.convert{O<:OuterOp}(::Type{O}, op::O) = op
 
 Base.promote_rule{OS<:OuterSum, OP<:OuterProduct}(::Type{OS}, ::Type{OP}) = OS
 
-function Base.promote_rule{P,N,T1,K1,B1,T2,K2,B2}(::Type{OuterSum{P,N,T1,K1,B1}}, ::Type{OuterSum{P,N,T2,K2,B2}})
-    return OuterSum{P,N,promote_type(K1,K2),promote_type(B1,B2),promote_type(T1,T2)}
+function Base.promote_rule{P,T1,K1,B1,T2,K2,B2}(::Type{OuterSum{P,T1,K1,B1}}, ::Type{OuterSum{P,T2,K2,B2}})
+    return OuterSum{P,promote_type(K1,K2),promote_type(B1,B2),promote_type(T1,T2)}
 end
 
-Base.promote_rule{P,N,T,K,B}(::Type{OuterSum{P,N,T,B,K}}, ::Type{DualOuterSum{P,N,T,K,B}}) = OuterSum{P,N,T,B,K}
+Base.promote_rule{P,T,K,B}(::Type{OuterSum{P,T,B,K}}, ::Type{DualOuterSum{P,T,K,B}}) = OuterSum{P,T,B,K}
 
-function Base.promote_rule{P,N,T1,K1,B1,T2,K2,B2}(::Type{DualOuterSum{P,N,T1,K1,B1}}, ::Type{DualOuterSum{P,N,T2,K2,B2}})
-    return DualOuterSum{P,N,promote_type(K1,K2),promote_type(B1,B2),promote_type(T1,T2)}
+function Base.promote_rule{P,T1,K1,B1,T2,K2,B2}(::Type{DualOuterSum{P,T1,K1,B1}}, ::Type{DualOuterSum{P,T2,K2,B2}})
+    return DualOuterSum{P,promote_type(K1,K2),promote_type(B1,B2),promote_type(T1,T2)}
 end
 
 ############################
@@ -161,11 +168,11 @@ Base.hash(op::OuterOp, h::Uint64) = hash(hash(op), h)
 
 Base.copy{P}(op::OuterSum{P}) = OuterSum(P, copy(data(op)))
 Base.copy(opc::DualOuterSum) = ctranspose(copy(opc'))
-Base.copy(op::OuterProduct) = OuterProduct(copy(op.scalar), copy(op.kt), copy(op.br))
+Base.copy(op::OuterProduct) = OuterProduct(copy(op.kt), copy(op.br), copy(coeff(op)))
 
-Base.(:(==)){P,N}(a::OuterSum{P,N}, b::OuterSum{P,N}) = data(a) == data(b)
-Base.(:(==)){P,N}(a::DualOuterSum{P,N}, b::DualOuterSum{P,N}) = a' == b'
-Base.(:(==)){P,N}(a::DiracOp{P,N}, b::DiracOp{P,N}) = OuterSum(a) == OuterSum(b)
+Base.(:(==)){P}(a::OuterSum{P}, b::OuterSum{P}) = data(a) == data(b)
+Base.(:(==)){P}(a::DualOuterSum{P}, b::DualOuterSum{P}) = a' == b'
+Base.(:(==)){P}(a::DiracOp{P}, b::DiracOp{P}) = OuterSum(a) == OuterSum(b)
 
 #######################
 # Dict-like Functions #
@@ -173,7 +180,7 @@ Base.(:(==)){P,N}(a::DiracOp{P,N}, b::DiracOp{P,N}) = OuterSum(a) == OuterSum(b)
 Base.length(op::AbsOuterSum) = length(data(op))
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
-Base.getindex(op::OuterProduct, k, b) = op.scalar * op.kt[k] * op.br[b]
+Base.getindex(op::OuterProduct, k, b) = coeff(op) * op.kt[k] * op.br[b]
 Base.getindex(op::OuterProduct, o::OuterLabel) = op[klabel(o), blabel(o)]
 
 Base.getindex(op::OuterSum, x::OuterLabel) = getindex(data(op), x)
@@ -220,7 +227,7 @@ end
 Base.done(op::AbsOuterSum, i) = done(data(op), i)
 
 Base.collect(op::AbsOuterSum) = [i for i in op]
-Base.collect(op::OuterProduct) = [OuterProduct(op.scalar,k,b) for k in op.kt, b in op.br]
+Base.collect(op::OuterProduct) = [OuterProduct(k,b,coeff(op)) for k in op.kt, b in op.br]
 
 #########
 # inner #
@@ -232,7 +239,7 @@ function inner_ol_ol{P}(::Type{P}, oa::OuterLabel, va, ob::OuterLabel, vb)
     return va * vb * ket(P, klabel(oa)) * bra(P, blabel(oa)) * ket(P, klabel(ob)) * bra(P, blabel(ob))
 end
 
-function inner{P<:AbstractInner,N}(op::OuterSum{P,N}, kt::SingleKet{P,N})
+function execute_inner{P<:AbstractInner}(op::OuterSum{P}, kt::SingleKet{P})
     k,c = label(kt), coeff(kt)
     o0,v0 = first(data(op))
     result = inner_ol_kt(P, o0, v0, k, c)
@@ -245,7 +252,7 @@ function inner{P<:AbstractInner,N}(op::OuterSum{P,N}, kt::SingleKet{P,N})
     return result
 end
 
-function inner{P<:AbstractInner,N}(op::OuterSum{P,N}, kt::KetSum{P,N})
+function execute_inner{P<:AbstractInner}(op::OuterSum{P}, kt::KetSum{P})
     k0,c0 = first(data(kt))
     o0,v0 = first(data(op))
     result = inner_ol_kt(P, o0, v0, k0, c0)
@@ -263,7 +270,7 @@ function inner{P<:AbstractInner,N}(op::OuterSum{P,N}, kt::KetSum{P,N})
     return result
 end
 
-function inner{P<:AbstractInner,N}(br::Bra{P,N}, op::OuterSum{P,N})
+function execute_inner{P<:AbstractInner}(br::Bra{P}, op::OuterSum{P})
     b,c = label(br), coeff(br)
     o0,v0 = first(data(op))
     result = inner_br_ol(P, b, c, o0, v0)
@@ -276,7 +283,7 @@ function inner{P<:AbstractInner,N}(br::Bra{P,N}, op::OuterSum{P,N})
     return result
 end
 
-function inner{P<:AbstractInner,N}(br::BraSum{P,N}, op::OuterSum{P,N})
+function execute_inner{P<:AbstractInner}(br::BraSum{P}, op::OuterSum{P})
     b0,c0 = first(data(br))
     o0,v0 = first(data(op))
     result = inner_br_ol(P, b0, c0', o0, v0)
@@ -294,7 +301,7 @@ function inner{P<:AbstractInner,N}(br::BraSum{P,N}, op::OuterSum{P,N})
     return result
 end
 
-function inner{P<:AbstractInner,N}(a::OuterSum{P,N}, b::OuterSum{P,N})
+function execute_inner{P<:AbstractInner}(a::OuterSum{P}, b::OuterSum{P})
     oa0,va0 = first(data(a))
     ob0,vb0 = first(data(b))
     result = inner_ol_ol(P, oa0, va0, ob0, vb0)
@@ -309,7 +316,7 @@ function inner{P<:AbstractInner,N}(a::OuterSum{P,N}, b::OuterSum{P,N})
     return result
 end
 
-function inner{P<:AbstractInner,N}(op::OuterSum{P,N}, opc::DualOuterSum{P,N})
+function execute_inner{P<:AbstractInner}(op::OuterSum{P}, opc::DualOuterSum{P})
     o0,v0 = first(data(op))
     oc0,c0 = first(data(opc))
     result = inner_ol_ol(P, o0, v0, oc0', c0')
@@ -324,7 +331,7 @@ function inner{P<:AbstractInner,N}(op::OuterSum{P,N}, opc::DualOuterSum{P,N})
     return result
 end
 
-function inner{P<:AbstractInner,N}(opc::DualOuterSum{P,N}, op::OuterSum{P,N})
+function execute_inner{P<:AbstractInner}(opc::DualOuterSum{P}, op::OuterSum{P})
     o0,v0 = first(data(op))
     oc0,c0 = first(data(opc))
     result = inner_ol_ol(P, oc0', c0', o0, v0)
@@ -348,8 +355,8 @@ end
 
 for T in (:BraSum, :SingleBra)
     @eval begin
-        function inner{P<:ProvidedInner,N}(br::($T){P,N}, op::OuterSum{P,N})
-            result = SumDict{StateLabel{N, bralabeltype(op)}, inner_rettype(br, op)}()
+        function execute_inner{P<:ProvidedInner}(br::($T){P}, op::OuterSum{P})
+            result = SumDict{StateLabel{bralabeltype(op)}, inner_rettype(br, op)}()
             return ctranspose(KetSum(P, inner_load!(result, br, op)))
         end
     end
@@ -357,25 +364,25 @@ end
 
 for T in (:KetSum, :SingleKet)
     @eval begin
-        function inner{P<:ProvidedInner,N}(op::OuterSum{P,N}, kt::($T){P,N})
-            result = SumDict{StateLabel{N, ketlabeltype(op)}, inner_rettype(op, kt)}()
+        function execute_inner{P<:ProvidedInner}(op::OuterSum{P}, kt::($T){P})
+            result = SumDict{StateLabel{ketlabeltype(op)}, inner_rettype(op, kt)}()
             return KetSum(P, inner_load!(result, op, kt))
         end
     end
 end
 
-function inner{P<:ProvidedInner,N,T1,K1,B1,T2,K2,B2}(a::OuterSum{P,N,T1,K1,B1}, b::OuterSum{P,N,T2,K2,B2})
-    result = SumDict{OuterLabel{N,K1,B2}, inner_rettype(a, b)}()
+function execute_inner{P<:ProvidedInner,T1,K1,B1,T2,K2,B2}(a::OuterSum{P,T1,K1,B1}, b::OuterSum{P,T2,K2,B2})
+    result = SumDict{OuterLabel{K1,B2}, inner_rettype(a, b)}()
     return OuterSum(P, inner_load!(result, a, b))
 end
 
-function inner{P<:ProvidedInner,N,T1,K1,B1,T2,K2,B2}(op::OuterSum{P,N,T1,K1,B1}, opc::DualOuterSum{P,N,T2,K2,B2})
-    result = SumDict{OuterLabel{N,K1,B2}, inner_rettype(op, opc)}()
+function execute_inner{P<:ProvidedInner,T1,K1,B1,T2,K2,B2}(op::OuterSum{P,T1,K1,B1}, opc::DualOuterSum{P,T2,K2,B2})
+    result = SumDict{OuterLabel{K1,B2}, inner_rettype(op, opc)}()
     return OuterSum(P, inner_load!(result, op, opc))
 end
 
-function inner{P<:ProvidedInner,N,T1,K1,B1,T2,K2,B2}(opc::DualOuterSum{P,N,T1,K1,B1}, op::OuterSum{P,N,T2,K2,B2})
-    result = SumDict{OuterLabel{N,K1,B2}, inner_rettype(opc, op)}()
+function execute_inner{P<:ProvidedInner,T1,K1,B1,T2,K2,B2}(opc::DualOuterSum{P,T1,K1,B1}, op::OuterSum{P,T2,K2,B2})
+    result = SumDict{OuterLabel{K1,B2}, inner_rettype(opc, op)}()
     return OuterSum(P, inner_load!(result, opc, op))
 end
 
@@ -451,37 +458,38 @@ end
 ##############################
 # inner - simple definitions #
 ##############################
-inner(br::Bra, opc::DualOuterSum) = inner(opc', br')'
-inner(opc::DualOuterSum, kt::Ket) = inner(kt', opc')'
-inner(a::DualOuterSum, b::DualOuterSum) = inner(b', a')'
+execute_inner(br::Bra, opc::DualOuterSum) = inner(opc', br')'
+execute_inner(opc::DualOuterSum, kt::Ket) = inner(kt', opc')'
+execute_inner(a::DualOuterSum, b::DualOuterSum) = inner(b', a')'
 
-inner(br::Bra, op::OuterProduct) = op.scalar * inner(br, op.kt) * op.br
-inner(op::OuterProduct, kt::Ket) = op.scalar * op.kt * inner(op.br, kt)
-inner(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar * inner(a.br,b.kt), a.kt, b.br)
-inner(a::OuterProduct, b::AbsOuterSum) = a.scalar * a.kt * inner(a.br, b)
-inner(a::AbsOuterSum, b::OuterProduct) = inner(a, b.kt) * b.br * b.scalar
+execute_inner(br::Bra, op::OuterProduct) = coeff(op) * inner(br, op.kt) * op.br
+execute_inner(op::OuterProduct, kt::Ket) = coeff(op) * op.kt * inner(op.br, kt)
+execute_inner(a::OuterProduct, b::OuterProduct) = OuterProduct(a.kt, b.br, coeff(a)*coeff(b)*inner(a.br,b.kt))
+execute_inner(a::OuterProduct, b::AbsOuterSum) = coeff(a) * a.kt * inner(a.br, b)
+execute_inner(a::AbsOuterSum, b::OuterProduct) = inner(a, b.kt) * b.br * coeff(b)
 
-Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
-Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
-Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
+Base.(:*)(br::Bra, op::DiracOp) = inner(br, op)
+Base.(:*)(op::DiracOp, kt::Ket) = inner(op, kt)
+Base.(:*)(a::DiracOp, b::DiracOp) = inner(a, b)
 
 inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
 
 ##########
 # act_on #
 ##########
-act_on(op::DiracOp, br::Bra, i) = act_on(op', br', i)'
-act_on{P}(op::DiracOp{P,1}, kt::Ket{P,1}, i) = i==1 ? inner(op, kt) : throw(BoundsError())
+execute_act_on(op::DiracOp, br::Bra, i) = act_on(op', br', i)'
 
-function act_on{P,N}(op::DiracOp{P,1}, kt::SingleKet{P,N}, i)
+function execute_act_on{P}(op::DiracOp, kt::SingleKet{P}, i)
     k = label(kt)
     v = coeff(kt)
     return (v * ket(P, k[1:i-1]...)) * (op * ket(P, k[i])) * ket(P, k[i+1:end]...)
 end
 
-act_on{P,N}(op::OuterProduct{P,1}, kt::KetSum{P,N}, i) = act_on(OuterSum(op), kt, i)
+execute_act_on(op::DiracOp, kt::KetSum, i) = sum(map(k->act_on(op, k, i), collect(kt)))
 
-function act_on{P,N}(op::OuterSum{P,1}, kt::KetSum{P,N}, i)
+execute_act_on{P}(op::OuterProduct{P}, kt::KetSum{P}, i) = act_on(OuterSum(op), kt, i)
+
+function execute_act_on{P}(op::OuterSum{P}, kt::KetSum{P}, i)
     k0,v0 = first(data(kt))
     o0,c0 = first(data(op))
     result = act_on(OuterProduct(P,o0,c0), SingleKet(P,k0,v0), i)
@@ -494,7 +502,7 @@ function act_on{P,N}(op::OuterSum{P,1}, kt::KetSum{P,N}, i)
     return result
 end
 
-function act_on{P,N}(opc::DualOuterSum{P,1}, kt::KetSum{P,N}, i)
+function execute_act_on{P}(opc::DualOuterSum{P}, kt::KetSum{P}, i)
     k0,v0 = first(data(kt))
     o0,c0 = first(data(opc))
     result = act_on(OuterProduct(P,o0',c0'), SingleKet(P,k0,v0), i)
@@ -514,13 +522,13 @@ end
 # Generate explicit (but redudant) code to resolve method ambiguity
 for T in (:KetSum, :SingleKet), OT in (:OuterSum, :DualOuterSum)
     @eval begin
-        act_on{P<:ProvidedInner,N}(op::($OT){P,1}, kt::($T){P,N}, i) = KetSum(P, act_on_dict!(act_result(op, kt), op, kt, i))
+        execute_act_on{P<:ProvidedInner}(op::($OT){P}, kt::($T){P}, i) = KetSum(P, act_on_dict!(act_result(op, kt), op, kt, i))
     end
 end
 
-function act_result{P<:ProvidedInner,N}(op::AbsOuterSum{P,1}, kt::Ket{P,N})
+function act_result{P<:ProvidedInner}(op::AbsOuterSum{P}, kt::Ket{P})
     T = promote_type(ketlabeltype(op), labeltype(kt))
-    return SumDict{StateLabel{N,T},inner_rettype(op, kt)}()
+    return SumDict{StateLabel{T},inner_rettype(op, kt)}()
 end
 
 function act_on_dict!{P<:ProvidedInner}(result, op::OuterSum{P}, kt::SingleKet{P}, i)
@@ -570,10 +578,10 @@ end
 ##########
 tensor{P}(a::OuterSum{P}, b::OuterSum{P}) = OuterSum(P, tensor(data(a), data(b)))
 tensor(a::DualOuterSum, b::DualOuterSum) = tensor(a', b')'
-tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar, tensor(a.kt,b.kt), tensor(a.br, b.br))
+tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(tensor(a.kt,b.kt), tensor(a.br, b.br), coeff(a) * coeff(b))
 tensor(a::DiracOp, b::DiracOp) = tensor(OuterSum(a), OuterSum(b))
 
-tensor(kt::Ket, br::Bra) = OuterProduct(1, kt, br)
+tensor(kt::Ket, br::Bra) = OuterProduct(kt, br)
 tensor(br::Bra, kt::Ket) = tensor(kt, br)
 
 Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
@@ -587,7 +595,7 @@ Base.scale!(c::Number, op::AbsOuterSum) = scale!(op, c)
 
 Base.scale{P}(op::OuterSum{P}, c::Number) = OuterSum(P, scale(data(op), c))
 Base.scale(opc::DualOuterSum, c::Number) = scale(opc', c')'
-Base.scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt), copy(op.br))
+Base.scale(op::OuterProduct, c::Number) = OuterProduct(copy(op.kt), copy(op.br), coeff(op) * c)
 Base.scale(c::Number, op::OuterOp) = scale(op, c)
 
 Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
@@ -597,31 +605,35 @@ Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
 ###########
 # + and - #
 ###########
-add!{P,N}(a::OuterSum{P,N}, b::OuterSum{P,N}) = (add!(data(a), data(b)); return a)
-add!{P,N}(a::DualOuterSum{P,N}, b::DualOuterSum{P,N}) = (add!(data(a), data(b)); return a)
-add!{P,N}(a::OuterSum{P,N}, b::OuterOp{P,N}) = add!(a, OuterSum(b))
-add!{P,N}(a::DualOuterSum{P,N}, b::OuterOp{P,N}) = add!(a, OuterSum(b)')
+Base.(:+){P}(a::OuterSum{P}, b::OuterSum{P}) = (@assert matching_nfactors(a, b); OuterSum(P, data(a) + data(b)))
+Base.(:+){P}(a::DualOuterSum{P}, b::DualOuterSum{P}) = ctranspose(a' + b')
+Base.(:+){P}(a::DiracOp{P}, b::DiracOp{P}) = OuterSum(a) + OuterSum(b)
 
-sub!{P,N}(a::OuterSum{P,N}, b::OuterSum{P,N}) = (sub!(data(a), data(b)); return a)
-sub!{P,N}(a::DualOuterSum{P,N}, b::DualOuterSum{P,N}) = (sub!(data(a), data(b)); return a)
-sub!{P,N}(a::OuterSum{P,N}, b::OuterOp{P,N}) = sub!(a, OuterSum(b))
-sub!{P,N}(a::DualOuterSum{P,N}, b::OuterOp{P,N}) = sub!(a, OuterSum(b)')
-
-Base.(:+){P,N}(a::OuterSum{P,N}, b::OuterSum{P,N}) = OuterSum(P, data(a) + data(b))
-Base.(:+){P,N}(a::DualOuterSum{P,N}, b::DualOuterSum{P,N}) = ctranspose(a' + b')
-Base.(:+){P,N}(a::DiracOp{P,N}, b::DiracOp{P,N}) = OuterSum(a) + OuterSum(b)
-
-Base.(:-){P,N}(a::OuterSum{P,N}, b::OuterSum{P,N}) = OuterSum(P, data(a) - data(b))
-Base.(:-){P,N}(a::DualOuterSum{P,N}, b::DualOuterSum{P,N}) = ctranspose(a' - b')
-Base.(:-){P,N}(a::DiracOp{P,N}, b::DiracOp{P,N}) = OuterSum(a) - OuterSum(b)
+Base.(:-){P}(a::OuterSum{P}, b::OuterSum{P}) = (@assert matching_nfactors(a, b); OuterSum(P, data(a) - data(b)))
+Base.(:-){P}(a::DualOuterSum{P}, b::DualOuterSum{P}) = ctranspose(a' - b')
+Base.(:-){P}(a::DiracOp{P}, b::DiracOp{P}) = OuterSum(a) - OuterSum(b)
 
 Base.(:-)(op::OuterOp) = scale(-1, op)
 
-unsafe_add!{P}(op::OuterSum{P}, ol::OuterLabel, v) = OuterSum(P, data(op) + SumTerm(ol,v))
-unsafe_add!(opc::DualOuterSum, ol::OuterLabel, v) = unsafe_add!(opc', ol', v')'
+# The below methods are unsafe because:
+# 1. The first argument is potentially not mutated
+# 2. No nfactors check is performed
+unsafe_add!(op::OuterSum, ol::OuterLabel, v) = (add!(data(op), SumTerm(ol,v)); op)
+unsafe_add!(opc::DualOuterSum, ol::OuterLabel, v) = (unsafe_add!(opc', ol', v'); opc)
+unsafe_add!{P}(a::OuterSum{P}, b::OuterSum{P}) = (add!(data(a), data(b)); a)
+unsafe_add!{P}(a::DualOuterSum{P}, b::DualOuterSum{P}) = (add!(data(a), data(b)); a)
+unsafe_add!{P}(a::OuterSum{P}, b::OuterOp{P}) = unsafe_add!(a, OuterSum(b))
+unsafe_add!{P}(a::DualOuterSum{P}, b::OuterOp{P}) = unsafe_add!(a, OuterSum(b)')
 
-unsafe_add!{P,N,T,K,B}(op::OuterSum{P,N,T,K,B}, ol::OuterLabel{N,K,B}, v::T) = (add!(data(op), SumTerm(ol,v)); return op)
-unsafe_add!{P,N,T,K,B}(opc::DualOuterSum{P,N,T,K,B}, ol::OuterLabel{N,K,B}, v::T) = (add!(data(opc), SumTerm(ol',v')); return opc)
+unsafe_sub!(op::OuterSum, ol::OuterLabel, v) = (sub!(data(op), SumTerm(ol,v)); op)
+unsafe_sub!(opc::DualOuterSum, ol::OuterLabel, v) = (unsafe_sub!(opc', ol', v'); opc)
+unsafe_sub!{P}(a::OuterSum{P}, b::OuterSum{P}) = (sub!(data(a), data(b)); a)
+unsafe_sub!{P}(a::DualOuterSum{P}, b::DualOuterSum{P}) = (sub!(data(a), data(b)); a)
+unsafe_sub!{P}(a::OuterSum{P}, b::OuterOp{P}) = unsafe_sub!(a, OuterSum(b))
+unsafe_sub!{P}(a::DualOuterSum{P}, b::OuterOp{P}) = unsafe_sub!(a, OuterSum(b)')
+
+add!{P}(a::AbsOuterSum{P}, b::OuterOp{P}) = (@assert matching_nfactors(a, b); unsafe_add!(a, b))
+sub!{P}(a::AbsOuterSum{P}, b::OuterOp{P}) = (@assert matching_nfactors(a, b); unsafe_sub!(a, b))
 
 #################
 # Normalization #
@@ -631,7 +643,7 @@ Base.norm(opc::DualOuterSum) = norm(opc')
 function Base.norm(op::OuterProduct)
     result = predict_zero(eltype(op))
     for v in values(data(op.kt)), c in values(data(op.br))
-        result += abs2(op.scalar * v * c')
+        result += abs2(coeff(op) * v * c')
     end
     return sqrt(result)
 end
@@ -661,21 +673,23 @@ function Base.trace(op::OuterProduct)
             result += v * c'
         end
     end
-    return op.scalar * result
+    return coeff(op) * result
 end
 
 #################
 # Partial trace #
 #################
-ptrace{P}(op::DiracOp{P,1}, over) = over == 1 ? trace(op) : throw(BoundsError())
-
-function ptrace_result{P,N}(op::DiracOp{P,N})
+function ptrace_result{P}(op::DiracOp{P})
     K = ketlabeltype(op)
     B = bralabeltype(op)
-    return SumDict{OuterLabel{N-1,K,B}, eltype(op)}()
+    return SumDict{OuterLabel{K,B}, eltype(op)}()
 end
 
-ptrace{P,N}(op::DiracOp{P,N}, over) = OuterSum(P, ptrace_dict!(ptrace_result(op), op, over))
+function ptrace{P}(op::DiracOp{P}, over)
+    @assert nfactors(op) > 1 "nfactors(op) must be greater than 1 when using ptrace(op,i); perhaps you meant to use trace(op)?"
+    @assert 1 <= over <= nfactors(op) "i is constrained to 1 <= i <= nfactors(op) when using ptrace(op,i)"
+    return OuterSum(P, ptrace_dict!(ptrace_result(op), op, over))
+end
 
 function ptrace_dict!(result, op::OuterSum, over)
     for (o,v) in data(op)
@@ -707,39 +721,11 @@ end
 #####################
 # Partial Transpose #
 #####################
-function ptrans_result{P,N}(op::DiracOp{P,N})
-    T = label_promote(ketlabeltype(op), bralabeltype(op))
-    return SumDict{OuterLabel{N,T,T}, eltype(op)}()
-end
+ptranspose{P}(op::OuterOp{P}, over) = OuterSum(P, ptrans_dict(op, over))
 
-function ptrans_result{P}(op::DiracOp{P,1})
-    K = bralabeltype(op)
-    B = ketlabeltype(op)
-    return SumDict{OuterLabel{N,K,B}, eltype(op)}()
-end
-
-ptranspose{P,N}(op::DiracOp{P,N}, over) = OuterSum(P, ptrans_dict!(ptrans_result(op), op, over))
-
-function ptrans_dict!(result, op::OuterSum, over)
-    for (o,v) in data(op)
-        add_to_sum!(result, ptranspose(o, over), v)
-    end
-    return result
-end
-
-function ptrans_dict!(result, opc::DualOuterSum, over)
-    for (o,v) in data(opc)
-        add_to_sum!(result, ptranspose(o', over), v')
-    end
-    return result
-end
-
-function ptrans_dict!(result, op::OuterProduct, over)
-    for k in keys(data(op.kt)), b in keys(data(op.br))
-        add_to_sum!(result, ptranspose(OuterLabel(k, b), over), op[k,b])
-    end
-    return result
-end
+ptrans_dict(op::OuterSum, over) = SumDict([ptranspose(o, over) => v for (o,v) in data(op)])
+ptrans_dict(op::DualOuterSum, over) = SumDict([ptranspose(o, over) => v for (o,v) in data(op)])
+ptrans_dict(op::OuterProduct, over) = SumDict([ptranspose(OuterLabel(k, b), over) => op[k,b] for k in keys(data(op.kt)), b in keys(data(op.br))])
 
 ########################
 # Misc. Math Functions #

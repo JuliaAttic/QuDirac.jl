@@ -63,7 +63,7 @@ Base.repr(s::DiracState) = dirac_repr(s)
 Base.repr(op::AbsOuterSum) = dirac_repr(op)
 
 Base.summary(s::DiracState) = "$(typeof(s)) with $(length(s)) state(s)"
-Base.summary{P,N}(op::OuterProduct{P,N}) = "OuterProduct{$P,$N,$(eltype(op))} with $(length(op)) operator(s)"
+Base.summary{P}(op::OuterProduct{P}) = "OuterProduct{$P,$(eltype(op))} with $(length(op)) operator(s)"
 Base.summary(op::DiracOp) = "$(typeof(op)) with $(length(op)) operator(s)"
 
 Base.show(io::IO, s::StateLabel) = print(io, repr(s))
@@ -95,5 +95,5 @@ Base.showcompact(io::IO, op::AbsOuterSum) = dirac_showcompact(io, op)
 
 # Placing here for now - may be useful for
 # subscripting label factors in the future
-digit_subscript(i::Int) = Base.REPLCompletions.latex_completions("\\_$i",3)[2][1][1]
-subscript(i::Int) = reduce(*, reverse(map(digit_subscript, digits(i))))
+# digit_subscript(i::Int) = Base.REPLCompletions.latex_completions("\\_$i",3)[2][1][1]
+# subscript(i::Int) = reduce(*, reverse(map(digit_subscript, digits(i))))

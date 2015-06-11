@@ -30,11 +30,6 @@ belldens = bell * bell'
 @test_approx_eq trace(ptrace(belldens, 1)^2) .5
 @test_approx_eq purity(bell) 1
 
-@rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n * | 1 > )" 0:1
-@assert represent(H, map(ket,0:1)) == 1/√2 * [1 1 ; 1 -1]
-m = 0.5 * [1 1;1 -1]
-@test_approx_eq convert(Matrix{Float64}, represent(tensor(H, H), [ket(i,j) for i=0:1, j=0:1])) [m m ; m -m]
-
 @assert ptrace(ptrace(bitdens, 2), 1) == ptrace(ptrace(bitdens, 1), 2)
 
 @assert act_on(bra(0), bell_unbal, 2)[1] == bell_unbal[1,0]
@@ -48,3 +43,6 @@ itest = act_on(b, bell_unbal, 2)
 
 @assert itest[0] == b[1]*bell_unbal[0,1]
 @assert itest[1] == b[0]*bell_unbal[1,0]
+
+@assert raise(d" -im * < 2,1 | ", 2) == d" (sqrt(2) * -im) * < 2,2 |"
+@assert lower(d" -im * < 3,5 | ", 2) == d" (sqrt(5) * -im) * < 3,4 |"

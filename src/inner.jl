@@ -1,10 +1,16 @@
 ##############
 # InnerLabel #
 ##############
-immutable InnerLabel{N} <: Number
-    b::StateLabel{N}
-    k::StateLabel{N}
+immutable InnerLabel{B,K} <: Number
+    b::StateLabel{B}
+    k::StateLabel{K}
+    function InnerLabel(b::StateLabel{B}, k::StateLabel{K})
+        @assert nfactors(b) == nfactors(k)
+        return new(b, k)
+    end
 end
+
+InnerLabel{B,K}(b::StateLabel{B}, k::StateLabel{K}) = InnerLabel{B,K}(b,k)
 
 blabel(i::InnerLabel) = i.b
 klabel(i::InnerLabel) = i.k
@@ -16,8 +22,8 @@ Base.(:(==))(a::InnerLabel, b::InnerLabel) = blabel(a) == blabel(b) && klabel(a)
 Base.(:(==))(::InnerLabel, ::Number) = false
 Base.(:(==))(::Number, ::InnerLabel) = false
 
-Base.hash(i::InnerLabel) = hash(blabel(i), hash(klabel(i)))
-Base.hash(i::InnerLabel, h::Uint64) = hash(hash(i), h)
+Base.copy(i::InnerLabel) = i
+Base.hash(i::InnerLabel) = hash(hash(blabel(i)), hash(klabel(i)))
 
 Base.conj(i::InnerLabel) = InnerLabel(klabel(i), blabel(i))
 
@@ -258,16 +264,16 @@ KronDelta(b, k) = b == k ? 1 : 0
 immutable UndefInner <: ProvidedInner end
 UndefInner(b, k) = InnerExpr(InnerLabel(b, k))
 
-function inner{P<:AbstractInner,N}(::Type{P}, b::StateLabel{N}, k::StateLabel{N})
-    result = P(b[1], k[1])
-    for i=2:N
+function inner{P<:AbstractInner}(::Type{P}, b::StateLabel, k::StateLabel)
+    @inbounds result = P(b[1], k[1])
+    @inbounds for i=2:nfactors(b)
         result *= P(b[i], k[i])
     end
     return result
 end
 
-inner{N}(::Type{KronDelta}, b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
-inner{N}(::Type{UndefInner}, b::StateLabel{N}, k::StateLabel{N}) = InnerExpr(InnerLabel(b, k))
+inner(::Type{KronDelta}, b::StateLabel, k::StateLabel) = b == k ? 1 : 0
+inner(::Type{UndefInner}, b::StateLabel, k::StateLabel) = InnerExpr(InnerLabel(b, k))
 
 inner_rettype(::Type{KronDelta}) = Int
 inner_rettype(::Type{UndefInner}) = InnerExpr
@@ -277,6 +283,19 @@ function inner_rettype{P<:ProvidedInner}(a::AbstractDirac{P}, b::AbstractDirac{P
 end
 
 inner_rettype(d::AbstractDirac) = inner_rettype(d,d)
+
+
+function inner{P}(a::AbstractDirac{P}, b::AbstractDirac{P})
+    @assert matching_nfactors(a,b)
+    return execute_inner(a, b)
+end
+
+function act_on(a::AbstractDirac, b::AbstractDirac, i)
+    @assert nfactors(a) == 1 "nfactors(a) must equal 1 when using act_on(a,b,i)"
+    @assert nfactors(b) > 1 "nfactors(b) must greater than 1 when using act_on(a,b,i)"
+    @assert 1 <= i <= nfactors(b) "i is constrained to 1 <= i <= nfactors(b) when using act_on(a,b,i)"
+    return execute_act_on(a, b, i)
+end
 
 export InnerExpr,
     UndefInner,
