@@ -186,13 +186,13 @@ function def_op_expr(ods::OpDefStr)
 
     result = quote
         
-        P = innertype(ket())
+        local ProdType = innertype(ket())
 
         if isdefined($T_sym)
             @assert QuDirac.nfactors($name) == $len_args "Cannot redefine "*string($T)*" on states with different number of factors"
-            @assert $T <: QuDirac.FuncOpDef{P} "Cannot redefine functional operator type "*string($T)*" with new inner product type $P"
+            @assert $T <: QuDirac.FuncOpDef{ProdType} "Cannot redefine functional operator type "*string($T)*" with new inner product type $(ProdType)"
         else
-            immutable $T <: QuDirac.FuncOpDef{P} end
+            immutable $T <: QuDirac.FuncOpDef{ProdType} end
             QuDirac.nfactors(::$T) = $len_args
             const $name = $T()
         end

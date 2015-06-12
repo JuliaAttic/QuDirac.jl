@@ -27,15 +27,19 @@ end
 # the QHO problem
 @definner QHOInner
 
-QHOInner(x::Float64, k::BigInt) = e^((-x^2)/2) * hermite(k, x) * 1/√(2^k * factorial(k) * √π) # using natural units
-QHOInner(x::Float64, k::Int) = QHOInner(x, BigInt(k))
+immutable PosX{T}
+    pos::T
+end
+
+QHOInner(x::PosX, k::BigInt) = e^((-x.pos^2)/2) * hermite(k, x.pos) * 1/√(2^k * factorial(k) * √π) # using natural units
+QHOInner(x::PosX, k::Int) = QHOInner(x, BigInt(k))
 QHOInner(n::Int, m::Int) = KronDelta(n, m)
 
 default_inner(QHOInner)
 
 # With the above, we've defined this behavior for basis states:
 # < i::Int | j::Int > = ∫ ψᵢ'ψⱼ dx =  δᵢⱼ
-# < x::Float64 | i::Int > = ψᵢ(x)
+# < x::PosX | i::Int > = ψᵢ(x)
 
 ####################
 # Ladder Operators #
@@ -88,35 +92,34 @@ function gen_plot_data{P}(kt::Ket{P,2}, x, y)
     ]
 end
 
-# # some default stuff
-# len = 50
-# max = pi
-# const xpoints = linspace(-max, max, len)
-# const ypoints = copy(xpoints)
+# some default stuff
+len = 50
+max = pi
+const xpoints = map(PosX,linspace(-max, max, len))
 
-# info("Loading the Plotly package, this could take a little while since it has to sign in...")
+info("Loading the Plotly package, this could take a little while since it has to sign in...")
 
-# using Plotly
+using Plotly
 
-# # Generate the distribution, sending it to Plotly.
-# # Return the response URL, which you can then go to
-# # to see and interact with your plot.
-# #
-# # To generate a plot of a wave function for a 2-factor Ket, 
-# # just call plot_wave2D(kt, xpoints, ypoints). This function
-# # will build your plot and return the URL you should go to to
-# # view the result. Here are some examples: 
-# #
-# # Basis state:
-# # julia> plot_wave2D(d" | 1, 1 > ")
-# #
-# # Random superposition of the first 4 basis states:
-# # julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
-# #        plot_wave2D(randkt)
-# #
-# function plot_wave2D{P}(kt::Ket{P,2})
-#     response = Plotly.plot(gen_plot_data(kt, xpoints, ypoints))
-#     return response["url"]
-# end
+# Generate the distribution, sending it to Plotly.
+# Return the response URL, which you can then go to
+# to see and interact with your plot.
+#
+# To generate a plot of a wave function for a 2-factor Ket, 
+# just call plot_wave2D(kt, xpoints, ypoints). This function
+# will build your plot and return the URL you should go to to
+# view the result. Here are some examples: 
+#
+# Basis state:
+# julia> plot_wave2D(d" | 1, 1 > ")
+#
+# Random superposition of the first 4 basis states:
+# julia> randkt = normalize!(sum(i -> rand() * ket(i), 0:3))^2
+#        plot_wave2D(randkt)
+#
+function plot_wave2D{P}(kt::Ket{P,2})
+    response = Plotly.plot(gen_plot_data(kt, xpoints, xpoints))
+    return response["url"]
+end
 
-# info("Finished loading Plotly. Make sure you're signed in before trying to plot!")
+info("Finished loading Plotly. Make sure you're signed in before trying to plot!")
