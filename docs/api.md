@@ -49,7 +49,7 @@ See the [Constructing Single Bras](constructing_states/#constructing-single-bras
 Construct an operator from the provided `dict`.
 
 ---
-**@def_op(str)**
+**@defop(str)**
 
 Using the definition given by `str`, generate a function that acts on states via the `*` operator. 
 See the [Defining Operators as Functions](func_op_def/#defining-operators-as-functions) section for detailed examples.

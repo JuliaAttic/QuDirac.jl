@@ -79,11 +79,11 @@ julia> d" < 4.4,5 | 2,3.42 > " # sqrt(4.4 + 2) * sqrt(5 + 3.42)
 
 ```julia
 # define a₂ on Ket
-julia> @def_op " a₂ | x, y, z > = √y * | x, y - 1, z > "
+julia> @defop " a₂ | x, y, z > = √y * | x, y - 1, z > "
 a₂ (generic function with 1 method)
 
 # define a₂ on Bra
-julia> @def_op " < x, y, z | a₂ = √(y + 1) * < x, y + 1, z | "
+julia> @defop " < x, y, z | a₂ = √(y + 1) * < x, y + 1, z | "
 a₂ (generic function with 2 methods)
 
 julia> d" a₂ * | 3,5,5 > "

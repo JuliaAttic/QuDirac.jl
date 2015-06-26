@@ -12,11 +12,11 @@ Action of Ô on Bra:
 ```
 
 QuDirac allows us to define normal Julia functions that act like `Ô` using 
-the `@def_op` macro:
+the `@defop` macro:
 
 ```julia
 # define "a" on Kets
-julia> @def_op " a | n > = √n * | n-1 > "
+julia> @defop " a | n > = √n * | n-1 > "
 a (generic function with 1 methods)
 
 julia> d" a * | 42 > "
@@ -43,7 +43,7 @@ To act the operator on a Bra (or its dual on a Ket), we need to define its actio
 
 ```
 # define "a" on Bras
-julia> @def_op " < n | a = √(n+1) * < n+1 | "
+julia> @defop " < n | a = √(n+1) * < n+1 | "
 a (generic function with 2 methods)
 
 julia> d" < 5 | * a "
@@ -59,10 +59,10 @@ julia> d" < 5 | * a * | 6 > "
 2.449489742783178
 ```
 
-The `@def_op` macro works for product bases as well:
+The `@defop` macro works for product bases as well:
 
 ```
-julia> @def_op " a₂ | x,y,z >  = √y * | x,y-1,z > "
+julia> @defop " a₂ | x,y,z >  = √y * | x,y-1,z > "
 a₂ (generic function with 2 methods)
 
 julia> d" a₂ * (| 0,10,8 > - | 12,31,838 >) "
@@ -75,7 +75,7 @@ For an example of an operator that throws its basis Kets into superpositions,
 here's a function emulating a Hadamard operator:
 
 ```julia
-julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
+julia> @defop " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
 h (generic function with 1 methods)
 
 julia> d" h * | 0 > "
@@ -93,18 +93,18 @@ Ket{KronDelta,1,Float64} with 2 state(s):
 # Grammar for the Definition String
 ---
 
-The grammar of the string passed to `@def_op` is:
+The grammar of the string passed to `@defop` is:
 
 1. Defining action on Kets:
   
-        @def_op " $op_name | $label_args > = f($label_args...) "
+        @defop " $op_name | $label_args > = f($label_args...) "
 
       where `f` is an arbitrary expanded function that takes in the `$label_args` and
       returns a Ket.
 
 2. Defining action on Bras:
 
-        @def_op " < $label_args | $op_name  = f($label_args...) "
+        @defop " < $label_args | $op_name  = f($label_args...) "
       
       where `f` is an arbitrary expanded function that takes in the `$label_args` and
       returns a Bra.
@@ -144,7 +144,7 @@ OuterSum{KronDelta,1,Float64} with 10 operator(s):
 
 The `@rep_op` macro takes in a definition string, and an iterable of items to be used as basis labels.
 The grammar and allowable syntax of the definition string is *exactly* that of the definition string passed 
-to `@def_op`. The only difference between the two is that the `@rep_op` macro feeds in the given basis labels
+to `@defop`. The only difference between the two is that the `@rep_op` macro feeds in the given basis labels
 to produce an `OuterSum`.
 
 To generate a representation on a product basis, one can provide multiple iterables to `@rep_op`.
@@ -175,7 +175,7 @@ to represent it in a basis. For example, take the Hadamard operator-function
 `h`, constructed in the previous section as:
 
 ```julia
-julia> @def_op " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
+julia> @defop " h | n > = 1/√2 * ( | 0 > + (-1)^n *| 1 > )"
 h (generic function with 1 methods)
 ```
 

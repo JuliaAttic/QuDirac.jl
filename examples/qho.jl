@@ -50,23 +50,23 @@ default_inner(QHOInner)
 # and momentum operators on individual states.
 #
 # See the "Constructing Operators with Functions" section 
-# of the QuDirac docs for more info on the use of the `@def_op`
+# of the QuDirac docs for more info on the use of the `@defop`
 # macro. 
 #
 # Note that in practice, it is generally faster to use QuDirac's 
 # built-in `lower` and `raise` functions to apply ladder operations
 # to states. The following simply serves to demonstrate the capabilities
-# of the `@def_op` macro.
+# of the `@defop` macro.
 
-@def_op "a | n > = √n * | n - 1 >"
-@def_op "< n | a = √(n + 1) * < n + 1 |"
+@defop "a | n > = √n * | n - 1 >"
+@defop "< n | a = √(n + 1) * < n + 1 |"
 
 # `X` and `P` are Hermitian, so:
-@def_op "X | n > = √(1/2) * (a * | n > +  a' * | n >)"
-@def_op "< n | X = √(1/2) * (< n | * a +  < n | * a')"
+@defop "X | n > = √(1/2) * (a * | n > +  a' * | n >)"
+@defop "< n | X = √(1/2) * (< n | * a +  < n | * a')"
 
-@def_op "P | n > = im * √(1/2) * (a' * | n > - a * | n >)"
-@def_op "< n | P = im * √(1/2) * (< n | * a' - < n | * a)"
+@defop "P | n > = im * √(1/2) * (a' * | n > - a * | n >)"
+@defop "< n | P = im * √(1/2) * (< n | * a' - < n | * a)"
 
 ####################
 # Make Some Plots! #

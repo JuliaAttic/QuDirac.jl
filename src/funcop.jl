@@ -150,9 +150,9 @@ execute_inner(opc::DualFuncOp, kt::Ket) = inner(kt',opc')'
 execute_inner(br::Bra, opc::DualFuncOp) = inner(opc',br')'
 
 ###########
-# @def_op #
+# @defop #
 ###########
-macro def_op(str)
+macro defop(str)
     result_expr = def_op_expr(OpDefStr(str))
     return esc(result_expr)
 end 
@@ -214,4 +214,4 @@ function def_op_expr(ods::OpDefStr)
     return result
 end
 
-export represent, @def_op
+export @defop, represent
