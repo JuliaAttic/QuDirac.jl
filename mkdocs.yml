@@ -3,12 +3,13 @@ repo_url: https://github.com/JuliaQuantum/QuDirac.jl
 site_author: Jarrett Revels
 theme: readthedocs
 pages:
-- ['index.md', 'Introduction']
-- ['constructing_states.md', 'User Guide', 'Constructing Single States']
-- ['d_str.md', 'User Guide', 'd" ... " literals']
-- ['state_math.md', 'User Guide', 'Math with States']
-- ['op_math.md', 'User Guide', 'Math with Operators']
-- ['labels_and_coeffs.md', 'User Guide', 'Labels and Coefficients']
-- ['func_op_def.md', 'User Guide', 'Constructing Operators with Functions']
-- ['inner_products.md', 'User Guide', 'Working with Inner Products']
-- ['api.md', 'User Guide', 'API']
+- Introduction: index.md
+- User Guide:
+  - Constructing Single States: constructing_states.md
+  - d" ... " literals: d_str.md
+  - Math with States: state_math.md
+  - Math with Operators: op_math.md
+  - Labels and Coefficients: labels_and_coeffs.md
+  - Constructing Operators with Functions: func_op_def.md
+  - Working with Inner Products: inner_products.md
+  - API: api.md
