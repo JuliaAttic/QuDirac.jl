@@ -284,7 +284,6 @@ end
 
 inner_rettype(d::AbstractDirac) = inner_rettype(d,d)
 
-
 function inner{P}(a::AbstractDirac{P}, b::AbstractDirac{P})
     @assert matching_nfactors(a,b)
     return execute_inner(a, b)
