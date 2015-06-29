@@ -201,13 +201,13 @@ Base.haskey(opc::DualOuterSum, x::OuterLabel) = haskey(opc', x')
 Base.haskey(op::AbsOuterSum, k::StateLabel, b::StateLabel) = haskey(op, OuterLabel(k,b))
 Base.haskey(op::AbsOuterSum, k, b) = haskey(op, StateLabel(k), StateLabel(b))
 
-Base.get(op::OuterProduct, k, b, default=predict_zero(eltype(op))) = haskey(op, k, b) ? op[k,b] : default
-Base.get(op::OuterProduct, o::OuterLabel, default=predict_zero(eltype(op))) = get(op, klabel(o), blabel(o), default)
+Base.get(op::OuterProduct, k, b, default=any_zero(eltype(op))) = haskey(op, k, b) ? op[k,b] : default
+Base.get(op::OuterProduct, o::OuterLabel, default=any_zero(eltype(op))) = get(op, klabel(o), blabel(o), default)
 
-Base.get(op::OuterSum, x::OuterLabel, default=predict_zero(eltype(op))) = get(data(op), x, default)
-Base.get(opc::DualOuterSum, x::OuterLabel, default=predict_zero(eltype(opc))) = get(opc', x', default)
-Base.get(op::AbsOuterSum, k::StateLabel, b::StateLabel, default=predict_zero(eltype(op))) = get(op, OuterLabel(k,b), default)
-Base.get(op::AbsOuterSum, k, b, default=predict_zero(eltype(op))) = get(op, StateLabel(k), StateLabel(b), default)
+Base.get(op::OuterSum, x::OuterLabel, default=any_zero(eltype(op))) = get(data(op), x, default)
+Base.get(opc::DualOuterSum, x::OuterLabel, default=any_zero(eltype(opc))) = get(opc', x', default)
+Base.get(op::AbsOuterSum, k::StateLabel, b::StateLabel, default=any_zero(eltype(op))) = get(op, OuterLabel(k,b), default)
+Base.get(op::AbsOuterSum, k, b, default=any_zero(eltype(op))) = get(op, StateLabel(k), StateLabel(b), default)
 
 #############
 # Iteration #
@@ -229,9 +229,9 @@ Base.done(op::AbsOuterSum, i) = done(data(op), i)
 Base.collect(op::AbsOuterSum) = [i for i in op]
 Base.collect(op::OuterProduct) = [OuterProduct(k,b,coeff(op)) for k in op.kt, b in op.br]
 
-#########
-# inner #
-#########
+#################
+# execute_inner #
+#################
 inner_ol_kt{P}(::Type{P}, ol::OuterLabel, v, k::StateLabel, c) = SingleKet(P, klabel(ol), v*c*inner(P, blabel(ol), k))
 inner_br_ol{P}(::Type{P}, b::StateLabel, c, ol::OuterLabel, v) = ctranspose(SingleKet(P, blabel(ol), v*c*inner(P, b, klabel(ol))))
 
@@ -260,7 +260,7 @@ function execute_inner{P<:AbstractInner}(op::OuterSum{P}, kt::KetSum{P})
 
     for (o,v) in data(op)
         b = blabel(o)
-        coeff = predict_zero(eltype(result))
+        coeff = any_zero(eltype(result))
         for (k,c) in data(kt)
             coeff += c * v * inner(P, b, k) 
         end
@@ -291,7 +291,7 @@ function execute_inner{P<:AbstractInner}(br::BraSum{P}, op::OuterSum{P})
 
     for (o,v) in data(op)
         k = klabel(o)
-        coeff = predict_zero(eltype(result))
+        coeff = any_zero(eltype(result))
         for (b,c) in data(br)
             coeff += c' * v * inner(P, b, k) 
         end
@@ -346,9 +346,9 @@ function execute_inner{P<:AbstractInner}(opc::DualOuterSum{P}, op::OuterSum{P})
     return result
 end
 
-#############################################
-# inner - optimized for ProvidedInner types #
-#############################################
+#####################################################
+# execute_inner - optimized for ProvidedInner types #
+#####################################################
 
 # we generate these redundant definitions to avoid 
 # ambiguity with previous inner() definitions
@@ -398,7 +398,7 @@ end
 function inner_load!{P<:ProvidedInner}(result::SumDict, br::BraSum{P}, op::OuterSum{P})
     for (o,v) in data(op)
         k = klabel(o)
-        coeff = predict_zero(eltype(result))
+        coeff = any_zero(eltype(result))
         for (b,c) in data(br)
             coeff += c' * v * inner(P, b, k) 
         end
@@ -419,7 +419,7 @@ end
 function inner_load!{P<:ProvidedInner}(result::SumDict, op::OuterSum{P}, kt::KetSum{P})
     for (o,v) in data(op)
         b = blabel(o)
-        coeff = predict_zero(eltype(result))
+        coeff = any_zero(eltype(result))
         for (k,c) in data(kt)
             coeff += c * v * inner(P, b, k) 
         end
@@ -455,9 +455,9 @@ function inner_load!{P<:ProvidedInner}(result::SumDict, opc::DualOuterSum{P}, op
     return result
 end
 
-##############################
-# inner - simple definitions #
-##############################
+##########################################
+# execute_inner - math-based definitions #
+##########################################
 execute_inner(br::Bra, opc::DualOuterSum) = inner(opc', br')'
 execute_inner(opc::DualOuterSum, kt::Ket) = inner(kt', opc')'
 execute_inner(a::DualOuterSum, b::DualOuterSum) = inner(b', a')'
@@ -472,11 +472,11 @@ Base.(:*)(br::Bra, op::DiracOp) = inner(br, op)
 Base.(:*)(op::DiracOp, kt::Ket) = inner(op, kt)
 Base.(:*)(a::DiracOp, b::DiracOp) = inner(a, b)
 
-inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x),op)
+inner_eval(f, op::DiracOp) = mapcoeffs(x->inner_eval(f,x), op)
 
-##########
-# act_on #
-##########
+##################
+# execute_act_on #
+##################
 execute_act_on(op::DiracOp, br::Bra, i) = act_on(op', br', i)'
 
 function execute_act_on{P}(op::DiracOp, kt::SingleKet{P}, i)
@@ -515,9 +515,9 @@ function execute_act_on{P}(opc::DualOuterSum{P}, kt::KetSum{P}, i)
     return result
 end
 
-##############################################
-# act_on - optimized for ProvidedInner types #
-##############################################
+######################################################
+# execute_act_on - optimized for ProvidedInner types #
+######################################################
 
 # Generate explicit (but redudant) code to resolve method ambiguity
 for T in (:KetSum, :SingleKet), OT in (:OuterSum, :DualOuterSum)
@@ -641,7 +641,7 @@ sub!{P}(a::AbsOuterSum{P}, b::OuterOp{P}) = (@assert matching_nfactors(a, b); un
 Base.norm(op::OuterSum) = sqrt(sum(abs2, values(data(op))))
 Base.norm(opc::DualOuterSum) = norm(opc')
 function Base.norm(op::OuterProduct)
-    result = predict_zero(eltype(op))
+    result = any_zero(eltype(op))
     for v in values(data(op.kt)), c in values(data(op.br))
         result += abs2(coeff(op) * v * c')
     end
@@ -655,7 +655,7 @@ normalize!(op::DiracOp) = scale!(1/norm(op), op)
 # Trace #
 #########
 function Base.trace(op::OuterSum)
-    result = predict_zero(eltype(op))
+    result = any_zero(eltype(op))
     for (o,v) in data(op)
         if klabel(o)==blabel(o)
             result += v
@@ -667,7 +667,7 @@ end
 Base.trace(opc::DualOuterSum) = trace(opc')'
 
 function Base.trace(op::OuterProduct)
-    result = predict_zero(eltype(op))
+    result = any_zero(eltype(op))
     for (k,v) in data(op.kt), (b,c) in data(op.br)
         if b == k
             result += v * c'

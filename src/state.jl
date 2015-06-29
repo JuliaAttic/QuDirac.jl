@@ -181,9 +181,9 @@ Base.done(state::StateSum, i) = done(data(state), i)
 
 Base.collect(state::DiracState) = [i for i in state]
 
-#########
-# inner #
-#########
+#################
+# execute_inner #
+#################
 function execute_inner{P}(br::SingleBra{P}, kt::SingleKet{P})
     return coeff(br) * coeff(kt) * inner(P, label(br), label(kt))
 end
@@ -193,8 +193,9 @@ function execute_inner{P}(br::SingleBra{P}, kt::KetSum{P})
     b = label(br)
     k0,v0 = first(data(kt))
     result = c * v0 * inner(P, b, k0)
+    result -= result # this allows `result` to be type-stable over the loop
 
-    for (k,v) in drop(data(kt), 1)
+    for (k,v) in data(kt)
         result += c * v * inner(P, b, k)
     end
 
@@ -206,8 +207,9 @@ function execute_inner{P}(br::BraSum{P}, kt::SingleKet{P})
     k = label(kt)
     b0,c0 = first(data(br))
     result = c0' * v * inner(P, b0, k)
+    result -= result
 
-    for (b,c) in drop(data(br), 1)
+    for (b,c) in data(br)
         result += c' * v * inner(P, b, k)
     end
 
@@ -218,7 +220,7 @@ function execute_inner{P}(br::BraSum{P}, kt::KetSum{P})
     b0,c0 = first(data(br))
     k0,v0 = first(data(kt))
     result = c0' * v0 * inner(P, b0, k0)
-    result -= result 
+    result -= result
 
     for (b,c) in data(br), (k,v) in data(kt)
         result += c' * v * inner(P, b, k)
@@ -335,8 +337,14 @@ Base.(:+)(a::Bra, b::Bra) = ctranspose(a' + b')
 Base.(:-)(a::Bra, b::Bra) = ctranspose(a' - b')
 
 # The below methods are unsafe because:
-# 1. The first argument is potentially not mutated
+#
+# 1. Whether or not the first argument is
+#    mutated is based on its type
+#
 # 2. No nfactors check is performed
+#
+# This method exists to facilitate the
+# addition/subtraction loops used in various methods
 unsafe_add!(a, b) = a + b
 unsafe_add!{P,T,L}(a::KetSum{P,T,L}, b::Ket{P,T,L}) = (add!(data(a), data(b)); a)
 unsafe_add!{P,T,L}(a::BraSum{P,T,L}, b::Bra{P,T,L}) = (add!(data(a), data(b)); a)

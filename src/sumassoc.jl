@@ -77,8 +77,8 @@ Base.setindex!(dict::SumDict, x, y) = setindex!(dict.data, x, y)
 Base.haskey(term::SumTerm, k) = k == key(term)
 Base.haskey(dict::SumDict, k) = haskey(dict.data, k)
 
-Base.get(term::SumTerm, k, default=predict_zero(eltype(term))) = haskey(term, k) ? val(term) : default
-Base.get(dict::SumDict, k, default=predict_zero(eltype(dict))) = get(dict.data, k, default)
+Base.get(term::SumTerm, k, default=any_zero(eltype(term))) = haskey(term, k) ? val(term) : default
+Base.get(dict::SumDict, k, default=any_zero(eltype(dict))) = get(dict.data, k, default)
 
 Base.isempty(::SumTerm) = false
 Base.isempty(dict::SumDict) = isempty(dict.data)
