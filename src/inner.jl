@@ -264,6 +264,8 @@ KronDelta(b, k) = b == k ? 1 : 0
 immutable UndefInner <: ProvidedInner end
 UndefInner(b, k) = InnerExpr(InnerLabel(b, k))
 
+# by the time this is called, nfactors 
+# checking has already been performed.
 function inner{P<:AbstractInner}(::Type{P}, b::StateLabel, k::StateLabel)
     @inbounds result = P(b[1], k[1])
     @inbounds for i=2:nfactors(b)
