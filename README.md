@@ -1,4 +1,7 @@
-[![Build Status](https://travis-ci.org/JuliaQuantum/QuDirac.jl.svg?branch=master)](https://travis-ci.org/JuliaQuantum/QuDirac.jl)
+Latest Stable Release (v0.1): [![Build Status](https://travis-ci.org/JuliaQuantum/QuDirac.jl.svg?branch=release-0.1)](https://travis-ci.org/JuliaQuantum/QuDirac.jl)
+
+Upcoming Release (v0.2): [![Build Status](https://travis-ci.org/JuliaQuantum/QuDirac.jl.svg?branch=release-0.2)](https://travis-ci.org/JuliaQuantum/QuDirac.jl)
+
 # QuDirac.jl
 
 QuDirac.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
