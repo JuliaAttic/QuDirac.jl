@@ -9,8 +9,8 @@ end
 
 StateLabel(s::StateLabel) = s
 StateLabel{T}(v::Vector{T}) = StateLabel{T}(v)
-StateLabel(t::Tuple) = StateLabel(t...)
-StateLabel(i...) = StateLabel(vcat(i...))
+StateLabel(t::Tuple) = StateLabel(collect(t))
+StateLabel(i...) = StateLabel(collect(i))
 
 Base.length(s::StateLabel) = length(s.label)
 Base.eltype{T}(::Type{StateLabel{T}}) = T
