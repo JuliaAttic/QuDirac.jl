@@ -152,8 +152,8 @@ Base.setindex!(br::BraSum, x, y::StateLabel) = setindex!(br', x', y)
 
 Base.haskey(state::DiracState, x::StateLabel) = haskey(data(state), x)
 
-Base.get(kt::Ket, x::StateLabel, default=predict_zero(eltype(kt))) = get(data(kt), x, default)
-Base.get(br::Bra, x::StateLabel, default=predict_zero(eltype(br))) = haskey(br', x) ? br[x] : default
+Base.get(kt::Ket, x::StateLabel, default=any_zero(eltype(kt))) = get(data(kt), x, default)
+Base.get(br::Bra, x::StateLabel, default=any_zero(eltype(br))) = haskey(br', x) ? br[x] : default
 
 Base.isempty(state::DiracState) = isempty(data(state))
 Base.empty!(state::DiracState) = (empty!(data(state)); return s)
@@ -241,7 +241,7 @@ function execute_inner(br::BraSum{KronDelta}, kt::KetSum{KronDelta})
 end
 
 function ortho_inner(a::DiracState{KronDelta}, b::DiracState{KronDelta})
-    result = predict_zero(inner_rettype(a,b))
+    result = any_zero(inner_rettype(a,b))
     for l in keys(data(b))
         if haskey(a, l)
             result += a[l]*b[l]
