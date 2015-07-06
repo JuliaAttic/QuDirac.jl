@@ -13,18 +13,23 @@ function inrep(str)
     return "(bra("i[1][2:end]")*ket("*i[2][1:end-1]*"))"
 end
 
-function prune_dirac(str)
+function replace_dirac(str)
     return replace(replace(replace(str, inpat, inrep), brpat, brrep), ktpat, ktrep)
 end
 
-macro d_str(str)
-    return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
+function prune_dstr(str)
+    return string("(", replace_dirac(replace(strip(str), r"(\n|\r)", "; ")), ")")
 end
 
-if v"0.3-" <= VERSION < v"0.4-"
-    macro d_mstr(str)
-        return esc(parse(prune_dirac(replace(strip(str), '\n', ';'))))
-    end
+macro d_str(str)
+    result = prune_dstr(str)
+    return esc(parse(result))
+end
+
+# if v"0.3-" <= VERSION < v"0.4-":
+macro d_mstr(str)
+    result = prune_dstr(str)
+    return esc(parse(result))
 end
 
 ###################################
@@ -55,7 +60,7 @@ function OpDefStr(str::AbstractString)
         op_name, label_args = leftside_bra(left)
     end
 
-    return OpDefStr(op_name, label_args, lhs_type, prune_dirac(right))
+    return OpDefStr(op_name, label_args, lhs_type, replace_dirac(right))
 end
 
 immutable OpDefExpr
