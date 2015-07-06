@@ -29,8 +29,6 @@ module QuDirac
     #############
     # Functions #
     #############
-    # tensor() will be in 
-    # QuBase when it releases
     tensor() = error("Cannot call tensor function without arguments")
     tensor(s...) = reduce(tensor, s)
 
