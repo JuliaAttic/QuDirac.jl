@@ -9,4 +9,4 @@ testf(b,k) = k[1] - b[1]
 @definner SomeInner
 SomeInner(b, k) = b * k
 s = (e^(bra(SomeInner,1) * ket(SomeInner,2)) + (bra(SomeInner,3)*ket(SomeInner,4))im)^4
-@assert s == (e^2 + 12im)^4
+@test s == (e^2 + 12im)^4
