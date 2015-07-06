@@ -39,7 +39,7 @@ typealias StateSum{P,T,L} Union(KetSum{P,T,L}, BraSum{P,T,L})
 make_kt{P}(::Type{P}, data::SumTerm) = SingleKet(P,data)
 make_kt{P}(::Type{P}, data::SumDict) = KetSum(P,data)
 
-ket{P}(::Type{P}, lbl::StateLabel) = SingleKet(P, SumTerm(lbl, 1))
+ket{P}(::Type{P}, lbl::StateLabel) = SingleKet(P, SumTerm(lbl, true))
 ket{P}(::Type{P}, i...) = ket(P, StateLabel(i))
 
 bra(i...) = SingleBra(ket(i...))
@@ -430,7 +430,6 @@ permute(state::DiracState, perm::Vector) = maplabels(l->permute(l, perm), state)
 represent(kt::Ket, bras) = [b * kt for b in bras]
 represent(br::Bra, kets) = [br * k for k in kets]
 
-purity(s::DiracState) = 1
 purity(kt::Ket, i) = purity(kt*kt', i)
 purity(br::Bra, i) = purity(br', i)
 

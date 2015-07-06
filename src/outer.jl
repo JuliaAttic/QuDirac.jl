@@ -14,8 +14,8 @@ immutable OuterProduct{P,S,K<:Ket,B<:Bra} <: OuterOp{P}
     end
 end
 
-OuterProduct{P,S}(kt::Ket{P}, br::Bra{P}, coeff::S=1) = OuterProduct{P,S,typeof(kt),typeof(br)}(kt, br, coeff)
-OuterProduct{P}(::Type{P}, ol::OuterLabel, coeff=1) = OuterProduct(ket(P, klabel(ol)), bra(P, blabel(ol)), coeff)
+OuterProduct{P,S}(kt::Ket{P}, br::Bra{P}, coeff::S=true) = OuterProduct{P,S,typeof(kt),typeof(br)}(kt, br, coeff)
+OuterProduct{P}(::Type{P}, ol::OuterLabel, coeff=true) = OuterProduct(ket(P, klabel(ol)), bra(P, blabel(ol)), coeff)
 
 #################
 # OuterSum Type #
@@ -32,7 +32,7 @@ end
 OuterSum(op::OuterSum) = op
 OuterSum{P,T,K,B}(::Type{P}, data::SumDict{OuterLabel{K,B},T}) = OuterSum{P,T,K,B}(data)
 
-function OuterSum{P}(kt::Ket{P}, br::Bra{P}, scalar=1)
+function OuterSum{P}(kt::Ket{P}, br::Bra{P}, scalar=true)
     @assert matching_nfactors(kt, br)
 
     T = promote_type(eltype(kt), eltype(br), typeof(scalar))

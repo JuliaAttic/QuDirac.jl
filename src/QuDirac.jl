@@ -38,15 +38,8 @@ module QuDirac
 
     Base.copy(i::AbstractInner) = i # no-op by default
 
-    Base.one{D<:AbstractDirac}(::Type{D}) = 1
-    Base.one(::AbstractDirac) = 1
-    Base.zero{D<:AbstractDirac}(::Type{D}) = 0
-    Base.zero(::AbstractDirac) = 0
-
-    predict_zero{T}(::Type{T}) = zero(T)
-    predict_zero(::Type{Any}) = 0
-    predict_one{T}(::Type{T}) = one(T)
-    predict_one(::Type{Any}) = 1
+    any_zero{T}(::Type{T}) = zero(T)
+    any_zero(::Type{Any}) = false
 
     function matching_nfactors(a, b)
         return nfactors(a) == nfactors(b) || 
