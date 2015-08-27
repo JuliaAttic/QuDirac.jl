@@ -7,24 +7,24 @@
 #   tensor(a::L, b::L)
 #   conversion/promotion
 
-abstract DiracLabel{N}
+abstract DiracLabel
 
-nfactors{N}(::DiracLabel{N}) = N
+nfactors(label::DiracLabel) = nfactors(typeof(label))
 
 Base.(:*)(a::DiracLabel, b::DiracLabel) = tensor(a, b)
 
 ##############
 # StateLabel #
 ##############
-immutable StateLabel{N,T} <: DiracLabel{N}
-    items::T
+immutable StateLabel{L} <: DiracLabel
+    items::L
     hsh::Uint64
-    StateLabel(items::NTuple{N}) = new(items, hash(items))
+    StateLabel(items::Tuple) = new(items, hash(items))
 end
 
 # Constructors #
 #--------------#
-StateLabel{N}(items::NTuple{N}) = StateLabel{N,typeof(items)}(items)
+StateLabel(items::Tuple) = StateLabel{typeof(items)}(items)
 StateLabel(items...) = StateLabel(items)
 
 # Generic functions #
@@ -33,14 +33,12 @@ Base.copy(label::StateLabel) = label
 Base.hash(label::StateLabel) = label.hsh
 Base.(:(==))(a::StateLabel, b::StateLabel) = hash(a) == hash(b)
 
-nfactors{N,T}(::Type{StateLabel{N,T}}) = N
+nfactors{L}(::Type{StateLabel{L}}) = length(L.parameters)
 
 # Conversion/Promotion #
 #----------------------#
-Base.promote_type{N,A,B}(::Type{StateLabel{N,A}}, ::Type{StateLabel{N,B}}) = StateLabel{N,promote_type(A,B)}
-
-Base.convert{N,T}(::Type{StateLabel{N,T}}, label::StateLabel{N}) = StateLabel(convert(T, label.items))
-Base.convert{N,T}(::Type{StateLabel{N,T}}, label::StateLabel{N,T}) = label
+Base.convert{L}(::Type{StateLabel{L}}, label::StateLabel) = StateLabel(convert(L, label.items))
+Base.convert{L}(::Type{StateLabel{L}}, label::StateLabel{L}) = label
 
 # Container-like functions #
 #--------------------------#
@@ -51,10 +49,6 @@ Base.length(label::StateLabel) = nfactors(label)
 Base.start(label::StateLabel) = start(label.items)
 Base.next(label::StateLabel, i) = next(label.items, i)
 Base.done(label::StateLabel, i) = done(label.items, i)
-
-Base.first(label::StateLabel) = first(label.items)
-Base.last(label::StateLabel) = last(label.items)
-Base.endof(label::StateLabel) = Val{nfactors(label)}
 
 # Label Transformations #
 #-----------------------#
@@ -97,19 +91,20 @@ end
 ##############
 # OuterLabel #
 ##############
-immutable OuterLabel{N,K,B} <: DiracLabel{N}
-    k::StateLabel{N,K}
-    b::StateLabel{N,B}
+immutable OuterLabel{K,B} <: DiracLabel
+    k::StateLabel{K}
+    b::StateLabel{B}
     hsh::Uint64
-    OuterLabel(k,b) = new(k, b, hash(hash(k), hash(b)))
+    function OuterLabel(k, b)
+        @assert nfactors(k) == nfactors(b)
+        return new(k, b, hash(hash(k), hash(b)))
+    end
 end
 
 # Constructors #
 #--------------#
-OuterLabel{N,K,B}(k::StateLabel{N,K}, b::StateLabel{N,B}) = OuterLabel{N,K,B}(k, b)
-OuterLabel{N,M}(k::StateLabel{N}, b::StateLabel{M}) = error("OuterLabel must obey nfactors(bralabel(o)) == nfactors(ketlabel(o))")
+OuterLabel{K,B}(k::StateLabel{K}, b::StateLabel{B}) = OuterLabel{K,B}(k, b)
 OuterLabel(k, b) = OuterLabel(StateLabel(k), StateLabel(b))
-
 
 # Generic functions #
 #-------------------#
@@ -117,16 +112,14 @@ Base.copy(o::OuterLabel) = o
 Base.hash(o::OuterLabel) = o.hsh
 Base.(:(==))(a::OuterLabel, b::OuterLabel) = hash(a) == hash(b)
 
-nfactors{N,K,B}(::Type{OuterLabel{N,K,B}}) = N
+nfactors{K,B}(::Type{OuterLabel{K,B}}) = length(K.parameters)
 ketlabel(o::OuterLabel) = o.k
 bralabel(o::OuterLabel) = o.b
 
 # Conversion/Promotion #
 #----------------------#
-Base.promote_type{N,K1,K2,B1,B2}(::Type{OuterLabel{K1,B1}}, ::Type{OuterLabel{K2,B2}}) = OuterLabel{promote_type(K1,K2),promote_type(B1,B2)}
-
-Base.convert{N,K,B}(::Type{OuterLabel{N,K,B}}, o::OuterLabel) = OuterLabel{N,K,B}(convert(StateLabel{K}, ketlabel(o)), convert(StateLabel{B}, bralabel(o)))
-Base.convert{N,K,B}(::Type{OuterLabel{N,K,B}}, o::OuterLabel{N,K,B}) = o
+Base.convert{K,B}(::Type{OuterLabel{K,B}}, o::OuterLabel) = OuterLabel(convert(StateLabel{K}, ketlabel(o)), convert(StateLabel{B}, bralabel(o)))
+Base.convert{K,B}(::Type{OuterLabel{K,B}}, o::OuterLabel{K,B}) = o
 
 # Label Transformations #
 #-----------------------#

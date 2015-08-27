@@ -29,30 +29,20 @@ module QuDirac
     #############
     # Functions #
     #############
-    # tensor() = error("Cannot call tensor function without arguments")
-    # tensor(s...) = reduce(tensor, s)
+    tensor() = error("Cannot call tensor function without arguments")
+    tensor(s...) = reduce(tensor, s)
 
-    # innertype{P}(::AbstractDirac{P}) = P
+    innertype{P}(::AbstractDirac{P}) = P
 
-    # Base.copy(i::AbstractInner) = i # no-op by default
-
-    # any_zero{T}(::Type{T}) = zero(T)
-    # any_zero(::Type{Any}) = false
-
-    # function matching_nfactors(a, b)
-    #     return nfactors(a) == nfactors(b) || 
-    #            nfactors(a) == 0 ||
-    #            nfactors(b) == 0
-    # end
+    any_zero{T}(::Type{T}) = zero(T)
+    any_zero(::Type{Any}) = false
 
     ######################
     # Include Statements #
     ######################
     include("DiracLabels.jl")
-    # include("sumassoc.jl")
-    # include("labels.jl")
-    # include("inner.jl")
-    # include("state.jl")
+    include("InnerProducts.jl")
+    include("DiracState.jl")
     # include("outer.jl")
     # include("mapfuncs.jl")
     # include("d_str.jl")
@@ -65,19 +55,19 @@ module QuDirac
     # Julia doesn't recompile functions within other 
     # previously compiled functions, so we can't have a 
     # get_default_inner() or something like that.
-    #
+    
     # Also, global optimization is poor, so we don't want
     # to use that either for most things. Thus, we go for
     # a function that straight-up redefines the default
     # constructors for the relevant objects. This is hacky,
     # but works for now, seeing as how only a few functions
     # actually "use" the default ptype.
-    # function default_inner{P<:AbstractInner}(::Type{P})
-    #     QuDirac.ket(label::StateLabel) = ket(P, label)
-    #     QuDirac.ket(items...) = ket(P, StateLabel(items))
-    #     QuDirac.bra(items...) = SingleBra(ket(items...))
-    #     info("QuDirac's default inner product type is currently $P.")
-    # end
+    function default_inner{P<:AbstractInner}(::Type{P})
+        QuDirac.ket(label::StateLabel) = ket(P, label)
+        QuDirac.ket(items...) = ket(P, StateLabel(items))
+        QuDirac.bra(items...) = SingleBra(ket(items...))
+        info("QuDirac's default inner product type is currently $P.")
+    end
 
     # default_inner(KronDelta);
 
