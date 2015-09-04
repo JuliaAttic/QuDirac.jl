@@ -1,8 +1,14 @@
 #################
 # Ket/Bra Types #
 #################
-abstract AbstractKet{P,L,T} <: DiracState{P}
 
+# Abstract Types #
+#----------------#
+abstract AbstractKet{P,L,T} <: DiracState{P,L,T}
+abstract AbstractBra{P,L,T} <: DiracState{P,L,T}
+
+# Ket Types #
+#-----------#
 immutable BasisKet{P,L,T} <: AbstractKet{P,L,T}
     data::Term{StateLabel{L},T}
 end
@@ -15,8 +21,8 @@ end
 
 KetSum{P,L,T}(::Type{P}, data::TermSum{StateLabel{L},T}) = KetSum{P,L,T}(data)
 
-abstract AbstractBra{P,L,T} <: DiracState{P}
-
+# Bra Types #
+#-----------#
 immutable BasisBra{P,L,T} <: AbstractBra{P,L,T}
     kt::BasisKet{P,L,T}
 end
@@ -29,6 +35,8 @@ end
 
 BraSum(args...) = BraSum(KetSum(args...))
 
+# Type Aliases #
+#--------------#
 typealias BasisState{P,T,L} Union(BasisKet{P,T,L}, BasisBra{P,T,L})
 typealias StateSum{P,T,L} Union(KetSum{P,T,L}, BraSum{P,T,L})
 
