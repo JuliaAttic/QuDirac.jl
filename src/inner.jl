@@ -9,11 +9,20 @@ end
 
 @generated function inner{P<:AbstractInner}(::Type{P}, b::StateLabel, k::StateLabel)
     @assert nfactors(b) == nfactors(k)
-    return quote
-        @inbounds result = P(b[1], k[1])
-        @inbounds for i=2:nfactors(b)
-            result *= P(b[i], k[i])
+
+    ex = quote
+        @inbounds result = $P(b[Val{1}], k[Val{1}])
+    end
+
+    for i in 2:nfactors(b)
+        ex = quote 
+            $ex
+            @inbounds result *= $P(b[Val{$i}], k[Val{$i}])
         end
+    end
+
+    return quote
+        $ex
         return result
     end
 end
