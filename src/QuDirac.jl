@@ -1,7 +1,6 @@
 module QuDirac
     
     importall LabelSums
-    using Iterators
 
     if VERSION < v"0.4-"
         warn("QuDirac v0.2 only officially supports the v0.4 release of Julia. Your version of Julia is $VERSION.")
