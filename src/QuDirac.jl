@@ -1,6 +1,6 @@
 module QuDirac
     
-    using AssociativeSums
+    importall LabelSums
     using Iterators
 
     if VERSION < v"0.4-"
@@ -10,10 +10,10 @@ module QuDirac
     ####################
     # String Constants #
     ####################
-    const lang = "\u27E8"
-    const rang = "\u27E9"
-    const otimes = "\u2297"
-    const vdots ="\u205E"
+    const lang = "⟨"
+    const rang = "⟩"
+    const otimes = "⊗"
+    const vdots ="⋮"
 
     ##################
     # Abstract Types #
@@ -41,13 +41,8 @@ module QuDirac
     # Include Statements #
     ######################
     include("DiracLabels.jl")
-    include("InnerProducts.jl")
+    include("inner.jl")
     include("DiracState.jl")
-    # include("outer.jl")
-    # include("mapfuncs.jl")
-    # include("d_str.jl")
-    # include("funcop.jl")
-    # include("printfuncs.jl")
 
     #################
     # default_inner #
@@ -69,21 +64,10 @@ module QuDirac
         info("QuDirac's default inner product type is currently $P.")
     end
 
-    # default_inner(KronDelta);
+    default_inner(KronDelta);
 
-    # export AbstractInner,
-    #     default_inner,
-    #     AbstractDirac,
-    #     DiracState,
-    #     DiracOp,
-    #     innertype,
-    #     # All functions that conflict 
-    #     # with QuBase should be exported 
-    #     # below:
-    #     tensor,
-    #     commute,
-    #     anticommute,
-    #     normalize,
-    #     normalize!
+    export default_inner,
+           innertype,
+           tensor
 
 end # module QuDirac
