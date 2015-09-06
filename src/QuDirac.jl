@@ -19,12 +19,7 @@ module QuDirac
     # Abstract Types #
     ##################
     abstract AbstractInner
-
     abstract AbstractDirac{P<:AbstractInner}
-    abstract DiracOp{P} <: AbstractDirac{P}
-    abstract DiracState{P} <: AbstractDirac{P}
-
-    abstract DiracScalar <: Number
 
     #############
     # Functions #
@@ -60,7 +55,7 @@ module QuDirac
     function default_inner{P<:AbstractInner}(::Type{P})
         QuDirac.ket(label::StateLabel) = ket(P, label)
         QuDirac.ket(items...) = ket(P, StateLabel(items))
-        QuDirac.bra(items...) = SingleBra(ket(items...))
+        QuDirac.bra(items...) = BasisBra(ket(items...))
         info("QuDirac's default inner product type is currently $P.")
     end
 
@@ -68,6 +63,15 @@ module QuDirac
 
     export default_inner,
            innertype,
-           tensor
+           labeltype,
+           coefftype,
+           label,
+           coeff,
+           labels,
+           coeffs,
+           haslabel,
+           tensor,
+           ket,
+           bra
 
 end # module QuDirac

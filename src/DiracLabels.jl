@@ -132,7 +132,7 @@ function ptranspose{i}(o::OuterLabel, V::Type{Val{i}})
 end
 
 permute{T<:Tuple}(o::OuterLabel, P::Type{T}) = OuterLabel(permute(ketlabel(o), P), permute(bralabel(o), P))
-except{i}(o::OuterLabel, i) = OuterLabel(except(ketlabel(o), i), except(bralabel(o), i))
+except{i}(o::OuterLabel, V::Type{Val{i}}) = OuterLabel(except(ketlabel(o), V), except(bralabel(o), V))
 switch{i,j}(o::OuterLabel, A::Type{Val{i}}, B::Type{Val{j}}) = OuterLabel(switch(ketlabel(o), A, B), switch(bralabel(o), A, B))
 
 export StateLabel,

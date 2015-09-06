@@ -4,6 +4,7 @@
 
 # Abstract Types #
 #----------------#
+abstract DiracState{P,L,T} <: AbstractDirac{P}
 abstract AbstractKet{P,L,T} <: DiracState{P,L,T}
 abstract AbstractBra{P,L,T} <: DiracState{P,L,T}
 
@@ -43,7 +44,7 @@ typealias StateSum{P,T,L} Union(KetSum{P,T,L}, BraSum{P,T,L})
 ################
 # Constructors #
 ################
-ket{P}(::Type{P}, x::StateLabel) = BasisKet(P, LabelTerm(x))
+ket{P}(::Type{P}, x::StateLabel) = BasisKet(P, term(x))
 ket{P}(::Type{P}, i...) = ket(P, StateLabel(i))
 
 bra(i...) = BasisBra(ket(i...))
@@ -51,10 +52,10 @@ bra(i...) = BasisBra(ket(i...))
 ##############
 # ctranspose #
 ##############
-ctranspose(br::BasisBra) = br.kt
-ctranspose(brs::BraSum) = br.kts
-ctranspose(kt::BasisKet) = BasisBra(kt)
-ctranspose(kts::KetSum) = BraSum(kts)
+Base.ctranspose(br::BasisBra) = br.kt
+Base.ctranspose(brs::BraSum) = br.kts
+Base.ctranspose(kt::BasisKet) = BasisBra(kt)
+Base.ctranspose(kts::KetSum) = BraSum(kts)
 
 ######################
 # Property Functions #
@@ -89,7 +90,7 @@ end
 ########################
 for S in (:BasisKet, :KetSum, :BasisBra, :BraSum)
     @eval begin
-        if S == :KetSum || S == :BraSum
+        if $S == :KetSum || $S == :BraSum
             Base.convert{P,L,T}(::Type{($S){P,L,T}}, s::($S)) = ($S)(P, convert(LabelSum{StateLabel{L},T}, data(s)))
         else
             Base.convert{P,L,T}(::Type{($S){P,L,T}}, s::($S)) = ($S)(P, convert(LabelTerm{StateLabel{L},T}, data(s)))
@@ -108,8 +109,8 @@ Base.promote_rule{P,L,A,B}(::Type{BraSum{P,L,A}}, ::Type{BraSum{P,L,B}}) = BraSu
 ############################
 # Hashing/Equality/Copying #
 ############################
-const kt_hash = hash(Ket)
-const br_hash = hash(Bra)
+const kt_hash = hash(AbstractKet)
+const br_hash = hash(AbstractBra)
 
 Base.hash{P,L}(kt::AbstractKet{P,L}) = hash(L, hash(P, hash(data(kt), kt_hash)))
 Base.hash{P,L}(br::AbstractBra{P,L}) = hash(L, hash(P, hash(data(br), br_hash)))
@@ -174,7 +175,7 @@ Base.collect(s::StateSum) = [i for i in s]
 #########
 # inner #
 #########
-Base.(:*)(br::Bra, kt::Ket) = inner(br, kt)
+Base.(:*)(br::AbstractBra, kt::AbstractKet) = inner(br, kt)
 
 # Generalized inner #
 #-------------------#
@@ -236,5 +237,3 @@ function ortho_inner(long_state::DiracState{KronDelta}, short_state::DiracState{
     end
     return result
 end
-
-
