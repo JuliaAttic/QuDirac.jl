@@ -15,6 +15,7 @@ immutable BasisKet{P,L,T} <: AbstractKet{P,L,T}
 end
 
 BasisKet{P,L,T}(::Type{P}, data::LabelTerm{StateLabel{L},T}) = BasisKet{P,L,T}(data)
+BasisKet{P}(::Type{P}, label::StateLabel, coeff) = BasisKet(P, LabelTerm(label, coeff))
 
 type KetSum{P,L,T} <: AbstractKet{P,L,T}
     data::LabelSum{StateLabel{L},T}
@@ -44,6 +45,8 @@ typealias StateSum{P,T,L} Union(KetSum{P,T,L}, BraSum{P,T,L})
 ################
 # Constructors #
 ################
+ket{P}(::Type{P}, data::LabelTerm) = BasisKet(P, data)
+ket{P}(::Type{P}, data::LabelSum) = KetSum(P, data)
 ket{P}(::Type{P}, x::StateLabel) = BasisKet(P, term(x))
 ket{P}(::Type{P}, i...) = ket(P, StateLabel(i))
 
@@ -79,8 +82,9 @@ nfactors(s::DiracState) = nfactors(typeof(s))
 for S in (:AbstractKet, :BasisKet, :KetSum, 
           :AbstractBra, :BasisBra, :BraSum)
     @eval begin
-        coefftype{P,L,T}(::Type{($S){P,L,T}}) = T
+        innertype{P,L,T}(::Type{($S){P,L,T}}) = P
         labeltype{P,L,T}(::Type{($S){P,L,T}}) = L
+        coefftype{P,L,T}(::Type{($S){P,L,T}}) = T
         nfactors{P,L,T}(::Type{($S){P,L,T}}) = nfactors(L)
     end
 end
@@ -119,11 +123,9 @@ Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
 Base.(:(==)){P,L}(a::AbstractKet{P,L}, b::AbstractKet{P,L}) = data(a) == data(b)
 Base.(:(==)){P,L}(a::AbstractBra{P,L}, b::AbstractBra{P,L}) = data(a) == data(b)
 
-for S in (:BasisKet, :KetSum, :BasisBra, :BraSum)
-    @eval begin
-        Base.copy{P}(s::($S){P}) = ($S)(P, copy(data(s)))
-    end
-end
+Base.copy(s::BasisState) = s
+Base.copy{P}(kts::KetSum{P}) = KetSum(P, data(kts))
+Base.copy{P}(brs::BraSum{P}) = BraSum(P, data(brs))
 
 #######################
 # Dict-like Functions #
@@ -153,9 +155,6 @@ haslabel(s::StateSum, x::StateLabel) = haslabel(data(s), x)
 #############
 # Iteration #
 #############
-labels(s::StateSum) = labels(data(ts))
-coeffs(s::StateSum) = coeffs(data(ts))
-
 Base.start(s::StateSum) = start(data(s))
 
 function Base.next{P,L,T}(kt::KetSum{P,L,T}, i)
@@ -216,8 +215,8 @@ function inner{P}(brs::BraSum{P}, kts::KetSum{P})
     return result 
 end
 
-# Optimizations for KronDelta #
-#-----------------------------#
+# Optimized inner for KronDelta #
+#-------------------------------#
 inner(brs::BraSum{KronDelta}, kt::BasisKet{KronDelta}) = get(brs, label(kt)) * coeff(kt)
 inner(br::BasisBra{KronDelta}, kts::KetSum{KronDelta}) = coeff(br) * get(kts, label(br))
 
@@ -237,3 +236,172 @@ function ortho_inner(long_state::DiracState{KronDelta}, short_state::DiracState{
     end
     return result
 end
+
+#########
+# acton #
+#########
+
+# Generalized acton #
+#-------------------#
+acton{i}(kt::AbstractKet, br::AbstractBra, ind::Type{Val{i}}) = acton(kt', br', ind)'
+
+function acton{P,i}(br::BasisBra{P}, kt::BasisKet{P}, ind::Type{Val{i}})
+    return inner(br, ket(P, label(kt)[ind])) * BasisKet(P, except(label(kt), ind), coeff(kt))
+end
+
+function acton{P,i}(br::BasisBra{P}, kts::KetSum{P},  ind::Type{Val{i}})
+    result = acton(br, first(kts), ind)
+    result -= result
+
+    for kt in kts
+        add!(result, acton(br, kt, ind))
+    end
+
+    return result 
+end
+
+function acton{P,i}(brs::BraSum{P}, kt::BasisKet{P},  ind::Type{Val{i}})
+    result = acton(first(brs), kt, ind)
+    result -= result
+
+    for br in brs
+        add!(result, acton(br, kt, ind))
+    end
+
+    return result 
+end
+
+function acton{P,i}(brs::BraSum{P}, kts::KetSum{P},  ind::Type{Val{i}})
+    result = acton(first(brs), first(kts), ind)
+    result -= result
+
+    for br in brs, kt in kts
+        add!(result, acton(br, kt, ind))
+    end
+
+    return result 
+end
+
+##############
+# Arithmetic #
+##############
+
+# Multiplication #
+#----------------#
+Base.scale!(kts::KetSum, c::Number) = (scale!(data(kts), c); return kts)
+Base.scale!(c::Number, kts::KetSum) = scale!(kts, c)
+Base.scale!(brs::BraSum, c::Number) = (scale!(brs', c'); return brs)
+Base.scale!(c::Number, brs::BraSum) = scale!(brs, c)
+
+Base.scale(kt::AbstractKet, c::Number) = ket(innertype(kt), scale(data(kt), c))
+Base.scale(c::Number, kt::AbstractKet) = scale(kt, c)
+Base.scale(br::AbstractBra, c::Number) = scale(br', c')'
+Base.scale(c::Number, br::AbstractBra) = scale(br, c)
+
+Base.(:*)(c::Number, state::DiracState) = scale(c, state)
+Base.(:*)(state::DiracState, c::Number) = scale(state, c)
+Base.(:/)(state::DiracState, c::Number) = scale(state, inv(c))
+
+tensor{P}(a::AbstractKet{P}, b::AbstractKet{P}) = ket(P, data(a)*data(b))
+tensor(a::AbstractBra, b::AbstractBra) = tensor(a', b')'
+
+Base.(:*)(a::AbstractKet, b::AbstractKet) = tensor(a, b)
+Base.(:*)(a::AbstractBra, b::AbstractBra) = tensor(a, b)
+
+# Addition/Subtraction #
+#----------------------#
+Base.(:-){P}(kt::AbstractKet{P}) = ket(P, -data(kt))
+Base.(:-)(br::AbstractBra) = ctranspose(-(br'))
+
+Base.(:+){P,L}(a::AbstractKet{P,L}, b::AbstractKet{P,L}) = ket(P, data(a) + data(b))
+Base.(:-){P,L}(a::AbstractKet{P,L}, b::AbstractKet{P,L}) = ket(P, data(a) - data(b))
+
+Base.(:+)(a::AbstractBra, b::AbstractBra) = ctranspose(a' + b')
+Base.(:-)(a::AbstractBra, b::AbstractBra) = ctranspose(a' - b')
+
+add!{P,L}(a::KetSum{P,L}, b::AbstractKet{P,L}) = (add!(data(a), data(b)); a)
+add!{P,L}(a::BraSum{P,L}, b::AbstractBra{P,L}) = (add!(data(a), data(b)); a)
+
+sub!{P,L}(a::KetSum{P,L}, b::AbstractKet{P,L}) = (sub!(data(a), data(b)); a)
+sub!{P,L}(a::BraSum{P,L}, b::AbstractBra{P,L}) = (sub!(data(a), data(b)); a)
+
+#################
+# Normalization #
+#################
+norm_term(kt::BasisKet) = abs2(coeff(kt))
+
+Base.norm(kt::BasisKet) = abs(coeff(kt))
+Base.norm(kts::KetSum) = sqrt(sum(norm_term, kts))
+Base.norm(br::AbstractBra) = norm(br')
+
+normalize(state::DiracState) = inv(norm(state))*state
+normalize!(state::DiracState) = scale!(inv(norm(state)), state)
+
+####################
+# Raising/Lowering #
+####################
+lower(state::DiracState) = lower(state, Val{1})
+raise(state::DiracState) = raise(state, Val{1})
+
+lower{i}(br::AbstractBra, ind::Type{Val{i}}) = lower(br', ind)'
+raise{i}(br::AbstractBra, ind::Type{Val{i}}) = raise(br', ind)'
+
+function lower{P,i}(kt::BasisKet{P}, ind::Type{Val{i}})
+    ind_lbl = label(kt)[ind]
+    lbl = setindex(label(kt),  ind_lbl - 1, ind)
+    c = sqrt(ind_lbl)*coeff(kt) 
+    return BasisKet(P, lbl, c)
+end
+
+function raise{P,i}(kt::BasisKet{P}, ind::Type{Val{i}})
+    ind_lbl = label(kt)[ind] + 1
+    lbl = setindex(label(kt),  ind_lbl, ind)
+    c = sqrt(ind_lbl)*coeff(kt) 
+    return BasisKet(P, lbl, c)
+end
+
+for f in (:raise, :lower)
+    @eval function ($f){i}(kts::KetSum, ind::Type{Val{i}})
+        result = ($f)(first(kts), ind)
+        result -= result
+
+        for kt in kts
+            add!(result, ($f)(kt, ind))
+        end
+
+        return result
+    end
+end
+
+########################
+# Misc. Math Functions #
+########################
+label_sums_to_x(state::BasisState, x) = sum(label(state)) == x
+
+xsubspace(state::StateSum, x) = filter(s->label_sums_to_x(s, x), state)
+xsubspace!(state::StateSum, x) = filter!(s->label_sums_to_x(s, x), state)
+
+function switch{i,j}(state::StateSum, indi::Type{Val{i}}, indj::Type{Val{j}})
+    P = innertype(state)
+    return map(s->ket(P, switch(label(s), indi, indj), coeff(s)), state)
+end
+
+function switch{i,j}(state::BasisState, indi::Type{Val{i}}, indj::Type{Val{j}})
+    t = LabelTerm(switch(label(state), indi, indj), coeff(state))
+    return ket(innertype(state), t)
+end
+
+function permute{T<:Tuple}(state::StateSum, perm::Type{T})
+    return map(s->permute(label(s), perm), state)
+end
+
+function permute{T<:Tuple}(state::BasisState, perm::Type{T})
+    t = LabelTerm(permute(label(state), perm), coeff(state))
+    return ket(innertype(state), t)
+end
+
+represent(kt::AbstractKet, bras) = [b * kt for b in bras]
+represent(br::AbstractBra, kets) = [br * k for k in kets]
+
+purity(kt::AbstractKet, i) = purity(kt*kt', i)
+purity(br::AbstractBra, i) = purity(br', i)
