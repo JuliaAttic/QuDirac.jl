@@ -33,7 +33,8 @@ Base.copy(label::StateLabel) = label
 Base.hash(label::StateLabel) = label.hsh
 Base.(:(==))(a::StateLabel, b::StateLabel) = hash(a) == hash(b)
 
-nfactors{L}(::Type{StateLabel{L}}) = length(L.parameters)
+# generated so that nfactors is a compile-time constant based on L
+@generated nfactors{L}(::Type{StateLabel{L}}) = length(L.parameters)
 
 # Conversion/Promotion #
 #----------------------#
@@ -96,7 +97,7 @@ immutable OuterLabel{K,B} <: DiracLabel
     b::StateLabel{B}
     hsh::Uint64
     function OuterLabel(k, b)
-        @assert nfactors(k) == nfactors(b)
+        @assert nfactors(K) == nfactors(B)
         return new(k, b, hash(hash(k), hash(b)))
     end
 end
