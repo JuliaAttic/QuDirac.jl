@@ -38,7 +38,9 @@ module QuDirac
     ######################
     include("DiracLabels.jl")
     include("inner.jl")
-    include("DiracState.jl")
+    include("LabelState.jl")
+    include("OuterProduct.jl")
+    include("functors.jl")
 
     #################
     # default_inner #
