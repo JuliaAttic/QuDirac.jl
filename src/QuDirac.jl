@@ -64,6 +64,7 @@ module QuDirac
            innertype,
            labeltype,
            coefftype,
+           nfactors,
            label,
            coeff,
            labels,
@@ -71,6 +72,13 @@ module QuDirac
            haslabel,
            tensor,
            ket,
-           bra
+           bra,
+           act,
+           raise,
+           lower,
+           switch,
+           permute,
+           normalize,
+           normalize!
 
 end # module QuDirac
