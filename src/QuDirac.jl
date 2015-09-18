@@ -19,6 +19,8 @@ module QuDirac
     ##################
     abstract AbstractInner
     abstract AbstractDirac{P<:AbstractInner}
+    abstract DiracState{P} <: AbstractDirac{P}
+    abstract DiracOperator{P} <: AbstractDirac{P}
 
     #############
     # Functions #

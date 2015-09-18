@@ -4,9 +4,9 @@
 
 # Abstract Types #
 #----------------#
-abstract DiracState{P,L,T} <: AbstractDirac{P}
-abstract AbstractKet{P,L,T} <: DiracState{P,L,T}
-abstract AbstractBra{P,L,T} <: DiracState{P,L,T}
+abstract LabelState{P,L,T} <: DiracState{P}
+abstract AbstractKet{P,L,T} <: LabelState{P,L,T}
+abstract AbstractBra{P,L,T} <: LabelState{P,L,T}
 
 # Ket Types #
 #-----------#
@@ -75,9 +75,9 @@ Base.eltype(s::StateSum) = eltype(typeof(s))
 Base.eltype{P,L,T}(::Type{KetSum{P,L,T}}) = BasisKet{P,L,T}
 Base.eltype{P,L,T}(::Type{BraSum{P,L,T}}) = BasisBra{P,L,T}
 
-coefftype(s::DiracState) = coefftype(typeof(s))
-labeltype(s::DiracState) = labeltype(typeof(s))
-nfactors(s::DiracState) = nfactors(typeof(s))
+coefftype(s::LabelState) = coefftype(typeof(s))
+labeltype(s::LabelState) = labeltype(typeof(s))
+nfactors(s::LabelState) = nfactors(typeof(s))
 
 for S in (:AbstractKet, :BasisKet, :KetSum, 
           :AbstractBra, :BasisBra, :BraSum)
@@ -118,7 +118,7 @@ const br_hash = hash(AbstractBra)
 
 Base.hash{P,L}(kt::AbstractKet{P,L}) = hash(L, hash(P, hash(data(kt), kt_hash)))
 Base.hash{P,L}(br::AbstractBra{P,L}) = hash(L, hash(P, hash(data(br), br_hash)))
-Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
+Base.hash(s::LabelState, h::Uint64) = hash(hash(s), h)
 
 Base.(:(==)){P,L}(a::AbstractKet{P,L}, b::AbstractKet{P,L}) = data(a) == data(b)
 Base.(:(==)){P,L}(a::AbstractBra{P,L}, b::AbstractBra{P,L}) = data(a) == data(b)
@@ -150,7 +150,7 @@ Base.empty!(s::StateSum) = (empty!(data(s)); return s)
 Base.delete!(s::StateSum, x::StateLabel) = (delete!(data(s), x); return s)
 Base.delete!(s::StateSum, x::Tuple) = delete!(s, StateLabel(x))
 
-LabelSums.haslabel(s::StateSum, x::StateLabel) = haslabel(data(s), x)
+haslabel(s::StateSum, x::StateLabel) = haslabel(data(s), x)
 
 #############
 # Iteration #
@@ -228,7 +228,7 @@ function inner(brs::BraSum{KronDelta}, kts::KetSum{KronDelta})
     end
 end
 
-function ortho_inner(long_state::DiracState{KronDelta}, short_state::DiracState{KronDelta})
+function ortho_inner(long_state::LabelState{KronDelta}, short_state::LabelState{KronDelta})
     T = promote_type(coefftype(long_state), coefftype(short_state), rettype(KronDelta))
     result = any_zero(T)
     for basis_state in short_state
@@ -295,9 +295,9 @@ Base.scale(c::Number, kt::AbstractKet) = scale(kt, c)
 Base.scale(br::AbstractBra, c::Number) = scale(br', c')'
 Base.scale(c::Number, br::AbstractBra) = scale(br, c)
 
-Base.(:*)(c::Number, state::DiracState) = scale(c, state)
-Base.(:*)(state::DiracState, c::Number) = scale(state, c)
-Base.(:/)(state::DiracState, c::Number) = scale(state, inv(c))
+Base.(:*)(c::Number, state::LabelState) = scale(c, state)
+Base.(:*)(state::LabelState, c::Number) = scale(state, c)
+Base.(:/)(state::LabelState, c::Number) = scale(state, inv(c))
 
 tensor{P}(a::AbstractKet{P}, b::AbstractKet{P}) = ket(P, data(a)*data(b))
 tensor(a::AbstractBra, b::AbstractBra) = tensor(a', b')'
@@ -331,14 +331,14 @@ Base.norm(kt::BasisKet) = abs(coeff(kt))
 Base.norm(kts::KetSum) = sqrt(sum(norm_term, kts))
 Base.norm(br::AbstractBra) = norm(br')
 
-normalize(state::DiracState) = inv(norm(state))*state
-normalize!(state::DiracState) = scale!(inv(norm(state)), state)
+normalize(state::LabelState) = inv(norm(state))*state
+normalize!(state::LabelState) = scale!(inv(norm(state)), state)
 
 ####################
 # Raising/Lowering #
 ####################
-lower(state::DiracState) = lower(state, Val{1})
-raise(state::DiracState) = raise(state, Val{1})
+lower(state::LabelState) = lower(state, Val{1})
+raise(state::LabelState) = raise(state, Val{1})
 
 lower{i}(br::AbstractBra, idx::Type{Val{i}}) = lower(br', idx)'
 raise{i}(br::AbstractBra, idx::Type{Val{i}}) = raise(br', idx)'
