@@ -38,6 +38,7 @@ module QuDirac
     include("inner.jl")
     include("DiracState.jl")
     include("DiracOuterProduct.jl")
+    include("DiracOperator.jl")
     include("functors.jl")
 
     #################
