@@ -18,7 +18,7 @@ Base.(:*)(a::DiracLabel, b::DiracLabel) = tensor(a, b)
 ##############
 immutable StateLabel{L} <: DiracLabel
     items::L
-    hsh::Uint64
+    hsh::UInt64
     StateLabel(items::Tuple) = new(items, hash(items))
 end
 
@@ -53,17 +53,25 @@ Base.done(label::StateLabel, i) = done(label.items, i)
 
 # Label Transformations #
 #-----------------------#
+@generated function Base.split{i}(label::StateLabel, ::Type{Val{i}})
+    items1 = Any[:(label.items[$x]) for x in 1:i]
+    items2 = Any[:(label.items[$x]) for x in (i+1):nfactors(label)]
+    ex1 = Expr(:tuple, items1...)
+    ex2 = Expr(:tuple, items2...)
+    return :(StateLabel($ex1), StateLabel($ex2))
+end
+
 @generated function except{i}(label::StateLabel, ::Type{Val{i}})
     items = Any[:(label.items[$x]) for x in 1:nfactors(label)]
     deleteat!(items, i)
-    ex = Expr(:tuple, items...)    
+    ex = Expr(:tuple, items...)
     return :(StateLabel($ex))
 end
 
 @generated function setindex{i}(label::StateLabel, y, ::Type{Val{i}})
     items = Any[:(label.items[$x]) for x in 1:nfactors(label)]
     items[i] = :y
-    ex = Expr(:tuple, items...)    
+    ex = Expr(:tuple, items...)
     return :(StateLabel($ex))
 end
 
@@ -72,13 +80,13 @@ end
     tmp = items[i]
     items[i] = items[j]
     items[j] = tmp
-    ex = Expr(:tuple, items...)    
+    ex = Expr(:tuple, items...)
     return :(StateLabel($ex))
 end
 
 @generated function permute{T<:Tuple}(label::StateLabel, ::Type{T})
     items = Any[:(label.items[$x]) for x in T.parameters]
-    ex = Expr(:tuple, items...)    
+    ex = Expr(:tuple, items...)
     return :(StateLabel($ex))
 end
 
@@ -95,7 +103,7 @@ end
 immutable OuterLabel{K,B} <: DiracLabel
     k::StateLabel{K}
     b::StateLabel{B}
-    hsh::Uint64
+    hsh::UInt64
     function OuterLabel(k, b)
         @assert nfactors(K) == nfactors(B)
         return new(k, b, hash(hash(k), hash(b)))

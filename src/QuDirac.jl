@@ -1,11 +1,11 @@
 module QuDirac
-    
+
     importall LabelSums
 
     if VERSION < v"0.4-"
         warn("QuDirac v0.2 only officially supports the v0.4 release of Julia. Your version of Julia is $VERSION.")
     end
-    
+
     ####################
     # String Constants #
     ####################
@@ -19,8 +19,6 @@ module QuDirac
     ##################
     abstract AbstractInner
     abstract AbstractDirac{P<:AbstractInner}
-    abstract DiracState{P} <: AbstractDirac{P}
-    abstract DiracOperator{P} <: AbstractDirac{P}
 
     #############
     # Functions #
@@ -38,17 +36,17 @@ module QuDirac
     ######################
     include("DiracLabels.jl")
     include("inner.jl")
-    include("LabelState.jl")
-    include("OuterProduct.jl")
+    include("DiracState.jl")
+    include("DiracOuterProduct.jl")
     include("functors.jl")
 
     #################
     # default_inner #
     #################
-    # Julia doesn't recompile functions within other 
-    # previously compiled functions, so we can't have a 
+    # Julia doesn't recompile functions within other
+    # previously compiled functions, so we can't have a
     # get_default_inner() or something like that.
-    
+
     # Also, global optimization is poor, so we don't want
     # to use that either for most things. Thus, we go for
     # a function that straight-up redefines the default
