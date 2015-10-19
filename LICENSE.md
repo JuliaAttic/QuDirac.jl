@@ -1,4 +1,4 @@
-The QuDirac.jl package is licensed under the MIT "Expat" License:
+The DiracNotation.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2014: Jarrett Revels.
 >

@@ -1,4 +1,4 @@
-using QuDirac
+using DiracNotation
 using Base.Test
 
 filt3s(k,c) = ! (in(3, klabel(k)) || in(3, blabel(k)))
@@ -6,7 +6,7 @@ filt3s(k,c) = ! (in(3, klabel(k)) || in(3, blabel(k)))
 default_inner(UndefInner)
 
 include("generaltests.jl")
-include("abstractinnertests.jl")
+include("InnerProducttests.jl")
 
 ###########################################################
 

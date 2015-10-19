@@ -1,9 +1,9 @@
-warn("This example has not yet been updated to work with QuDirac 0.2 and will probably not work in that version.")
+warn("This example has not yet been updated to work with DiracNotation 0.2 and will probably not work in that version.")
 
-using QuDirac
+using DiracNotation
 
 # This file is an example of a discrete-time quantum random walk 
-# implemented using QuDirac. 
+# implemented using DiracNotation. 
 
 # First, we define the Hadamard operator `H`, defined as
 #

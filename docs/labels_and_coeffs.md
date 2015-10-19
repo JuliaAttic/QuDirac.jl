@@ -1,4 +1,4 @@
-#  Accessing/Assigning Coefficients of QuDirac Objects
+#  Accessing/Assigning Coefficients of DiracNotation Objects
 ---
 
 **States**
@@ -139,7 +139,7 @@ julia> ops[(8,1,10),(2,1,2)]
 #  Using the `get` function
 ---
 
-If a label is not explictly present in a QuDirac object, then calling `getindex` with that label results in an error: 
+If a label is not explictly present in a DiracNotation object, then calling `getindex` with that label results in an error: 
 
 ```julia
 julia> k = sum(i->d" i * | i > ", 1:3)^3
@@ -156,7 +156,7 @@ julia> k['a', 'b', 'c']
 ERROR: key not found: StateLabel{3}('a','b','c')
 ```
 
-QuDirac overloads Julia's `get` method in order to provide more flexibility in the above scenario. By default, `get` is defined to return a `0` instead of an error if the label it's given isn't found:
+DiracNotation overloads Julia's `get` method in order to provide more flexibility in the above scenario. By default, `get` is defined to return a `0` instead of an error if the label it's given isn't found:
 
 ```julia
 julia> get(k, ('a','b','c'))
@@ -176,10 +176,10 @@ julia> get(k, ('a', 'b', 'c'), "Not here")
 "Not here"
 ```
 ---
-# QuDirac Objects as Data Structures
+# DiracNotation Objects as Data Structures
 ---
 
-Under the hood, QuDirac's `Ket` and `OuterSum` types use `Dict`s to map labels to coefficients.
+Under the hood, DiracNotation's `Ket` and `OuterSum` types use `Dict`s to map labels to coefficients.
 
 There are few important things to keep in mind when working with these structures:
 
@@ -187,7 +187,7 @@ There are few important things to keep in mind when working with these structure
     - `StateLabel`s are wrappers around tuples, and are indexable, iterable, and mappable. 
 - All operator labels are of type `OuterLabel`, a composite type that holds two `StateLabel`s (one for the Ket, and one for the Bra). 
     - The function `klabel(opl::OuterLabel)` returns `opl`'s Ket label, and the function `blabel(opl::OuterLabel)` returns `opl`'s Bra label.
-- Because the label --> coefficient map is stored as a `Dict`, the components of a QuDirac object are unordered.
+- Because the label --> coefficient map is stored as a `Dict`, the components of a DiracNotation object are unordered.
 
 
 ---
@@ -230,5 +230,5 @@ OuterLabel{1}(| 2 ⟩,⟨ 3 |), 0.4285714285714286 + 0.0im
 #  Mapping & Filtering Functions
 ---
 
-QuDirac supports filtering out states' components via arbitrary predicate functions, as well as mapping functions
-over an object's coefficients and labels. For more, see the [Mapping Functions](api/#mapping-functions) and [Filtering Functions](api/#filtering-functions) sections of QuDirac's [API](api.md).
+DiracNotation supports filtering out states' components via arbitrary predicate functions, as well as mapping functions
+over an object's coefficients and labels. For more, see the [Mapping Functions](api/#mapping-functions) and [Filtering Functions](api/#filtering-functions) sections of DiracNotation's [API](api.md).

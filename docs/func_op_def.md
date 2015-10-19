@@ -11,7 +11,7 @@ Action of Ô on Bra:
 ⟨ u | Ô  = ∑ᵥ cᵤᵥ ⟨ v |
 ```
 
-QuDirac allows us to define normal Julia functions that act like `Ô` using 
+DiracNotation allows us to define normal Julia functions that act like `Ô` using 
 the `@defop` macro:
 
 ```julia

@@ -1,10 +1,10 @@
-# QuDirac's Type Hiearchy
+# DiracNotation's Type Hiearchy
 ---
 
-This API refers to various types to describe the domain of the included functions. For clarity's sake, here is the type hiearchy for QuDirac objects:
+This API refers to various types to describe the domain of the included functions. For clarity's sake, here is the type hiearchy for DiracNotation objects:
 
 ```julia
-abstract AbstractDirac{P<:AbstractInner,N}
+abstract AbstractDirac{P<:InnerProduct,N}
 
 abstract DiracOp{P,N} <: AbstractDirac{P,N}
 abstract DiracState{P,N} <: AbstractDirac{P,N}
@@ -25,7 +25,7 @@ type DualOuterSum{P,N,T} <: AbsOuterSum{P,N,T}
 
 **Ket(dict::Dict{StateLabel{N}, T}),**
 
-**Ket(ptype::AbstractInner, dict::Dict{StateLabel{N}, T})**
+**Ket(ptype::InnerProduct, dict::Dict{StateLabel{N}, T})**
 
 Construct a Ket from the provided `dict`.
 
@@ -44,7 +44,7 @@ See the [Constructing Single Bras](constructing_states/#constructing-single-bras
 ---
 **OuterSum(dict::Dict{OuterLabel{N}, T}),**
 
-**OuterSum(ptype::AbstractInner, dict::Dict{OuterLabel{N}, T})**
+**OuterSum(ptype::InnerProduct, dict::Dict{OuterLabel{N}, T})**
 
 Construct an operator from the provided `dict`.
 
@@ -272,18 +272,18 @@ See the [Custom Inner Product Types](inner_products/#custom-inner-product-types)
 
 **inner_eval(f::Function, i::InnerExpr),**
 
-**inner_eval{P<:AbstractInner}(::Type{P}, obj::AbstractDirac),**
+**inner_eval{P<:InnerProduct}(::Type{P}, obj::AbstractDirac),**
 
-**inner_eval{P<:AbstractInner}(::Type{P}, i::InnerExpr)**
+**inner_eval{P<:InnerProduct}(::Type{P}, i::InnerExpr)**
 
 Evaluate unresolved `InnerExpr`s using the provided function, whose signature should be `f(bralabel::StateLabel, ketlabel::StateLabel)`. If a product type is provided instead of a function, use that type for evaluation.
 
 See the [Delayed Inner Product Evaluation](inner_products/#delayed-inner-product-evaluation) section for details.
 
 ---
-**default_inner{P<:AbstractInner}(::Type{P})**
+**default_inner{P<:InnerProduct}(::Type{P})**
 
-Set QuDirac's default inner product type to `P`. See [here](inner_products/#assigning-inner-product-types-to-qudirac-objects) for details.
+Set DiracNotation's default inner product type to `P`. See [here](inner_products/#assigning-inner-product-types-to-DiracNotation-objects) for details.
 
 ---
 # Dict-like Functions

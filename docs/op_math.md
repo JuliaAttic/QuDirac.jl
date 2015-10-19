@@ -1,7 +1,7 @@
 # Outer Product of Two States
 ---
 
-The simplest way to construct a QuDirac operator is to take the outer product of two states:
+The simplest way to construct a DiracNotation operator is to take the outer product of two states:
 
 ```julia
 julia> k = d" 1/√2 * (| 0,0 > - | 1,1 >) "
@@ -83,7 +83,7 @@ julia> norm(op)
 0.9999999999999999
 ```
 
-For QuDirac operators, the `norm` function specifically computes the [Frobenius norm](http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm).
+For DiracNotation operators, the `norm` function specifically computes the [Frobenius norm](http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm).
 
 ---
 # Getting an Operator's Adjoint

@@ -1,5 +1,5 @@
-site_name: QuDirac.jl
-repo_url: https://github.com/JuliaQuantum/QuDirac.jl
+site_name: DiracNotation.jl
+repo_url: https://github.com/JuliaQuantum/DiracNotation.jl
 site_author: Jarrett Revels
 theme: readthedocs
 pages:

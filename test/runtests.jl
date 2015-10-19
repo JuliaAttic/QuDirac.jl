@@ -1,4 +1,4 @@
-using QuDirac
+using DiracNotation
 using Base.Test
 
 # No tests yet :(

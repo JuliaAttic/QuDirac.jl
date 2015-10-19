@@ -49,7 +49,7 @@ Ket{KronDelta,1,Float64} with 5 state(s):
 # Normalization
 ---
 
-In general, QuDirac objects do not automatically normalize themselves.
+In general, DiracNotation objects do not automatically normalize themselves.
 
 We can normalize a state in-place by using the `normalize!` function:
 
@@ -204,7 +204,7 @@ If these states are orthonormal, our final result is
           = c₂ | 1 ⟩ 
 ```
 
-QuDirac supports this operation through the use of the `act_on` function:
+DiracNotation supports this operation through the use of the `act_on` function:
 
 ```julia
 julia> ψ = d" normalize!( | 0,1 > + 2.0| 1,0 > ) "
@@ -243,4 +243,4 @@ Bra{KronDelta,1,Float64} with 1 state(s):
   0.8944271909999159 ⟨ 1 |
 ```
 
-As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is indicated by the state's type (e.g. `KronDelta` in `Ket{KronDelta,1}`). QuDirac has support for other kinds of inner products as well. To learn more, see the [Working with Inner Products](inner_products.md) section.
+As you can see, the above calculations assume an *orthonormal* inner product for the involved states. This behavior is indicated by the state's type (e.g. `KronDelta` in `Ket{KronDelta,1}`). DiracNotation has support for other kinds of inner products as well. To learn more, see the [Working with Inner Products](inner_products.md) section.

@@ -1,22 +1,22 @@
-##############
-# DiracLabel #
-##############
-# Types L <: DiracLabel should define:
+#################
+# AbstractLabel #
+#################
+# Types L <: AbstractLabel should define:
 #   nfactors(::Type{L})
 #   hash(::L)
 #   tensor(a::L, b::L)
 #   conversion/promotion
 
-abstract DiracLabel
+abstract AbstractLabel
 
-nfactors(label::DiracLabel) = nfactors(typeof(label))
+nfactors(label::AbstractLabel) = nfactors(typeof(label))
 
-Base.(:*)(a::DiracLabel, b::DiracLabel) = tensor(a, b)
+Base.(:*)(a::AbstractLabel, b::AbstractLabel) = tensor(a, b)
 
 ##############
 # StateLabel #
 ##############
-immutable StateLabel{L} <: DiracLabel
+immutable StateLabel{L} <: AbstractLabel
     items::L
     hsh::UInt64
     StateLabel(items::Tuple) = new(items, hash(items))
@@ -100,7 +100,7 @@ end
 ##############
 # OuterLabel #
 ##############
-immutable OuterLabel{K,B} <: DiracLabel
+immutable OuterLabel{K,B} <: AbstractLabel
     k::StateLabel{K}
     b::StateLabel{B}
     hsh::UInt64

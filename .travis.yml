@@ -9,4 +9,4 @@ notifications:
 sudo: false
 script:
     - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-    - julia -e 'Pkg.clone(pwd()); Pkg.build("QuDirac"); Pkg.test("QuDirac")';
+    - julia -e 'Pkg.clone(pwd()); Pkg.build("DiracNotation"); Pkg.test("DiracNotation")';

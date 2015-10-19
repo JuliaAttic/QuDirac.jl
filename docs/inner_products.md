@@ -1,13 +1,13 @@
-# Intro to Inner Products in QuDirac
+# Intro to Inner Products in DiracNotation
 ---
 
-Every QuDirac state or operator has a type parameter `P<:AbstractInner` which denotes the inner product 
-behavior for the object. QuDirac comes with two such inner product types:
+Every DiracNotation state or operator has a type parameter `P<:InnerProduct` which denotes the inner product 
+behavior for the object. DiracNotation comes with two such inner product types:
 
 ```julia
-abstract AbstractInner
-immutable KronDelta <: AbstractInner end
-immutable UndefInner <: AbstractInner end
+abstract InnerProduct
+immutable KronDelta <: InnerProduct end
+immutable UndefInner <: InnerProduct end
 ```
 
 For each inner product type, a constructor is defined that evaluates the inner product of two basis states 
@@ -19,7 +19,7 @@ KronDelta{N}(b::StateLabel{N}, k::StateLabel{N}) = b == k ? 1 : 0
 ```
 
 ---
-# Assigning inner product types to QuDirac objects
+# Assigning inner product types to DiracNotation objects
 ---
 
 To create an instance of a Ket or Bra with a specific inner product type, you can simply 
@@ -35,7 +35,7 @@ If you don't explicitly select a type, a default inner product type is used. The
 
 ```julia
 julia> default_inner(UndefInner)
-INFO: QuDirac default inner product type is currently UndefInner.
+INFO: DiracNotation default inner product type is currently UndefInner.
 
 julia> ket(1,2)
 Ket{UndefInner,2,Int64} with 1 state(s):
@@ -50,7 +50,7 @@ As you've probably noticed from previous examples, the out-of-the-box default in
 
 Defining a new inner product type is done using the `@def_inner` macro. This macro takes in 
 the name of the type to be defined, and the return type of its inner product evaluation (this
-return type assumption is utilized by QuDirac to perform efficient pre-allocation operations):
+return type assumption is utilized by DiracNotation to perform efficient pre-allocation operations):
 
 ```julia
 julia> @def_inner SumInner Int
@@ -75,7 +75,7 @@ Here's our freshly defined `SumInner` type in action:
 
 ```julia
 julia> default_inner(SumInner)
-INFO: QuDirac's default inner product type is currently SumInner.
+INFO: DiracNotation's default inner product type is currently SumInner.
 
 julia> d" < 1 | 1 > "
 2
@@ -91,11 +91,11 @@ true
 # Delayed Inner Product Evaluation
 ---
 
-Taking inner products with the `UndefInner` type will yield `InnerExpr`s, QuDirac's representations of unevaluated inner products. Instances of `InnerExpr` can be treated like numbers in most respects:
+Taking inner products with the `UndefInner` type will yield `InnerExpr`s, DiracNotation's representations of unevaluated inner products. Instances of `InnerExpr` can be treated like numbers in most respects:
 
 ```julia
 julia> default_inner(UndefInner)
-INFO: QuDirac default inner product type is currently UndefInner.
+INFO: DiracNotation default inner product type is currently UndefInner.
 
 julia> d" act_on(< 'x' |, | 'a','b','c' >, 2) "
 Ket{UndefInner,2,Number} with 1 state(s):
@@ -198,4 +198,4 @@ log(::InnerExpr)
 log2(::InnerExpr)
 ```
 
-If you would like support for a function not in the above list, feel free to open an issue or pull request on the QuDirac repo.
+If you would like support for a function not in the above list, feel free to open an issue or pull request on the DiracNotation repo.

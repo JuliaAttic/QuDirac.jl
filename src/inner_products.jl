@@ -1,13 +1,13 @@
 #########
 # inner #
 #########
-macro newinner(name)
+macro innerproduct(name)
     return quote
-        immutable $name <: AbstractInner end
+        immutable $name <: InnerProduct end
     end
 end
 
-@generated function inner{P<:AbstractInner}(::Type{P}, b::StateLabel, k::StateLabel)
+@generated function inner{P<:InnerProduct}(::Type{P}, b::StateLabel, k::StateLabel)
     @assert nfactors(b) == nfactors(k)
 
     ex = quote
@@ -30,7 +30,7 @@ end
 #############
 # KronDelta #
 #############
-@newinner KronDelta
+@innerproduct KronDelta
 KronDelta(b, k) = b == k
 
 rettype(::Type{KronDelta}) = Bool
@@ -41,4 +41,4 @@ rettype(::Type{KronDelta}) = Bool
     return :(b == k)
 end
 
-export @newinner, KronDelta
+export @innerproduct, KronDelta

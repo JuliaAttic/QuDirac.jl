@@ -1,25 +1,25 @@
-Latest Stable Release (v0.1): [![Build Status](https://travis-ci.org/JuliaQuantum/QuDirac.jl.svg?branch=release-0.1)](https://travis-ci.org/JuliaQuantum/QuDirac.jl)
+Latest Stable Release (v0.1): [![Build Status](https://travis-ci.org/JuliaQuantum/DiracNotation.jl.svg?branch=release-0.1)](https://travis-ci.org/JuliaQuantum/DiracNotation.jl)
 
-Upcoming Release (v0.2): [![Build Status](https://travis-ci.org/JuliaQuantum/QuDirac.jl.svg?branch=release-0.2)](https://travis-ci.org/JuliaQuantum/QuDirac.jl)
+Upcoming Release (v0.2): [![Build Status](https://travis-ci.org/JuliaQuantum/DiracNotation.jl.svg?branch=release-0.2)](https://travis-ci.org/JuliaQuantum/DiracNotation.jl)
 
-# QuDirac.jl
+# DiracNotation.jl
 
-QuDirac.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
+DiracNotation.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
 quantum mechanics computations. 
 
-Documentation for the current release version (v0.1) can be found [**here**](http://qudiracjl.readthedocs.org/en/release-0.1/).
+Documentation for the current release version (v0.1) can be found [**here**](http://DiracNotationjl.readthedocs.org/en/release-0.1/).
 
 ## Installation
 
-To install QuDirac.jl, you should have [a working build of Julia v0.3](https://github.com/JuliaLang/julia#source-download-and-compilation). Then, you can grab QuDirac.jl via the package manager:
+To install DiracNotation.jl, you should have [a working build of Julia v0.3](https://github.com/JuliaLang/julia#source-download-and-compilation). Then, you can grab DiracNotation.jl via the package manager:
 
 ```julia
-julia> Pkg.add("QuDirac")
+julia> Pkg.add("DiracNotation")
 ```
 
 ## Features
 
-These are toy examples for demoing features. See [below for more involved examples](https://github.com/JuliaQuantum/QuDirac.jl#examples).
+These are toy examples for demoing features. See [below for more involved examples](https://github.com/JuliaQuantum/DiracNotation.jl#examples).
 
 #### Ket, Bra, and Operator types
 
@@ -43,9 +43,9 @@ OuterSum{KronDelta,1,Float64} with 2 operator(s):
 #### Support for undefined inner products
 
 ```julia
-# tells QuDirac to use the rule for undefined inner products
+# tells DiracNotation to use the rule for undefined inner products
 julia> default_inner(UndefInner)
-INFO: QuDirac's default inner product type is currently UndefInner.
+INFO: DiracNotation's default inner product type is currently UndefInner.
 
 julia> d" < 0,0 | *  (| 0,0 > + | 1,1 >)/√2 "
 ((⟨ 0,0 | 0,0 ⟩ + ⟨ 0,0 | 1,1 ⟩) / 1.4142135623730951)
@@ -69,7 +69,7 @@ julia> MyInner(a, b) = MyInner(float(a), float(b))
 MyInner (constructor with 3 methods)
 
 julia> default_inner(MyInner)
-INFO: QuDirac's default inner product type is currently MyInner.
+INFO: DiracNotation's default inner product type is currently MyInner.
 
 julia> d" < π | e > " # sqrt(π + e)
 2.420717761749361
@@ -128,6 +128,6 @@ walk.
 To run the examples, one can do the following (using `qho.jl` as an example):
 
 ```julia
-julia> cd(Pkg.dir("QuDirac"))
+julia> cd(Pkg.dir("DiracNotation"))
 julia> include("examples/qho.jl")
 ```

@@ -1,6 +1,6 @@
-# QuDirac.jl
+# DiracNotation.jl
 
-QuDirac.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
+DiracNotation.jl is a [Julia](http://julialang.org/) library for using Dirac notation to perform 
 quantum mechanics computations. 
 
 Current Features:

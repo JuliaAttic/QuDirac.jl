@@ -1,4 +1,4 @@
-using QuDirac
+using DiracNotation
 
 #################################
 # Hermite Polynomial Evaluation #
@@ -50,10 +50,10 @@ default_inner(QHOInner)
 # and momentum operators on individual states.
 #
 # See the "Constructing Operators with Functions" section 
-# of the QuDirac docs for more info on the use of the `@defop`
+# of the DiracNotation docs for more info on the use of the `@defop`
 # macro. 
 #
-# Note that in practice, it is generally faster to use QuDirac's 
+# Note that in practice, it is generally faster to use DiracNotation's 
 # built-in `lower` and `raise` functions to apply ladder operations
 # to states. The following simply serves to demonstrate the capabilities
 # of the `@defop` macro.

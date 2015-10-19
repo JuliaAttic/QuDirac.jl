@@ -1,7 +1,7 @@
 # Natural Dirac notation input syntax
 ---
 
-QuDirac supports a "natural" input format by implementing `d"..."` literals. Seeing this syntax in action:
+DiracNotation supports a "natural" input format by implementing `d"..."` literals. Seeing this syntax in action:
 
 ```julia
 julia> d" | 0 > "
