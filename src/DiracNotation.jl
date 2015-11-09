@@ -10,7 +10,7 @@ end
 const lang = "⟨"
 const rang = "⟩"
 const otimes = "⊗"
-const vdots ="⋮"
+const vdots = "⋮"
 
 ##################
 # Abstract Types #
