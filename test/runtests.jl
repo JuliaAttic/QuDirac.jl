@@ -1,4 +1,1 @@
-using DiracNotation
-using Base.Test
-
-# No tests yet :(
+include("labels_test.jl")
