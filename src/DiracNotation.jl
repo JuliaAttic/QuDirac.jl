@@ -1,9 +1,5 @@
 module DiracNotation
 
-if VERSION < v"0.4"
-    warn("DiracNotation only officially supports the v0.4 release of Julia. Your version of Julia is $VERSION.")
-end
-
 ####################
 # String Constants #
 ####################
@@ -60,6 +56,7 @@ function default_inner_product{P<:InnerProduct}(::Type{P})
     DiracNotation.ket(items...) = ket(P, StateLabel(items))
     DiracNotation.bra(items...) = BasisBra(ket(items...))
     info("DiracNotation's default inner product type is currently $P.")
+    info("You should now reload any code using DiracNotation.bra or DiracNotation.ket to propogate this change.")
 end
 
 default_inner_product(KronDelta);
