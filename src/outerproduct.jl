@@ -29,7 +29,7 @@ Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), e
 # these equality/hash functions are pretty inefficient...
 Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(OpSum, a) == convert(OpSum, b) 
 Base.hash(op::OuterProduct) = hash(convert(OpSum, op))
-Base.hash(op::OuterProduct, h::Uint64) = hash(hash(op), h)
+Base.hash(op::OuterProduct, h::UInt64) = hash(hash(op), h)
 
 Base.length(op::OuterProduct) = length(op.kt)*length(op.br)
 
@@ -98,8 +98,11 @@ tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar, ten
 Base.scale!(c::Number, op::OuterProduct) = (op.scalar = c*op.scalar; return op)
 Base.scale!(op::OuterProduct, c::Number) = (op.scalar = op.scalar*c; return op)
 
+#TODO Fix
+#=
 Base.scale(c::Number, op::OuterProduct) = OuterProduct(c * op.scalar, copy(op.kt), copy(op.br))
 Base.scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt), copy(op.br))
+=#
 
 ###########
 # + and - #

@@ -17,7 +17,7 @@ Base.(:(==))(::InnerProduct, ::Number) = false
 Base.(:(==))(::Number, ::InnerProduct) = false
 
 Base.hash(i::InnerProduct) = hash(blabel(i), hash(klabel(i)))
-Base.hash(i::InnerProduct, h::Uint64) = hash(hash(i), h)
+Base.hash(i::InnerProduct, h::UInt64) = hash(hash(i), h)
 
 Base.conj(i::InnerProduct) = InnerProduct(klabel(i), blabel(i))
 
@@ -75,7 +75,7 @@ same_num(iex::InnerExpr, n::Number) = iex == InnerExpr(n)
 same_num(n::Number, iex::InnerExpr) = iex == n
 
 Base.hash(iex::InnerExpr) = hash(iex.ex)
-Base.hash(iex::InnerExpr, h::Uint64) = hash(hash(iex), h)
+Base.hash(iex::InnerExpr, h::UInt64) = hash(hash(iex), h)
 
 Base.one(::InnerExpr) = InnerExpr(1)
 Base.zero(::InnerExpr) = InnerExpr(0)
@@ -127,7 +127,7 @@ Base.(:^)(a::InnerExpr, b::Integer) = iexpr_exp(a, b)
 Base.(:^)(a::InnerExpr, b::Rational) = iexpr_exp(a, b)
 Base.(:^)(a::InnerExpr, b::InnerExpr) = iexpr_exp(a, b)
 Base.(:^)(a::InnerExpr, b::Number) = iexpr_exp(a, b)
-Base.(:^)(a::MathConst{:e}, b::InnerExpr) = iexpr_exp(a, b)
+#Base.(:^)(a::MathConst{:e}, b::InnerExpr) = iexpr_exp(a, b)
 Base.(:^)(a::Number, b::InnerExpr) = iexpr_exp(a, b)
 
 Base.exp(iex::InnerExpr) = InnerExpr(:(exp($(iex))))
@@ -136,7 +136,7 @@ Base.exp2(iex::InnerExpr) = InnerExpr(:(exp2($(iex))))
 Base.sqrt(iex::InnerExpr) = InnerExpr(:(sqrt($(iex))))
 
 Base.log(iex::InnerExpr) = length(iex)==2 && iex[1]==:exp ? iex[2] : InnerExpr(:(log($(iex))))
-Base.log(a::MathConst{:e}, b::InnerExpr) = InnerExpr(:(log($(a),$(b))))
+#Base.log(a::MathConst{:e}, b::InnerExpr) = InnerExpr(:(log($(a),$(b))))
 Base.log(a::InnerExpr, b::InnerExpr) = InnerExpr(:(log($(a),$(b))))
 Base.log(a::InnerExpr, b::Number) = InnerExpr(:(log($(a),$(b))))
 Base.log(a::Number, b::InnerExpr) = InnerExpr(:(log($(a),$(b))))
@@ -239,7 +239,7 @@ Base.ctranspose(iex::InnerExpr) = conj(iex)
 # Elementwise Operations #
 ##########################
 for op=(:*,:-,:+,:/,:^)
-    elop = symbol(string(:.) * string(op))
+    elop = Symbol(string(:.) * string(op))
     @eval begin
         ($elop)(a::InnerExpr, b::InnerExpr) = ($op)(a,b)
         ($elop)(a::InnerExpr, b::Number) = ($op)(a,b)

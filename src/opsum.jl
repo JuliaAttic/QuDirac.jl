@@ -62,7 +62,7 @@ Base.(:(==)){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
 Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
 
 Base.hash(op::AbsOpSum) = hash(dict(filternz(op)), hash(ptype(op)))
-Base.hash(op::AbsOpSum, h::Uint64) = hash(hash(op), h)
+Base.hash(op::AbsOpSum, h::UInt64) = hash(hash(op), h)
 
 Base.length(op::AbsOpSum) = length(dict(op))
 
@@ -160,7 +160,7 @@ inner(a::DualOpSum, b::DualOpSum) = inner(b.op, a.op)'
 
 function inner_load!(result, a::OpSum, b::OpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
-        add_to_dict!(result, 
+        add_to_dict!(result,
                      OpLabel(klabel(o1), blabel(o2)),
                      inner_mul(v, c, prodtype, blabel(o1), klabel(o2)))
     end
@@ -169,7 +169,7 @@ end
 
 function inner_load!(result, a::OpSum, b::DualOpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
-        add_to_dict!(result, 
+        add_to_dict!(result,
                      OpLabel(klabel(o1), klabel(o2)),
                      inner_mul(v, c', prodtype, blabel(o1), blabel(o2)))
     end
@@ -202,7 +202,7 @@ end
 function brcoeff{T}(brdict, prodtype, klabel, v, ::Type{T})
     coeff = predict_zero(T)
     for (blabel,c) in brdict
-        coeff += inner_mul(c', v, prodtype, klabel, blabel) 
+        coeff += inner_mul(c', v, prodtype, klabel, blabel)
     end
     return coeff'
 end
@@ -257,7 +257,7 @@ end
 
 function act_on_dict!(result, op::OpSum, kt::Ket, i, prodtype)
     for (o,c) in dict(op), (k,v) in dict(kt)
-        add_to_dict!(result, 
+        add_to_dict!(result,
                      setindex(k, klabel(o)[1], i),
                      inner_mul(c, v, prodtype, blabel(o)[1], k[i]))
     end
@@ -290,19 +290,22 @@ Base.scale!(c::Number, op::OpSum) = scale!(op, c)
 Base.scale!(opc::DualOpSum, c::Number) = DualOpSum(scale!(opc.op, c'))
 Base.scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
 
-Base.scale(op::OpSum, c::Number) = similar(op, dscale(dict(op), c))
-Base.scale(c::Number, op::OpSum) = scale(op, c)
-Base.scale(opc::DualOpSum, c::Number) = DualOpSum(scale(opc.op, c'))
-Base.scale(c::Number, opc::DualOpSum) = scale(opc, c)
+# See #15258 in JuliaLang/julia
+#=
+diagonal(op::OpSum) * (c::Number) = similar(op, dscale(dict(op), c))
+diagonal(c::Number) * (op::OpSum) = diagonal(op) * c
+diagonal(opc::DualOpSum) * c::Number = DualOpSum(diagonal(opc.op) * c')
+diagonal(c::Number) * opc::DualOpSum = diagonal(opc) * c
+=#
 
-Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
-Base.(:*)(op::DiracOp, c::Number) = scale(op, c)
-Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
+Base.(:*)(c::Number, op::DiracOp) = diagonal(c)*op
+Base.(:*)(op::DiracOp, c::Number) = diagonal(op)*c
+Base.(:/)(op::DiracOp, c::Number) = diagonal(op)* 1/c
 
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OpSum) = scale(-1, op)
+Base.(:-)(op::OpSum) = diagonal(-1) * op
 Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
 
 Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
@@ -320,7 +323,7 @@ Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 Base.norm(op::OpSum) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOpSum) = norm(opc.op)
 
-normalize(op::DiracOp) = scale(1/norm(op), op)
+normalize(op::DiracOp) = diagonal(1/norm(op))*op
 normalize!(op::DiracOp) = scale!(1/norm(op), op)
 
 #########
@@ -408,6 +411,8 @@ function matrep(op::DiracOp, labels...)
     return T[bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
 
+#TODO Fix
+#=
 function matrep(op::Union(DualFunc, Function), labels)
     return [bra(i) * op * ket(j) for i in labels, j in labels]
 end
@@ -416,6 +421,7 @@ function matrep(op::Union(DualFunc, Function), labels...)
     iter = Iterators.product(labels...)
     return [bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
+=#
 
 ######################
 # Printing Functions #

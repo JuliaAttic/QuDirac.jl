@@ -63,9 +63,9 @@ end
 
 immutable OpDefExpr
     op_sym::Symbol
-    label_args::Union(Symbol, Expr)
+    label_args::Symbol
     lhs_type::Symbol
-    rhs::Union(Symbol, Expr)
+    rhs::Symbol
 end
 
 OpDefExpr(ods::OpDefStr) = OpDefExpr(symbol(ods.op_name), parse(ods.label_args), symbol(ods.lhs_type), parse(ods.rhs))

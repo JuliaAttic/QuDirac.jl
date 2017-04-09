@@ -47,7 +47,7 @@ Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
 Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.hash(s::DiracState) = hash(dict(filternz(s)), hash(ptype(s)))
-Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
+Base.hash(s::DiracState, h::UInt64) = hash(hash(s), h)
 
 Base.length(s::DiracState) = length(dict(s))
 
@@ -115,7 +115,7 @@ function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
     for (b,c) in dict(br), (k,v) in dict(kt)
         result += inner_mul(c',v,prodtype,b,k)
     end
-    return result  
+    return result
 end
 
 function ortho_inner(a::DiracState{KroneckerDelta}, b::DiracState{KroneckerDelta})
@@ -168,14 +168,17 @@ Base.scale!(c::Number, k::Ket) = scale!(k,c)
 Base.scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
 Base.scale!(c::Number, b::Bra) = scale!(b,c)
 
-Base.scale(k::Ket, c::Number) = similar(k, dscale(dict(k), c))
-Base.scale(c::Number, k::Ket) = scale(k,c)
-Base.scale(b::Bra, c::Number) = Bra(scale(b.kt, c'))
-Base.scale(c::Number, b::Bra) = scale(b,c)
+# See #15258 in JuliaLang/julia
+#=
+diagonal(k::Ket) * c::Number = similar(k, dscale(dict(k), c))
+diagonal(c::Number)* k::Ket = diagonal(k) * c
+diagonal(b::Bra) * c::Number = Bra(diagonal(b.kt)* c')
+diagonal(c::Number) * b::Bra = diagoanl(b) * c
+=#
 
-Base.(:*)(c::Number, s::DiracState) = scale(c, s)
-Base.(:*)(s::DiracState, c::Number) = scale(s, c)
-Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
+Base.(:*)(c::Number, s::DiracState) = diagonal(c) * s
+Base.(:*)(s::DiracState, c::Number) = diagonal(s) * c
+Base.(:/)(s::DiracState, c::Number) = diagonal(s) * 1/c
 
 ###########
 # + and - #
