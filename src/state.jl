@@ -176,7 +176,7 @@ scale(b::Bra, c::Number) = Bra(b.kt* Diagonal(diagm(c')))
 scale(c::Number, b::Bra) = b * Diagonal(diagm(c))
 
 
-Base.(:*)(c::Number, s::DiracState) = Diagonal(c) * s
+Base.(:*)(c::Number, s::DiracState) = Diagonal(diagm(c)) * s
 Base.(:*)(s::DiracState, c::Number) = s * Diagonal(diagm(c))
 Base.(:/)(s::DiracState, c::Number) = s * Diagonal(diagm(1/c))
 
