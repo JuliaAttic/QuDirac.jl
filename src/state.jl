@@ -171,14 +171,14 @@ scale!(c::Number, b::Bra) = scale!(b,c)
 # See #15258 in JuliaLang/julia
 
 scale(k::Ket, c::Number) = similar(k, dscale(dict(k), c))
-scale(c::Number, k::Ket) = Diagonal(diagm(k)) * c
-scale(b::Bra, c::Number) = Bra(b.kt* Diagonal(diagm(c')))
-scale(c::Number, b::Bra) = b * Diagonal(diagm(c))
+scale(c::Number, k::Ket) = k * c
+scale(b::Bra, c::Number) = Bra(b.kt* (c'))
+scale(c::Number, b::Bra) = b * c
 
 
-Base.(:*)(c::Number, s::DiracState) = Diagonal(diagm(c)) * s
-Base.(:*)(s::DiracState, c::Number) = s * Diagonal(diagm(c))
-Base.(:/)(s::DiracState, c::Number) = s * Diagonal(diagm(1/c))
+Base.(:*)(c::Number, s::DiracState) = c * s
+Base.(:*)(s::DiracState, c::Number) = s * c
+Base.(:/)(s::DiracState, c::Number) = s * (1/c)
 
 ###########
 # + and - #
