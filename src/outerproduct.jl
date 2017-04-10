@@ -95,8 +95,8 @@ tensor(a::OuterProduct, b::OuterProduct) = OuterProduct(a.scalar * b.scalar, ten
 ###########
 # Scaling #
 ###########
-Base.scale!(c::Number, op::OuterProduct) = (op.scalar = c*op.scalar; return op)
-Base.scale!(op::OuterProduct, c::Number) = (op.scalar = op.scalar*c; return op)
+scale!(c::Number, op::OuterProduct) = (op.scalar = c*op.scalar; return op)
+scale!(op::OuterProduct, c::Number) = (op.scalar = op.scalar*c; return op)
 
 #TODO Fix
 #=

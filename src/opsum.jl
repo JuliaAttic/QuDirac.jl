@@ -285,27 +285,27 @@ Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
 ###########
 # Scaling #
 ###########
-Base.scale!(op::OpSum, c::Number) = (dscale!(dict(op), c); return op)
-Base.scale!(c::Number, op::OpSum) = scale!(op, c)
-Base.scale!(opc::DualOpSum, c::Number) = DualOpSum(scale!(opc.op, c'))
-Base.scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
+scale!(op::OpSum, c::Number) = (dscale!(dict(op), c); return op)
+scale!(c::Number, op::OpSum) = scale!(op, c)
+scale!(opc::DualOpSum, c::Number) = DualOpSum(scale!(opc.op, c'))
+scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
 
 # See #15258 in JuliaLang/julia
-#=
-diagonal(op::OpSum) * (c::Number) = similar(op, dscale(dict(op), c))
-diagonal(c::Number) * (op::OpSum) = diagonal(op) * c
-diagonal(opc::DualOpSum) * c::Number = DualOpSum(diagonal(opc.op) * c')
-diagonal(c::Number) * opc::DualOpSum = diagonal(opc) * c
-=#
 
-Base.(:*)(c::Number, op::DiracOp) = diagonal(c)*op
-Base.(:*)(op::DiracOp, c::Number) = diagonal(op)*c
-Base.(:/)(op::DiracOp, c::Number) = diagonal(op)* 1/c
+scale(op::OpSum, c::Number) = similar(op, dscale(dict(op), c))
+scale(c::Number , op::OpSum) = Diagonal(op) * c
+scale(opc::DualOpSum, c::Number) = DualOpSum(diagonal(opc.op) * c')
+scale(c::Number, opc::DualOpSum) = diagonal(opc) * c
+
+
+Base.(:*)(c::Number, op::DiracOp) = Diagonal(c)*op
+Base.(:*)(op::DiracOp, c::Number) = Diagonal(op)*c
+Base.(:/)(op::DiracOp, c::Number) = Diagonal(op)* 1/c
 
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OpSum) = diagonal(-1) * op
+Base.(:-)(op::OpSum) = Diagonal(-1) * op
 Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
 
 Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
@@ -323,7 +323,7 @@ Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 Base.norm(op::OpSum) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOpSum) = norm(opc.op)
 
-normalize(op::DiracOp) = diagonal(1/norm(op))*op
+normalize(op::DiracOp) = Diagonal(1/norm(op))*op
 normalize!(op::DiracOp) = scale!(1/norm(op), op)
 
 #########

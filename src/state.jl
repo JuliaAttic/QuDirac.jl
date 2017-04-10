@@ -163,22 +163,22 @@ end
 ###########
 # Scaling #
 ###########
-Base.scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
-Base.scale!(c::Number, k::Ket) = scale!(k,c)
-Base.scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
-Base.scale!(c::Number, b::Bra) = scale!(b,c)
+scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
+scale!(c::Number, k::Ket) = scale!(k,c)
+scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
+scale!(c::Number, b::Bra) = scale!(b,c)
 
 # See #15258 in JuliaLang/julia
-#=
-diagonal(k::Ket) * c::Number = similar(k, dscale(dict(k), c))
-diagonal(c::Number)* k::Ket = diagonal(k) * c
-diagonal(b::Bra) * c::Number = Bra(diagonal(b.kt)* c')
-diagonal(c::Number) * b::Bra = diagoanl(b) * c
-=#
 
-Base.(:*)(c::Number, s::DiracState) = diagonal(c) * s
-Base.(:*)(s::DiracState, c::Number) = diagonal(s) * c
-Base.(:/)(s::DiracState, c::Number) = diagonal(s) * 1/c
+scale(k::Ket, c::Number) = similar(k, dscale(dict(k), c))
+scale(c::Number, k::Ket) = Diagonal(k) * c
+scale(b::Bra, c::Number) = Bra(Diagonal(b.kt)* c')
+scale(c::Number, b::Bra) = diagoanl(b) * c
+
+
+Base.(:*)(c::Number, s::DiracState) = Diagonal(c) * s
+Base.(:*)(s::DiracState, c::Number) = Diagonal(s) * c
+Base.(:/)(s::DiracState, c::Number) = Diagonal(s) * 1/c
 
 ###########
 # + and - #
