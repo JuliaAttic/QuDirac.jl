@@ -293,19 +293,19 @@ scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
 # See #15258 in JuliaLang/julia
 
 scale(op::OpSum, c::Number) = similar(op, dscale(dict(op), c))
-scale(c::Number , op::OpSum) = Diagonal(op) * c
-scale(opc::DualOpSum, c::Number) = DualOpSum(diagonal(opc.op) * c')
-scale(c::Number, opc::DualOpSum) = diagonal(opc) * c
+scale(c::Number , op::OpSum) = op * Diagonal(diagm(c))
+scale(opc::DualOpSum, c::Number) = DualOpSum(opc.op * diagonal(diagm(c')))
+scale(c::Number, opc::DualOpSum) = opc * Diagonal(diagm(c))
 
 
-Base.(:*)(c::Number, op::DiracOp) = Diagonal(c)*op
-Base.(:*)(op::DiracOp, c::Number) = Diagonal(op)*c
-Base.(:/)(op::DiracOp, c::Number) = Diagonal(op)* 1/c
+Base.(:*)(c::Number, op::DiracOp) = Diagonal(diagm(c)) * op
+Base.(:*)(op::DiracOp, c::Number) = op * Diagonal(diagm(c))
+Base.(:/)(op::DiracOp, c::Number) = op * Diagonal(diagm(1/c))
 
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OpSum) = Diagonal(-1) * op
+Base.(:-)(op::OpSum) = Diagonal(diagm(-1)) * op
 Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
 
 Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
