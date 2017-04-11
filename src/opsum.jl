@@ -323,8 +323,8 @@ Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 Base.norm(op::OpSum) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOpSum) = norm(opc.op)
 
-normalize(op::DiracOp) = (1/norm(op))*op
-normalize!(op::DiracOp) = scale!(1/norm(op), op)
+QuDirac.normalize(op::DiracOp) = (1/norm(op))*op
+QuDirac.normalize!(op::DiracOp) = scale!(1/norm(op), op)
 
 #########
 # Trace #

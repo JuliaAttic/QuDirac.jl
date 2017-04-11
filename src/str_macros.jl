@@ -68,7 +68,7 @@ immutable OpDefExpr
     rhs::Symbol
 end
 
-OpDefExpr(ods::OpDefStr) = OpDefExpr(Symbol(ods.op_name), parse(ods.label_args), Symbol(ods.lhs_type), parse(ods.rhs))
+OpDefExpr(ods::OpDefStr) = OpDefExpr(Symbol(ods.op_name), Symbol(parse(ods.label_args)), Symbol(ods.lhs_type), Symbol(parse(ods.rhs)))
 
 rm_whspace(str) = join(split(str, r"\s"))
 

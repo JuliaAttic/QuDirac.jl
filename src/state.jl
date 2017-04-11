@@ -204,8 +204,8 @@ Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
 # Normalization #
 #################
 Base.norm(s::DiracState) = sqrt(sum(abs2, values(dict(s))))
-normalize(s::DiracState) = (1/norm(s))*s
-normalize!(s::DiracState) = scale!(1/norm(s), s)
+QuDirac.normalize(s::DiracState) = (1/norm(s))*s
+QuDirac.normalize!(s::DiracState) = scale!(1/norm(s), s)
 
 ########################
 # Misc. Math Functions #

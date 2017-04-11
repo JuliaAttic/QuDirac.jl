@@ -12,7 +12,7 @@ klabel(i::InnerProduct) = i.k
 Base.repr(i::InnerProduct) = brstr(blabel(i))*ktstr(klabel(i))[2:end]
 Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 
-Base.(:(==))(a::InnerProduct, b::InnerProduct) = blabel(a) == blabel(b) && klabel(a) == klabel(b)                                             
+Base.(:(==))(a::InnerProduct, b::InnerProduct) = blabel(a) == blabel(b) && klabel(a) == klabel(b)
 Base.(:(==))(::InnerProduct, ::Number) = false
 Base.(:(==))(::Number, ::InnerProduct) = false
 
@@ -26,7 +26,7 @@ Base.conj(i::InnerProduct) = InnerProduct(klabel(i), blabel(i))
 ##############
 
 # we can cheat here to avoid tempory StateLabel construction
-# to evaluate KroneckerDelta inner products 
+# to evaluate KroneckerDelta inner products
 eval_inner_rule(p::KroneckerDelta, b, k) = inner_rule(p, b, k)
 eval_inner_rule(p::KroneckerDelta, b::StateLabel, k::StateLabel) = inner_rule(p, b, k)
 
@@ -48,10 +48,10 @@ inner_mul(v,c,prodtype,b,k) = v * c * eval_inner_rule(prodtype, b, k)
 # InnerExpr #
 ##############
 # A InnerExpr is a type that wraps arthimetic expressions
-# performed with InnerExprs. The allows storage and 
-# delayed evaluation of expressions. For example, this 
+# performed with InnerExprs. The allows storage and
+# delayed evaluation of expressions. For example, this
 # expression:
-#   
+#
 #   (< a | b >^2 + < c | d >^2 - 3.13+im) / 2
 #
 # is representable as a InnerExpr.
@@ -83,7 +83,7 @@ Base.zero(::InnerExpr) = InnerExpr(0)
 Base.promote_rule{N<:Number}(::Type{InnerExpr}, ::Type{N}) = InnerExpr
 
 Base.length(iex::InnerExpr) = length(iex.ex.args)
-Base.getindex(iex::InnerExpr, i) = iex.ex.args[i]
+Base.getindex(iex::InnerExpr, i::Integer) = iex.ex.args[i]
 
 ##############
 # inner_eval #
@@ -157,7 +157,7 @@ function iexpr_mul(a,b)
     end
 end
 
-Base.(:*)(a::InnerExpr, b::InnerExpr) =iexpr_mul(a,b) 
+Base.(:*)(a::InnerExpr, b::InnerExpr) =iexpr_mul(a,b)
 Base.(:*)(a::Bool, b::InnerExpr) = iexpr_mul(a,b)
 Base.(:*)(a::InnerExpr, b::Bool) = iexpr_mul(a,b)
 Base.(:*)(a::InnerExpr, b::Number) = iexpr_mul(a,b)
@@ -189,7 +189,7 @@ Base.(:/)(a::Number, b::InnerExpr) = iexpr_div(a, b)
 # Addition #
 ############
 function iexpr_add(a, b)
-    if same_num(a, 0) 
+    if same_num(a, 0)
         return InnerExpr(b)
     elseif same_num(b, 0)
         return InnerExpr(a)
