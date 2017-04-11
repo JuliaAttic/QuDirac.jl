@@ -298,14 +298,14 @@ scale(opc::DualOpSum, c::Number) = DualOpSum(opc.op * (c'))
 scale(c::Number, opc::DualOpSum) = opc * c
 
 
-Base.(:*)(c::Number, op::DiracOp) = c * op
-Base.(:*)(op::DiracOp, c::Number) = op * c
-Base.(:/)(op::DiracOp, c::Number) = op * (1/c)
+Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
+Base.(:*)(op::DiracOp, c::Number) = scale(op, c)
+Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
 
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OpSum) = (-1) * op
+Base.(:-)(op::OpSum) = scale(-1, op)
 Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
 
 Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))

@@ -175,10 +175,9 @@ scale(c::Number, k::Ket) = k * c
 scale(b::Bra, c::Number) = Bra(b.kt* (c'))
 scale(c::Number, b::Bra) = b * c
 
-
-Base.(:*)(c::Number, s::DiracState) = c * s
-Base.(:*)(s::DiracState, c::Number) = s * c
-Base.(:/)(s::DiracState, c::Number) = s * (1/c)
+Base.(:*)(c::Number, s::DiracState) = scale(c, s)
+Base.(:*)(s::DiracState, c::Number) = scale(s, c)
+Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
 
 ###########
 # + and - #
