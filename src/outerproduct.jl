@@ -27,7 +27,7 @@ Base.promote_rule{G<:OpSum, O<:OuterProduct}(::Type{G}, ::Type{O}) = OpSum
 Base.eltype(op::OuterProduct) = promote_type(typeof(op.scalar), eltype(op.kt), eltype(op.br))
 
 # these equality/hash functions are pretty inefficient...
-Base.(:(==)){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(OpSum, a) == convert(OpSum, b)
+Base.:(==){P,N}(a::OuterProduct{P,N}, b::OuterProduct{P,N}) = convert(OpSum, a) == convert(OpSum, b)
 Base.hash(op::OuterProduct) = hash(convert(OpSum, op))
 Base.hash(op::OuterProduct, h::UInt64) = hash(hash(op), h)
 
@@ -104,8 +104,8 @@ scale(op::OuterProduct, c::Number) = OuterProduct(op.scalar * c, copy(op.kt), co
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OuterProduct) = scale(-1, op)
-Base.(:+)(a::OuterProduct, b::OuterProduct) = convert(OpSum, a) + convert(OpSum, b)
+Base.:-(op::OuterProduct) = scale(-1, op)
+Base.:+(a::OuterProduct, b::OuterProduct) = convert(OpSum, a) + convert(OpSum, b)
 
 #################
 # Normalization #

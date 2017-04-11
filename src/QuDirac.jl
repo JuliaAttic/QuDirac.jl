@@ -18,16 +18,16 @@ module QuDirac
     ##################
     # Abstract Types #
     ##################
-    abstract AbstractInner
+    abstract type AbstractInner end
 
     immutable UndefinedInner <: AbstractInner end
     immutable KroneckerDelta <: AbstractInner end
 
-    abstract AbstractDirac{P<:AbstractInner,N}
-    abstract DiracOp{P,N} <: AbstractDirac{P,N}
-    abstract DiracState{P,N} <: AbstractDirac{P,N}
+    abstract type AbstractDirac{P<:AbstractInner,N} end
+    abstract type DiracOp{P,N} <: AbstractDirac{P,N} end
+    abstract type DiracState{P,N} <: AbstractDirac{P,N} end
 
-    abstract DiracScalar <: Number
+    abstract type DiracScalar <: Number end
 
     #############
     # Functions #

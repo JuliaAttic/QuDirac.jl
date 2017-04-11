@@ -12,9 +12,9 @@ klabel(i::InnerProduct) = i.k
 Base.repr(i::InnerProduct) = brstr(blabel(i))*ktstr(klabel(i))[2:end]
 Base.show(io::IO, i::InnerProduct) = print(io, repr(i))
 
-Base.(:(==))(a::InnerProduct, b::InnerProduct) = blabel(a) == blabel(b) && klabel(a) == klabel(b)
-Base.(:(==))(::InnerProduct, ::Number) = false
-Base.(:(==))(::Number, ::InnerProduct) = false
+Base.:(==)(a::InnerProduct, b::InnerProduct) = blabel(a) == blabel(b) && klabel(a) == klabel(b)
+Base.:(==)(::InnerProduct, ::Number) = false
+Base.:(==)(::Number, ::InnerProduct) = false
 
 Base.hash(i::InnerProduct) = hash(blabel(i), hash(klabel(i)))
 Base.hash(i::InnerProduct, h::UInt64) = hash(hash(i), h)
@@ -66,7 +66,7 @@ InnerExpr{N<:Number}(n::N) = convert(InnerExpr, n)
 Base.convert(::Type{InnerExpr}, iex::InnerExpr) = iex
 Base.convert{N<:Number}(::Type{InnerExpr}, n::N) = InnerExpr(Expr(:call, +, n))
 
-Base.(:(==))(a::InnerExpr, b::InnerExpr) = a.ex == b.ex
+Base.:(==)(a::InnerExpr, b::InnerExpr) = a.ex == b.ex
 same_num(a::Number, b::Number) = a == b
 same_num(a::InnerExpr, b::InnerExpr) = a == b
 same_num(iex::InnerExpr, i::InnerProduct) = iex == InnerExpr(i)
@@ -123,12 +123,12 @@ function iexpr_exp(a, b)
     end
 end
 
-Base.(:^)(a::InnerExpr, b::Integer) = iexpr_exp(a, b)
-Base.(:^)(a::InnerExpr, b::Rational) = iexpr_exp(a, b)
-Base.(:^)(a::InnerExpr, b::InnerExpr) = iexpr_exp(a, b)
-Base.(:^)(a::InnerExpr, b::Number) = iexpr_exp(a, b)
-#Base.(:^)(a::MathConst{:e}, b::InnerExpr) = iexpr_exp(a, b)
-Base.(:^)(a::Number, b::InnerExpr) = iexpr_exp(a, b)
+Base.:^(a::InnerExpr, b::Integer) = iexpr_exp(a, b)
+Base.:^(a::InnerExpr, b::Rational) = iexpr_exp(a, b)
+Base.:^(a::InnerExpr, b::InnerExpr) = iexpr_exp(a, b)
+Base.:^(a::InnerExpr, b::Number) = iexpr_exp(a, b)
+#Base.:^(a::MathConst{:e}, b::InnerExpr) = iexpr_exp(a, b)
+Base.:^(a::Number, b::InnerExpr) = iexpr_exp(a, b)
 
 Base.exp(iex::InnerExpr) = InnerExpr(:(exp($(iex))))
 Base.exp2(iex::InnerExpr) = InnerExpr(:(exp2($(iex))))
@@ -157,11 +157,11 @@ function iexpr_mul(a,b)
     end
 end
 
-Base.(:*)(a::InnerExpr, b::InnerExpr) =iexpr_mul(a,b)
-Base.(:*)(a::Bool, b::InnerExpr) = iexpr_mul(a,b)
-Base.(:*)(a::InnerExpr, b::Bool) = iexpr_mul(a,b)
-Base.(:*)(a::InnerExpr, b::Number) = iexpr_mul(a,b)
-Base.(:*)(a::Number, b::InnerExpr) = iexpr_mul(a,b)
+Base.:*(a::InnerExpr, b::InnerExpr) =iexpr_mul(a,b)
+Base.:*(a::Bool, b::InnerExpr) = iexpr_mul(a,b)
+Base.:*(a::InnerExpr, b::Bool) = iexpr_mul(a,b)
+Base.:*(a::InnerExpr, b::Number) = iexpr_mul(a,b)
+Base.:*(a::Number, b::InnerExpr) = iexpr_mul(a,b)
 
 ############
 # Division #
@@ -180,10 +180,10 @@ function iexpr_div(a, b)
     end
 end
 
-Base.(:/)(a::InnerExpr, b::InnerExpr) = iexpr_div(a, b)
-Base.(:/)(a::InnerExpr, b::Complex) = iexpr_div(a, b)
-Base.(:/)(a::InnerExpr, b::Number) = iexpr_div(a, b)
-Base.(:/)(a::Number, b::InnerExpr) = iexpr_div(a, b)
+Base.:/(a::InnerExpr, b::InnerExpr) = iexpr_div(a, b)
+Base.:/(a::InnerExpr, b::Complex) = iexpr_div(a, b)
+Base.:/(a::InnerExpr, b::Number) = iexpr_div(a, b)
+Base.:/(a::Number, b::InnerExpr) = iexpr_div(a, b)
 
 ############
 # Addition #
@@ -198,14 +198,14 @@ function iexpr_add(a, b)
     end
 end
 
-Base.(:+)(a::InnerExpr, b::InnerExpr) = iexpr_add(a, b)
-Base.(:+)(a::InnerExpr, b::Number) = iexpr_add(a, b)
-Base.(:+)(a::Number, b::InnerExpr) = iexpr_add(a, b)
+Base.:+(a::InnerExpr, b::InnerExpr) = iexpr_add(a, b)
+Base.:+(a::InnerExpr, b::Number) = iexpr_add(a, b)
+Base.:+(a::Number, b::InnerExpr) = iexpr_add(a, b)
 
 ###############
 # Subtraction #
 ###############
-Base.(:-)(iex::InnerExpr) = length(iex)==2 && iex[1]==:- ? InnerExpr(iex[2]) :  InnerExpr(:(-$(iex)))
+Base.:-(iex::InnerExpr) = length(iex)==2 && iex[1]==:- ? InnerExpr(iex[2]) :  InnerExpr(:(-$(iex)))
 
 function iexpr_subtract(a, b)
     if same_num(a, b)
@@ -219,9 +219,9 @@ function iexpr_subtract(a, b)
     end
 end
 
-Base.(:-)(a::InnerExpr, b::InnerExpr) = iexpr_subtract(a, b)
-Base.(:-)(a::InnerExpr, b::Number) = iexpr_subtract(a, b)
-Base.(:-)(a::Number, b::InnerExpr) = iexpr_subtract(a, b)
+Base.:-(a::InnerExpr, b::InnerExpr) = iexpr_subtract(a, b)
+Base.:-(a::InnerExpr, b::Number) = iexpr_subtract(a, b)
+Base.:-(a::Number, b::InnerExpr) = iexpr_subtract(a, b)
 
 ##################
 # Absolute Value #

@@ -1,7 +1,7 @@
 ###################
 # OpSum/DualOpSum #
 ###################
-abstract AbsOpSum{P,N,T} <: DiracOp{P,N}
+abstract type AbsOpSum{P,N,T} <: DiracOp{P,N} end
 
 typealias OpDict{N,T} Dict{OpLabel{N},T}
 
@@ -57,9 +57,9 @@ Base.copy(opc::DualOpSum) = DualOpSum(copy(opc.op))
 Base.similar(op::OpSum, d=similar(dict(op)); P=ptype(op)) = OpSum(P, d)
 Base.similar(opc::DualOpSum, d=similar(dict(opc)); P=ptype(opc)) = DualOpSum(P, d)
 
-Base.(:(==)){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
-Base.(:(==)){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
-Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
+Base.:(==){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
+Base.:(==){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
+Base.:(==)(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
 
 Base.hash(op::AbsOpSum) = hash(dict(filternz(op)), hash(ptype(op)))
 Base.hash(op::AbsOpSum, h::UInt64) = hash(hash(op), h)
@@ -215,9 +215,9 @@ function ktcoeff{T}(ktdict, prodtype, blabel, v, ::Type{T})
     return coeff
 end
 
-Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
-Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
-Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
+Base.:*(br::Bra, op::DiracOp) = inner(br,op)
+Base.:*(op::DiracOp, kt::Ket) = inner(op,kt)
+Base.:*(a::DiracOp, b::DiracOp) = inner(a,b)
 
 ###################################
 # Functional Operator Application #
@@ -226,10 +226,10 @@ immutable DualFunc
     f::Function
 end
 
-Base.(:*)(op::Function, kt::Ket) = op(kt)
-Base.(:*)(br::Bra, op::Function) = op(br)
-Base.(:*)(op::DualFunc, kt::Ket) = (kt' * op.f)'
-Base.(:*)(br::Bra, op::DualFunc) = (op.f * br')'
+Base.:*(op::Function, kt::Ket) = op(kt)
+Base.:*(br::Bra, op::Function) = op(br)
+Base.:*(op::DualFunc, kt::Ket) = (kt' * op.f)'
+Base.:*(br::Bra, op::DualFunc) = (op.f * br')'
 
 Base.ctranspose(f::Function) = DualFunc(f)
 Base.ctranspose(fc::DualFunc) = fc.f
@@ -280,7 +280,7 @@ tensor{P}(a::OpSum{P}, b::OpSum{P}) = OpSum(ptype(a), tensordict(dict(a), dict(b
 tensor(a::DualOpSum, b::DualOpSum) = tensor(a.opc, b.opc)'
 tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
 
-Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
+Base.:*(kt::Ket, br::Bra) = tensor(kt,br)
 
 ###########
 # Scaling #
@@ -298,24 +298,24 @@ scale(opc::DualOpSum, c::Number) = DualOpSum(opc.op * (c'))
 scale(c::Number, opc::DualOpSum) = opc * c
 
 
-Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
-Base.(:*)(op::DiracOp, c::Number) = scale(op, c)
-Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
+Base.:*(c::Number, op::DiracOp) = scale(c, op)
+Base.:*(op::DiracOp, c::Number) = scale(op, c)
+Base.:/(op::DiracOp, c::Number) = scale(op, 1/c)
 
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OpSum) = scale(-1, op)
-Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
+Base.:-(op::OpSum) = scale(-1, op)
+Base.:-(opc::DualOpSum) = DualOpSum(-opc.op)
 
-Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
-Base.(:-){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+Base.:+{P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.:-{P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
 
-Base.(:+){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op + b.op)
-Base.(:-){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op - b.op)
+Base.:+{P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op + b.op)
+Base.:-{P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op - b.op)
 
-Base.(:+)(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
-Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
+Base.:+(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
+Base.:-(a::DiracOp, b::DiracOp) = a + (-b)
 
 #################
 # Normalization #

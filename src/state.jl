@@ -44,8 +44,8 @@ Base.copy(br::Bra) = Bra(copy(br.kt))
 Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
 Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 
-Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
-Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
+Base.:(==){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
+Base.:(==){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.hash(s::DiracState) = hash(dict(filternz(s)), hash(ptype(s)))
 Base.hash(s::DiracState, h::UInt64) = hash(hash(s), h)
 
@@ -136,7 +136,7 @@ function inner{N}(br::Bra{KroneckerDelta,N}, kt::Ket{KroneckerDelta,N})
     end
 end
 
-Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
+Base.:*(br::Bra, kt::Ket) = inner(br,kt)
 
 inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 
@@ -175,21 +175,21 @@ scale(c::Number, k::Ket) = k * c
 scale(b::Bra, c::Number) = Bra(b.kt* (c'))
 scale(c::Number, b::Bra) = b * c
 
-Base.(:*)(c::Number, s::DiracState) = scale(c, s)
-Base.(:*)(s::DiracState, c::Number) = scale(s, c)
-Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
+Base.:*(c::Number, s::DiracState) = scale(c, s)
+Base.:*(s::DiracState, c::Number) = scale(s, c)
+Base.:/(s::DiracState, c::Number) = scale(s, 1/c)
 
 ###########
 # + and - #
 ###########
-Base.(:-){P,N}(kt::Ket{P,N}) = -1 * kt
-Base.(:-)(br::Bra) = Bra(-br.kt)
+Base.:-{P,N}(kt::Ket{P,N}) = -1 * kt
+Base.:-(br::Bra) = Bra(-br.kt)
 
-Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, add_merge(dict(a), dict(b)))
-Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+Base.:+{P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.:-{P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
 
-Base.(:+)(a::Bra, b::Bra) = Bra(a.kt + b.kt)
-Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
+Base.:+(a::Bra, b::Bra) = Bra(a.kt + b.kt)
+Base.:-(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 
 ##########
 # tensor #
@@ -197,8 +197,8 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(ptype(b), tensordict(dict(a), dict(b)))
 tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
-Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
-Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
+Base.:*(a::Ket, b::Ket) = tensor(a,b)
+Base.:*(a::Bra, b::Bra) = tensor(a,b)
 
 #################
 # Normalization #
