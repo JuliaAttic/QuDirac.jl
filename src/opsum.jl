@@ -3,7 +3,7 @@
 ###################
 abstract type AbsOpSum{P,N,T} <: DiracOp{P,N} end
 
-typealias OpDict{N,T} Dict{OpLabel{N},T}
+OpDict{N,T} = Dict{OpLabel{N},T}
 
 type OpSum{P,N,T} <: AbsOpSum{P,N,T}
     ptype::P

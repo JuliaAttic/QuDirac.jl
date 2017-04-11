@@ -1,7 +1,7 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict{N,T} Dict{StateLabel{N},T}
+StateDict{N,T} = Dict{StateLabel{N},T}
 
 type Ket{P,N,T} <: DiracState{P,N}
     ptype::P
