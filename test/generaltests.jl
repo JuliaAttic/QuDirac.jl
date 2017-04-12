@@ -19,7 +19,7 @@ op_copy[3,0] = 32+im
 @assert op_copy[3,0] == 32+im
 @assert tensor(op_copy, op_copy')[(3,1),(1,2)] == 120
 
-@test_approx_eq norm(qubits) 1
+@test norm(qubits) ≈ 1
 @assert ptrace(belldens, 1) == ptrace(belldens, 2)
 
 @assert d" act_on(< 1 |, | 'a','b','c' >, 2) == < 1 | 'b' >| 'a','c' > "

@@ -6,8 +6,8 @@ StateDict{N,T} = Dict{StateLabel{N},T}
 type Ket{P,N,T} <: DiracState{P,N}
     ptype::P
     dict::StateDict{N,T}
-    Ket(ptype, dict) = new(ptype, dict)
-    Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state.")
+    Ket{P,N,T}(ptype, dict) where {P,N,T} = new(ptype, dict)
+    Ket{P,N,T}(ptype, dict::StateDict{0}) where {P,N,T} = error("Cannot construct a 0-factor state.")
 end
 
 Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)

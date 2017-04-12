@@ -5,7 +5,7 @@ type OuterProduct{P,N,S,K<:Ket,B<:Bra} <: DiracOp{P,N}
     scalar::S
     kt::K
     br::B
-    OuterProduct(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) = new(scalar, kt, br)
+    OuterProduct{P,N,S,K,B}(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) where {P,N,S,K<:Ket,B<:Bra} = new(scalar, kt, br)
 end
 
 OuterProduct{P,N,S}(scalar::S, kt::Ket{P,N}, br::Bra{P,N}) = OuterProduct{P,N,S,typeof(kt),typeof(br)}(scalar, kt, br)

@@ -8,8 +8,8 @@ OpDict{N,T} = Dict{OpLabel{N},T}
 type OpSum{P,N,T} <: AbsOpSum{P,N,T}
     ptype::P
     dict::OpDict{N,T}
-    OpSum(ptype, dict) = new(ptype, dict)
-    OpSum(ptype, dict::OpDict{0}) = error("Cannot construct a 0-factor operator; did you mean to construct a scalar?")
+    OpSum{P,N,T}(ptype, dict) where {P,N,T} = new(ptype, dict)
+    OpSum{P,N,T}(ptype, dict::OpDict{0}) where {P,N,T} = error("Cannot construct a 0-factor operator; did you mean to construct a scalar?")
 end
 
 OpSum{P,N,T}(ptype::P, dict::OpDict{N,T}) = OpSum{P,N,T}(ptype, dict)

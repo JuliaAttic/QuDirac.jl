@@ -4,8 +4,8 @@
 immutable StateLabel{N}
     label::NTuple{N}
     hash::UInt64
-    StateLabel(label::NTuple{N}) = new(label, hash(label))
-    StateLabel(label::NTuple{N}, h::UInt64) = new(label, h)
+    StateLabel{N}(label::NTuple{N}) where N = new(label, hash(label))
+    StateLabel{N}(label::NTuple{N}, h::UInt64) where N = new(label, h)
 end
 
 StateLabel(s::StateLabel) = s
@@ -47,8 +47,8 @@ immutable OpLabel{N}
     k::StateLabel{N}
     b::StateLabel{N}
     hash::UInt64
-    OpLabel(k::StateLabel{N}, b::StateLabel{N}) = new(k, b, hash(k, hash(b)))
-    OpLabel(k::StateLabel{N}, b::StateLabel{N}, h::UInt64) = new(k, b, h)
+    OpLabel{N}(k::StateLabel{N}, b::StateLabel{N}) where N = new(k, b, hash(k, hash(b)))
+    OpLabel{N}(k::StateLabel{N}, b::StateLabel{N}, h::UInt64) where N = new(k, b, h)
 end
 
 OpLabel(op::OpLabel) = op
