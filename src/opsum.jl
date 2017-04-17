@@ -1,15 +1,15 @@
 ###################
 # OpSum/DualOpSum #
 ###################
-abstract AbsOpSum{P,N,T} <: DiracOp{P,N}
+abstract type AbsOpSum{P,N,T} <: DiracOp{P,N} end
 
-typealias OpDict{N,T} Dict{OpLabel{N},T}
+OpDict{N,T} = Dict{OpLabel{N},T}
 
 type OpSum{P,N,T} <: AbsOpSum{P,N,T}
     ptype::P
     dict::OpDict{N,T}
-    OpSum(ptype, dict) = new(ptype, dict)
-    OpSum(ptype, dict::OpDict{0}) = error("Cannot construct a 0-factor operator; did you mean to construct a scalar?")
+    OpSum{P,N,T}(ptype, dict) where {P,N,T} = new(ptype, dict)
+    OpSum{P,N,T}(ptype, dict::OpDict{0}) where {P,N,T} = error("Cannot construct a 0-factor operator; did you mean to construct a scalar?")
 end
 
 OpSum{P,N,T}(ptype::P, dict::OpDict{N,T}) = OpSum{P,N,T}(ptype, dict)
@@ -57,12 +57,12 @@ Base.copy(opc::DualOpSum) = DualOpSum(copy(opc.op))
 Base.similar(op::OpSum, d=similar(dict(op)); P=ptype(op)) = OpSum(P, d)
 Base.similar(opc::DualOpSum, d=similar(dict(opc)); P=ptype(opc)) = DualOpSum(P, d)
 
-Base.(:(==)){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
-Base.(:(==)){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
-Base.(:(==))(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
+Base.:(==){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
+Base.:(==){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = a.op == b.op
+Base.:(==)(a::DiracOp, b::DiracOp) = ==(promote(a,b)...)
 
 Base.hash(op::AbsOpSum) = hash(dict(filternz(op)), hash(ptype(op)))
-Base.hash(op::AbsOpSum, h::Uint64) = hash(hash(op), h)
+Base.hash(op::AbsOpSum, h::UInt64) = hash(hash(op), h)
 
 Base.length(op::AbsOpSum) = length(dict(op))
 
@@ -160,7 +160,7 @@ inner(a::DualOpSum, b::DualOpSum) = inner(b.op, a.op)'
 
 function inner_load!(result, a::OpSum, b::OpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
-        add_to_dict!(result, 
+        add_to_dict!(result,
                      OpLabel(klabel(o1), blabel(o2)),
                      inner_mul(v, c, prodtype, blabel(o1), klabel(o2)))
     end
@@ -169,7 +169,7 @@ end
 
 function inner_load!(result, a::OpSum, b::DualOpSum, prodtype)
     for (o1,v) in dict(a), (o2,c) in dict(b)
-        add_to_dict!(result, 
+        add_to_dict!(result,
                      OpLabel(klabel(o1), klabel(o2)),
                      inner_mul(v, c', prodtype, blabel(o1), blabel(o2)))
     end
@@ -202,7 +202,7 @@ end
 function brcoeff{T}(brdict, prodtype, klabel, v, ::Type{T})
     coeff = predict_zero(T)
     for (blabel,c) in brdict
-        coeff += inner_mul(c', v, prodtype, klabel, blabel) 
+        coeff += inner_mul(c', v, prodtype, klabel, blabel)
     end
     return coeff'
 end
@@ -215,9 +215,9 @@ function ktcoeff{T}(ktdict, prodtype, blabel, v, ::Type{T})
     return coeff
 end
 
-Base.(:*)(br::Bra, op::DiracOp) = inner(br,op)
-Base.(:*)(op::DiracOp, kt::Ket) = inner(op,kt)
-Base.(:*)(a::DiracOp, b::DiracOp) = inner(a,b)
+Base.:*(br::Bra, op::DiracOp) = inner(br,op)
+Base.:*(op::DiracOp, kt::Ket) = inner(op,kt)
+Base.:*(a::DiracOp, b::DiracOp) = inner(a,b)
 
 ###################################
 # Functional Operator Application #
@@ -226,10 +226,10 @@ immutable DualFunc
     f::Function
 end
 
-Base.(:*)(op::Function, kt::Ket) = op(kt)
-Base.(:*)(br::Bra, op::Function) = op(br)
-Base.(:*)(op::DualFunc, kt::Ket) = (kt' * op.f)'
-Base.(:*)(br::Bra, op::DualFunc) = (op.f * br')'
+Base.:*(op::Function, kt::Ket) = op(kt)
+Base.:*(br::Bra, op::Function) = op(br)
+Base.:*(op::DualFunc, kt::Ket) = (kt' * op.f)'
+Base.:*(br::Bra, op::DualFunc) = (op.f * br')'
 
 Base.ctranspose(f::Function) = DualFunc(f)
 Base.ctranspose(fc::DualFunc) = fc.f
@@ -257,7 +257,7 @@ end
 
 function act_on_dict!(result, op::OpSum, kt::Ket, i, prodtype)
     for (o,c) in dict(op), (k,v) in dict(kt)
-        add_to_dict!(result, 
+        add_to_dict!(result,
                      setindex(k, klabel(o)[1], i),
                      inner_mul(c, v, prodtype, blabel(o)[1], k[i]))
     end
@@ -280,39 +280,42 @@ tensor{P}(a::OpSum{P}, b::OpSum{P}) = OpSum(ptype(a), tensordict(dict(a), dict(b
 tensor(a::DualOpSum, b::DualOpSum) = tensor(a.opc, b.opc)'
 tensor(a::DiracOp, b::DiracOp) = tensor(promote(a,b)...)
 
-Base.(:*)(kt::Ket, br::Bra) = tensor(kt,br)
+Base.:*(kt::Ket, br::Bra) = tensor(kt,br)
 
 ###########
 # Scaling #
 ###########
-Base.scale!(op::OpSum, c::Number) = (dscale!(dict(op), c); return op)
-Base.scale!(c::Number, op::OpSum) = scale!(op, c)
-Base.scale!(opc::DualOpSum, c::Number) = DualOpSum(scale!(opc.op, c'))
-Base.scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
+scale!(op::OpSum, c::Number) = (dscale!(dict(op), c); return op)
+scale!(c::Number, op::OpSum) = scale!(op, c)
+scale!(opc::DualOpSum, c::Number) = DualOpSum(scale!(opc.op, c'))
+scale!(c::Number, opc::DualOpSum) = scale!(opc, c)
 
-Base.scale(op::OpSum, c::Number) = similar(op, dscale(dict(op), c))
-Base.scale(c::Number, op::OpSum) = scale(op, c)
-Base.scale(opc::DualOpSum, c::Number) = DualOpSum(scale(opc.op, c'))
-Base.scale(c::Number, opc::DualOpSum) = scale(opc, c)
+# See #15258 in JuliaLang/julia
 
-Base.(:*)(c::Number, op::DiracOp) = scale(c, op)
-Base.(:*)(op::DiracOp, c::Number) = scale(op, c)
-Base.(:/)(op::DiracOp, c::Number) = scale(op, 1/c)
+scale(op::OpSum, c::Number) = similar(op, dscale(dict(op), c))
+scale(c::Number , op::OpSum) = op * c
+scale(opc::DualOpSum, c::Number) = DualOpSum(opc.op * (c'))
+scale(c::Number, opc::DualOpSum) = opc * c
+
+
+Base.:*(c::Number, op::DiracOp) = scale(c, op)
+Base.:*(op::DiracOp, c::Number) = scale(op, c)
+Base.:/(op::DiracOp, c::Number) = scale(op, 1/c)
 
 ###########
 # + and - #
 ###########
-Base.(:-)(op::OpSum) = scale(-1, op)
-Base.(:-)(opc::DualOpSum) = DualOpSum(-opc.op)
+Base.:-(op::OpSum) = scale(-1, op)
+Base.:-(opc::DualOpSum) = DualOpSum(-opc.op)
 
-Base.(:+){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
-Base.(:-){P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+Base.:+{P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.:-{P,N}(a::OpSum{P,N}, b::OpSum{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
 
-Base.(:+){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op + b.op)
-Base.(:-){P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op - b.op)
+Base.:+{P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op + b.op)
+Base.:-{P,N}(a::DualOpSum{P,N}, b::DualOpSum{P,N}) = DualOpSum(a.op - b.op)
 
-Base.(:+)(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
-Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
+Base.:+(a::DiracOp, b::DiracOp) = +(promote(a,b)...)
+Base.:-(a::DiracOp, b::DiracOp) = a + (-b)
 
 #################
 # Normalization #
@@ -320,8 +323,8 @@ Base.(:-)(a::DiracOp, b::DiracOp) = a + (-b)
 Base.norm(op::OpSum) = sqrt(sum(abs2, values(dict(op))))
 Base.norm(opc::DualOpSum) = norm(opc.op)
 
-normalize(op::DiracOp) = scale(1/norm(op), op)
-normalize!(op::DiracOp) = scale!(1/norm(op), op)
+QuDirac.normalize(op::DiracOp) = (1/norm(op))*op
+QuDirac.normalize!(op::DiracOp) = scale!(1/norm(op), op)
 
 #########
 # Trace #
@@ -408,11 +411,11 @@ function matrep(op::DiracOp, labels...)
     return T[bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
 
-function matrep(op::Union(DualFunc, Function), labels)
+function matrep(op::DualFunc, labels)
     return [bra(i) * op * ket(j) for i in labels, j in labels]
 end
 
-function matrep(op::Union(DualFunc, Function), labels...)
+function matrep(op::DualFunc, labels...)
     iter = Iterators.product(labels...)
     return [bra(i...) * op * ket(j...) for i in iter, j in iter]
 end

@@ -7,16 +7,16 @@
 @assert b*k == 56 - 28im
 @assert b*op*k == 2352 - 3136im
 
-@test_approx_eq qubits'*qubits 1
-@test_approx_eq norm(ptrace(bitdens, 2)) 1
-@test_approx_eq trace(ptrace(bitdens, 2)) 1
-@test_approx_eq trace(ptrace(belldens, 1)^2) .5
-@test_approx_eq purity(bell) 1
+@test qubits'*qubits ≈ 1
+@test norm(ptrace(bitdens, 2)) ≈ 1
+@test trace(ptrace(bitdens, 2)) ≈ 1
+@test trace(ptrace(belldens, 1)^2) ≈ .5
+@test purity(bell) ≈ 1
 
 @rep_op " H | n > = 1/√2 * ( | 0 > + (-1)^n * | 1 > )" 0:1
 @assert matrep(H, 0:1) == 1/√2 * [1 1 ; 1 -1]
 m = 0.5 * [1 1;1 -1]
-@test_approx_eq matrep(tensor(H, H), 0:1, 0:1) [m m ; m -m]
+@test matrep(tensor(H, H), 0:1, 0:1) ≈ [m m ; m -m]
 
 @assert ptrace(ptrace(bitdens, 2), 1) == ptrace(ptrace(bitdens, 1), 2)
 

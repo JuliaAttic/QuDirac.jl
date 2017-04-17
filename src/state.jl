@@ -1,13 +1,13 @@
 ###########
 # Ket/Bra #
 ###########
-typealias StateDict{N,T} Dict{StateLabel{N},T}
+StateDict{N,T} = Dict{StateLabel{N},T}
 
 type Ket{P,N,T} <: DiracState{P,N}
     ptype::P
     dict::StateDict{N,T}
-    Ket(ptype, dict) = new(ptype, dict)
-    Ket(ptype, dict::StateDict{0}) = error("Cannot construct a 0-factor state.")
+    Ket{P,N,T}(ptype, dict) where {P,N,T} = new(ptype, dict)
+    Ket{P,N,T}(ptype, dict::StateDict{0}) where {P,N,T} = error("Cannot construct a 0-factor state.")
 end
 
 Ket{P,N,T}(ptype::P, dict::StateDict{N,T}) = Ket{P,N,T}(ptype, dict)
@@ -44,10 +44,10 @@ Base.copy(br::Bra) = Bra(copy(br.kt))
 Base.similar(kt::Ket, d=similar(dict(kt)); P=ptype(kt)) = Ket(P, d)
 Base.similar(br::Bra, d=similar(dict(br)); P=ptype(br)) = Bra(P, d)
 
-Base.(:(==)){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
-Base.(:(==)){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
+Base.:(==){P,N}(a::Ket{P,N}, b::Ket{P,N}) = ptype(a) == ptype(b) && dict(filternz(a)) == dict(filternz(b))
+Base.:(==){P,N}(a::Bra{P,N}, b::Bra{P,N}) = a.kt == b.kt
 Base.hash(s::DiracState) = hash(dict(filternz(s)), hash(ptype(s)))
-Base.hash(s::DiracState, h::Uint64) = hash(hash(s), h)
+Base.hash(s::DiracState, h::UInt64) = hash(hash(s), h)
 
 Base.length(s::DiracState) = length(dict(s))
 
@@ -115,7 +115,7 @@ function inner{P,N,T1,T2}(br::Bra{P,N,T1}, kt::Ket{P,N,T2})
     for (b,c) in dict(br), (k,v) in dict(kt)
         result += inner_mul(c',v,prodtype,b,k)
     end
-    return result  
+    return result
 end
 
 function ortho_inner(a::DiracState{KroneckerDelta}, b::DiracState{KroneckerDelta})
@@ -136,7 +136,7 @@ function inner{N}(br::Bra{KroneckerDelta,N}, kt::Ket{KroneckerDelta,N})
     end
 end
 
-Base.(:*)(br::Bra, kt::Ket) = inner(br,kt)
+Base.:*(br::Bra, kt::Ket) = inner(br,kt)
 
 inner_eval(f, s::DiracState) = mapcoeffs(x->inner_eval(f,x),s)
 
@@ -163,31 +163,33 @@ end
 ###########
 # Scaling #
 ###########
-Base.scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
-Base.scale!(c::Number, k::Ket) = scale!(k,c)
-Base.scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
-Base.scale!(c::Number, b::Bra) = scale!(b,c)
+scale!(k::Ket, c::Number) = (dscale!(dict(k), c); return k)
+scale!(c::Number, k::Ket) = scale!(k,c)
+scale!(b::Bra, c::Number) = Bra(scale!(b.kt, c'))
+scale!(c::Number, b::Bra) = scale!(b,c)
 
-Base.scale(k::Ket, c::Number) = similar(k, dscale(dict(k), c))
-Base.scale(c::Number, k::Ket) = scale(k,c)
-Base.scale(b::Bra, c::Number) = Bra(scale(b.kt, c'))
-Base.scale(c::Number, b::Bra) = scale(b,c)
+# See #15258 in JuliaLang/julia
 
-Base.(:*)(c::Number, s::DiracState) = scale(c, s)
-Base.(:*)(s::DiracState, c::Number) = scale(s, c)
-Base.(:/)(s::DiracState, c::Number) = scale(s, 1/c)
+scale(k::Ket, c::Number) = similar(k, dscale(dict(k), c))
+scale(c::Number, k::Ket) = k * c
+scale(b::Bra, c::Number) = Bra(b.kt* (c'))
+scale(c::Number, b::Bra) = b * c
+
+Base.:*(c::Number, s::DiracState) = scale(c, s)
+Base.:*(s::DiracState, c::Number) = scale(s, c)
+Base.:/(s::DiracState, c::Number) = scale(s, 1/c)
 
 ###########
 # + and - #
 ###########
-Base.(:-){P,N}(kt::Ket{P,N}) = -1 * kt
-Base.(:-)(br::Bra) = Bra(-br.kt)
+Base.:-{P,N}(kt::Ket{P,N}) = -1 * kt
+Base.:-(br::Bra) = Bra(-br.kt)
 
-Base.(:+){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, add_merge(dict(a), dict(b)))
-Base.(:-){P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
+Base.:+{P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, add_merge(dict(a), dict(b)))
+Base.:-{P,N}(a::Ket{P,N}, b::Ket{P,N}) = similar(b, sub_merge(dict(a), dict(b)))
 
-Base.(:+)(a::Bra, b::Bra) = Bra(a.kt + b.kt)
-Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
+Base.:+(a::Bra, b::Bra) = Bra(a.kt + b.kt)
+Base.:-(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 
 ##########
 # tensor #
@@ -195,15 +197,15 @@ Base.(:-)(a::Bra, b::Bra) = Bra(a.kt - b.kt)
 tensor{P}(a::Ket{P}, b::Ket{P}) = Ket(ptype(b), tensordict(dict(a), dict(b)))
 tensor(a::Bra, b::Bra) = tensor(a.kt, b.kt)'
 
-Base.(:*)(a::Ket, b::Ket) = tensor(a,b)
-Base.(:*)(a::Bra, b::Bra) = tensor(a,b)
+Base.:*(a::Ket, b::Ket) = tensor(a,b)
+Base.:*(a::Bra, b::Bra) = tensor(a,b)
 
 #################
 # Normalization #
 #################
 Base.norm(s::DiracState) = sqrt(sum(abs2, values(dict(s))))
-normalize(s::DiracState) = (1/norm(s))*s
-normalize!(s::DiracState) = scale!(1/norm(s), s)
+QuDirac.normalize(s::DiracState) = (1/norm(s))*s
+QuDirac.normalize!(s::DiracState) = scale!(1/norm(s), s)
 
 ########################
 # Misc. Math Functions #

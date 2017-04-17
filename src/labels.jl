@@ -3,9 +3,9 @@
 ##############
 immutable StateLabel{N}
     label::NTuple{N}
-    hash::Uint64
-    StateLabel(label::NTuple{N}) = new(label, hash(label))
-    StateLabel(label::NTuple{N}, h::Uint64) = new(label, h)
+    hash::UInt64
+    StateLabel{N}(label::NTuple{N}) where N = new(label, hash(label))
+    StateLabel{N}(label::NTuple{N}, h::UInt64) where N = new(label, h)
 end
 
 StateLabel(s::StateLabel) = s
@@ -18,9 +18,9 @@ Base.getindex(s::StateLabel, arr::AbstractArray) = s.label[arr]
 
 Base.copy{N}(s::StateLabel{N}) = StateLabel{N}(s.label, s.hash)
 Base.hash(s::StateLabel) = s.hash
-Base.hash(s::StateLabel, h::Uint64) = hash(hash(s), h)
+Base.hash(s::StateLabel, h::UInt64) = hash(hash(s), h)
 
-Base.(:(==)){N}(a::StateLabel{N},b::StateLabel{N}) = hash(a) == hash(b)
+Base.:(==){N}(a::StateLabel{N},b::StateLabel{N}) = hash(a) == hash(b)
 
 Base.start(s::StateLabel) = start(s.label)
 Base.next(s::StateLabel, i) = next(s.label, i)
@@ -32,7 +32,7 @@ Base.endof(s::StateLabel) = endof(s.label)
 
 Base.length{N}(::StateLabel{N}) = N
 
-Base.map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, s.label))
+#Base.map(f::Union(Function,DataType), s::StateLabel) = StateLabel(map(f, s.label))
 
 tensor(a::StateLabel, b::StateLabel) = StateLabel(tuple(a.label..., b.label...))
 
@@ -46,9 +46,9 @@ Base.show(io::IO, s::StateLabel) = print(io, repr(s))
 immutable OpLabel{N}
     k::StateLabel{N}
     b::StateLabel{N}
-    hash::Uint64
-    OpLabel(k::StateLabel{N}, b::StateLabel{N}) = new(k, b, hash(k, hash(b)))
-    OpLabel(k::StateLabel{N}, b::StateLabel{N}, h::Uint64) = new(k, b, h)
+    hash::UInt64
+    OpLabel{N}(k::StateLabel{N}, b::StateLabel{N}) where N = new(k, b, hash(k, hash(b)))
+    OpLabel{N}(k::StateLabel{N}, b::StateLabel{N}, h::UInt64) where N = new(k, b, h)
 end
 
 OpLabel(op::OpLabel) = op
@@ -61,9 +61,9 @@ blabel(o::OpLabel) = o.b
 
 Base.copy{N}(o::OpLabel{N}) = OpLabel{N}(o.k, o.b, o.hash)
 Base.hash(o::OpLabel) = o.hash
-Base.hash(o::OpLabel, h::Uint64) = hash(hash(o), h)
+Base.hash(o::OpLabel, h::UInt64) = hash(hash(o), h)
 
-Base.(:(==)){N}(a::OpLabel{N}, b::OpLabel{N}) = hash(a) == hash(b)
+Base.:(==){N}(a::OpLabel{N}, b::OpLabel{N}) = hash(a) == hash(b)
 
 Base.length{N}(::OpLabel{N}) = N
 

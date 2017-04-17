@@ -63,12 +63,12 @@ end
 
 immutable OpDefExpr
     op_sym::Symbol
-    label_args::Union(Symbol, Expr)
+    label_args::Symbol
     lhs_type::Symbol
-    rhs::Union(Symbol, Expr)
+    rhs::Symbol
 end
 
-OpDefExpr(ods::OpDefStr) = OpDefExpr(symbol(ods.op_name), parse(ods.label_args), symbol(ods.lhs_type), parse(ods.rhs))
+OpDefExpr(ods::OpDefStr) = OpDefExpr(Symbol(ods.op_name), Symbol(parse(ods.label_args)), Symbol(ods.lhs_type), Symbol(parse(ods.rhs)))
 
 rm_whspace(str) = join(split(str, r"\s"))
 
@@ -97,18 +97,18 @@ end
 macro def_op(str)
     result_expr = def_op_expr(OpDefStr(str))
     return esc(result_expr)
-end 
+end
 
 function def_op_expr(ods::OpDefStr)
     odex = OpDefExpr(ods)
 
     if isa(odex.label_args, Expr)
-        func_on_label_def = quote 
+        func_on_label_def = quote
             local func_on_args($(odex.label_args.args...)) = $(odex.rhs)
             local func_on_label(label::StateLabel) = func_on_args(label...)
         end
     else # isa(label_expr, Symbol)
-        func_on_label_def = quote 
+        func_on_label_def = quote
             local func_on_args($(odex.label_args)) = $(odex.rhs)
             local func_on_label(label::StateLabel) = func_on_args(first(label))
         end
@@ -123,7 +123,7 @@ function def_op_expr(ods::OpDefStr)
         function func_on_pair(pair::Tuple)
           label, c = pair
           return $(coeff) * func_on_label(label)
-        end  
+        end
 
         $(odex.op_sym)(state::$(odex.lhs_type)) = sum(func_on_pair, QuDirac.dict(state))
     end
@@ -140,7 +140,7 @@ coeff_sym(odex::OpDefExpr) = odex.lhs_type == :Ket ? :c : :(c')
 macro rep_op(str, bases...)
     result_expr = rep_op_expr(OpDefStr(str), build_prod_basis(bases...))
     return esc(result_expr)
-end 
+end
 
 build_prod_basis(basis) = basis
 build_prod_basis(first, bases...) = :(Iterators.product($first, $(bases...)))
@@ -157,12 +157,12 @@ end
 
 function gen_ket_repr_expr(odex::OpDefExpr, basis)
     if isa(odex.label_args, Expr)
-        ex = quote 
+        ex = quote
             local func_on_args($(odex.label_args.args...)) = $(odex.rhs) * bra($(odex.label_args.args...))
             $(odex.op_sym) = sum(args->func_on_args(args...), $basis)
         end
     else
-        ex = quote 
+        ex = quote
             $(odex.op_sym) = sum($(odex.label_args) -> $(odex.rhs) * bra($(odex.label_args)), $basis)
         end
     end
@@ -171,12 +171,12 @@ end
 
 function gen_bra_repr_expr(odex::OpDefExpr, basis)
     if isa(odex.label_args, Expr)
-        ex = quote 
+        ex = quote
             local func_on_args($(odex.label_args.args...)) = ket($(odex.label_args.args...)) * $(odex.rhs)
             $(odex.op_sym) = sum(args->func_on_args(args...), $basis)
         end
     else
-        ex = quote 
+        ex = quote
             $(odex.op_sym) = sum($(odex.label_args) -> ket($(odex.label_args)) * $(odex.rhs), $basis)
         end
     end
