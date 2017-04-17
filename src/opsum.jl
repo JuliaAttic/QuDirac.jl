@@ -411,17 +411,14 @@ function matrep(op::DiracOp, labels...)
     return T[bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
 
-#TODO Fix
-#=
-function matrep(op::Union(DualFunc, Function), labels)
+function matrep(op::DualFunc, labels)
     return [bra(i) * op * ket(j) for i in labels, j in labels]
 end
 
-function matrep(op::Union(DualFunc, Function), labels...)
+function matrep(op::DualFunc, labels...)
     iter = Iterators.product(labels...)
     return [bra(i...) * op * ket(j...) for i in iter, j in iter]
 end
-=#
 
 ######################
 # Printing Functions #
